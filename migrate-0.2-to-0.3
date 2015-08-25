@@ -1,0 +1,52 @@
+#!/usr/bin/perl -w
+#
+# migrate-0.2-to-0.3:
+# Migrate the v0.2 and earlier .bfildb, which is a GDBM database, to the v0.3
+# and later .bfildb2, which is a TDB database.
+#
+# Call with two arguments: paths to the old and new database files. I recommend
+# that you copy the old file, rather than working from it directly, since
+# otherwise mail you receive while this script is running can't be checked by
+# bfilter.
+#
+# Copyright (c) 2004 Chris Lightfoot. All rights reserved.
+# Email: chris@ex-parrot.com; WWW: http://www.ex-parrot.com/~chris/
+#
+
+my $rcsid = ''; $rcsid .= '$Id: migrate-0.2-to-0.3,v 1.1 2004/04/18 13:56:02 chris Exp $';
+
+use strict;
+
+use IO::Handle;
+use GDBM_File;
+use TDB_File;
+use Digest::MD5;
+use Fcntl;
+
+use constant HASHLEN => 8;
+
+die "two arguments are path to old database and path to new database" unless (@ARGV == 2);
+
+my ($oldf, $newf) = @ARGV;
+
+tie(my %old, 'GDBM_File', $oldf, GDBM_READER, 0666) or die "$oldf: can't open database: $!";
+tie(my %new, 'TDB_File', $newf, TDB_DEFAULT, O_RDWR | O_CREAT, 0666) or die "$newf: can't open database: $!";
+
+my $cols = $ENV{COLUMNS};
+$cols ||= 80;
+
+my $total = scalar(keys(%old));
+my $N = 0;
+
+while (my ($oldkey, $v) = each %old) {
+    my $newkey = substr(Digest::MD5::md5($oldkey), 0, HASHLEN);
+    $new{$newkey} = $v;
+    my $a = $cols - 34;
+    ++$N;
+    STDERR->printf("\rConverting: % 8d/% 8d [%s%s]", $N, $total, '#' x int(($N / $total) * $a), ' ' x ($a - int(($N / $total) * $a))) if ($N == $total or !($N % 1000));
+}
+
+STDERR->print("\n");
+
+untie(%old);
+untie(%new);

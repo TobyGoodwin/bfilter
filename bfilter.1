@@ -29,6 +29,7 @@ headers.
 In this mode, \fBbfilter\fP will discard from its database terms which have not
 been referenced by any email during the past four weeks. Since the bfilter
 database grows large quite quickly, you should run this every so often.
+
 .SH USAGE
 Assemble a corpus of spam and of non-spam. The latter should include mail that
 you've sent. Feed them into \fBbfilter\fP with the appropriate options. Test
@@ -40,10 +41,18 @@ of header of the form
   \fBX-Spam-Probability: YES (p=...)\fP
 .fi
 .Sp
+
+By default, \fBbfilter\fP uses the file \fB~/.bfildb2\fP for its database of
+spam and non-spam terms. You can use the environment variable BFILTER_DB to
+specify an alternative database file. (Older versions used \fB~/.bfildb\fP,
+which was a database in a different format.)
+
 .SH FILES
 .TP
-\fB~/.bfildb\fP
-A \fBgdbm\fP(3) database which stores the dictionary of terms.
+\fB~/.bfildb2\fP
+A \fBtdb\fP(3) database which stores the dictionary of terms. You can use an
+alternative database by specifying a filename in the environment variable
+BFILTER_DB.
 .SH SEE ALSO
 .BR procmail (1),
 .BR gdbm (3),

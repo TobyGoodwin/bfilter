@@ -18,18 +18,25 @@ instead applies some heuristics to find chunks of base64 encoded text which
 extend over more than a few lines. I haven't attempted to analyse whether this
 is worthwhile.
 
-bfilter uses GDBM databases to store the list of terms and term occurences
+bfilter uses a TDB database to store the list of terms and term occurences
 which is used to estimate the probability that a given email is spam. The sole
-thing to be said for this approach is that it was easy to implement. GDBM
+thing to be said for this approach is that it was easy to implement. TDB
 databases are big and not blindingly fast. But disk space is cheap and
 performance is acceptable.
+
+NOTE TO UPGRADERS: version 0.3 uses a different database type -- Andrew
+Tridgell's TDB, rather than GDBM -- in an attempt to save disk space and
+improve concurrency (TDB doesn't have exclusive-lock-on-write). There is a perl
+script, migrate-0.2-to-0.3, which performs this conversion for you. You will
+need the TDB_File module from CPAN.
 
 
 Installation
 ------------
 
 Edit the Makefile and type make. Fix any errors which are reported. Copy the
-resulting bfilter executable to Where You Want It.
+resulting bfilter executable to Where You Want It; similarly for the man page,
+bfilter.1.
 
 
 Use
@@ -66,6 +73,21 @@ From time to time you should run bfilter cleandb, which will discard from the
 database terms which haven't been used in the past four weeks. This will save
 some disk space.
 
+bfilter understands the headers added by SpamAssassin and can filter on them;
+I find this more useful than SpamAssassin's built-in scoring.
+
+
+CVS
+---
+
+You can access the public CVS repository for bfilter:
+
+  $ CVSROOT=:pserver:anonymous@sphinx.mythic-beasts.com:/home/chris/vcvs/repos
+  $ export CVSROOT
+  $ cvs login
+  CVS password:       # password is `anonymous'
+  $ cvs co bfilter
+
 
 License, Disclaimer and Other Legal Stuff
 -----------------------------------------
@@ -82,4 +104,4 @@ PARTICULAR PURPOSE.  See the GNU General Public License for more details.
 bfilter is copyright (c) 2003 Chris Lightfoot <chris@ex-parrot.com>
 See also: http://ex-parrot.com/~chris/software.html#bfilter
 
-$Id: README,v 1.6 2003/08/19 10:59:14 chris Exp $
+$Id: README,v 1.10 2004/04/18 13:56:02 chris Exp $

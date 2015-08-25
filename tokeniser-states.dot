@@ -1,0 +1,53 @@
+/*
+ * tokeniser-states.dot:
+ * DOT digraph of the tokeniser state machine.
+ *
+ * This is of limited instructional value, but playing with DOT is interesting.
+ *
+ * Copyright (c) 2003 Chris Lightfoot. All rights reserved.
+ * Email: chris@ex-parrot.com; WWW: http://www.ex-parrot.com/~chris/
+ * 
+ * $Id: tokeniser-states.dot,v 1.1 2003/08/22 11:22:11 chris Exp $
+ */
+ 
+digraph tokeniser {
+    /*
+     * States
+     */
+    hdr
+    hdr_xsp
+    hdr_rel
+    bdy_blank
+    bdy
+    bdy_b64_1
+    bdy_b64
+    end
+
+    /*
+     * Transitions
+     */
+    hdr -> bdy_blank [label="is_blank"]
+    hdr -> hdr_rel [label="is_hdr_rel"]
+    hdr -> hdr_xsp [label="is_hdr_xsp"]
+
+    hdr_rel -> bdy_blank [label="is_blank"]
+    hdr_xsp -> bdy_blank [label="is_blank"]
+    hdr_xsp -> hdr_rel [label="is_hdr_rel"]
+    hdr_rel -> hdr_xsp [label="is_hdr_xsp"]
+    hdr_rel -> hdr [label="starts_nwsp"]
+    hdr_xsp -> hdr [label="starts_nwsp"]
+
+    bdy_blank -> end [label="is_from_"]
+    bdy_blank -> bdy_b64_1 [label="len > 32 && is_b64"]
+    bdy_blank -> bdy [label="!is_blank"]
+
+    bdy -> bdy_blank [label="is_blank"]
+
+    bdy_b64_1 -> bdy_blank [label="is_blank"]
+    bdy_b64_1 -> bdy [label="len > b64linelen || !is_b64"]
+    bdy_b64_1 -> bdy_b64
+
+    bdy_b64 -> bdy_blank [label="is_blank"]
+    bdy_b64 -> bdy [label="len > b64linelen || !is_b64"]
+    
+}
