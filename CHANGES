@@ -1,0 +1,12 @@
+Change log for bfilter
+$Id: CHANGES,v 1.1 2003/08/19 11:00:59 chris Exp $
+
+0.2
+
+Added timestamps to database keys. Added cleandb option. Added X-Spam-Status:
+(from Spam Assassin) to the list of headers to inspect. Changed the base
+all-spam / all-real probabilities to 0.00001 / 0.99999.
+
+0.1
+
+Initial public release.

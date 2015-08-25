@@ -1,0 +1,4 @@
+bfilter.o: bfilter.c skiplist.h util.h
+pool.o: pool.c pool.h util.h
+skiplist.o: skiplist.c pool.h skiplist.h util.h
+util.o: util.c util.h

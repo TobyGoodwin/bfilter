@@ -1,0 +1,73 @@
+.TH BFILTER "1" "January 2003" "bfilter"
+
+.SH NAME
+bfilter \- simple Bayesian spam filter
+.SH SYNOPSIS
+\fBbfilter\fP (\fBisspam\fP|\fBisreal\fP|\fBtest\fP) < \fIemail\fP
+
+\fBbfilter\fP \fBcleandb\fP
+.SH DESCRIPTION
+
+\fBbfilter\fP maintains a dictionary of `terms' (words, email addresses, URL
+fragments and so forth) and their occurences in sample spam and non-spam emails
+and uses these to estimate the probability that a given test email is spam. It
+has three modes:
+.TP
+\fBisspam\fP, \fBisreal\fP
+In these modes, \fBbfilter\fP reads emails from standard input in Berkeley
+mailspool format (with individual mails separated by `\\n\\nFrom ') and adds the
+terms in them to the dictionary, assuming that they are either spam
+(\fBisspam\fP) or non-spam (\fBisreal\fP).
+.TP
+\fBtest\fP
+In this mode, \fBbfilter\fP reads a single email from standard input, and forms
+an estimate of the probability that it is spam; it then writes the email to
+standard output with added \fBX-Spam-Probability:\fP and \fBX-Spam-Words:\fP
+headers.
+.TP
+\fBcleandb\fP
+In this mode, \fBbfilter\fP will discard from its database terms which have not
+been referenced by any email during the past four weeks. Since the bfilter
+database grows large quite quickly, you should run this every so often.
+.SH USAGE
+Assemble a corpus of spam and of non-spam. The latter should include mail that
+you've sent. Feed them into \fBbfilter\fP with the appropriate options. Test
+the filter on some existing emails to satisfy yourself that it's working. Then
+you can feed new emails through \fBbfilter test\fP, and filter on the presence
+of header of the form
+
+.nf
+  \fBX-Spam-Probability: YES (p=...)\fP
+.fi
+.Sp
+.SH FILES
+.TP
+\fB~/.bfildb\fP
+A \fBgdbm\fP(3) database which stores the dictionary of terms.
+.SH SEE ALSO
+.BR procmail (1),
+.BR gdbm (3),
+.br
+.IR http://ex-parrot.com/~chris/software.html#bfilter ,
+.br
+.IR http://www.paulgraham.com/spam.html .
+.SH AUTHOR
+Chris Lightfoot <chris@ex-parrot.com>
+.br
+.I http://ex-parrot.com/~chris/
+
+Please send me bug reports, patches, adulation and so forth.
+.SH COPYRIGHT
+Copyright \(co 2003 Chris Lightfoot
+.br
+
+This program is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free Software
+Foundation; either version 2 of the License, or (at your option) any later
+version.
+
+This program is distributed in the hope that it will be useful, but
+\fBwithout any warranty\fP; without even the implied warranty of
+\fBmerchantability\fP or \fBfitness for a particular purpose\fP. See the GNU
+General Public License for more details.
+
