@@ -9,6 +9,7 @@
 #
 
 # Edit these until it compiles.
+CC = gcc -std=c99
 CFLAGS += -g -Wall -I/software/include
 LDFLAGS += -g -L/software/lib
 LDLIBS += -ltdb -lcrypto #-lefence

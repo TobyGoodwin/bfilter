@@ -400,8 +400,6 @@ void *skiplist_itr_value(skiplist S, skiplist_iterator itr) {
 }
 
 void *skiplist_itr_key(skiplist S, skiplist_iterator itr, size_t *len) {
-    struct skiplist_node *n;
-    n = (struct skiplist_node*)itr;
     if (len) *len = itr->klen;
     return itr->k;
 }

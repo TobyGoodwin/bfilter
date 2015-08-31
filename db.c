@@ -38,7 +38,7 @@ static TDB_CONTEXT *filterdb;
  * Save in HASH the hash of the LENGTH-byte TERM. */
 static void make_hash(const char *term, const size_t len, unsigned char hash[8]) {
     unsigned char md5[16];
-    MD5(term, len, md5);
+    MD5((const unsigned char *)term, len, md5);
     memcpy(hash, md5, HASHLEN);
 }
 
@@ -83,7 +83,7 @@ void db_close(void) {
 
 /* db_set_pair NAME A B
  * Save under NAME the pair A, B, also setting the timestamp. */
-void db_set_pair(const unsigned char *name, unsigned int a, unsigned int b) {
+void db_set_pair(const char *name, unsigned int a, unsigned int b) {
     TDB_DATA k, d;
     uint32_t u;
     unsigned char key[HASHLEN], data[12];     /* a, b, time of last use. */
@@ -107,7 +107,7 @@ void db_set_pair(const unsigned char *name, unsigned int a, unsigned int b) {
 /* db_get_pair NAME A B
  * Save in *A and *B the elements of the pair identified by NAME, returning 1
  * and updating the timestamp if the pair is found, else returning 0. */
-int db_get_pair(const unsigned char *name, unsigned int *a, unsigned int *b) {
+int db_get_pair(const char *name, unsigned int *a, unsigned int *b) {
     TDB_DATA k, d;
     unsigned char key[HASHLEN];
     

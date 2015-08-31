@@ -15,8 +15,8 @@
 /* db.c */
 int db_open(void);
 void db_close(void);
-void db_set_pair(const unsigned char *name, unsigned int a, unsigned int b);
-int db_get_pair(const unsigned char *name, unsigned int *a, unsigned int *b);
+void db_set_pair(const char *name, int a, int b);
+int db_get_pair(const char *name, int *a, int *b);
 unsigned int db_clean(int ndays);
 
 #endif /* __DB_H_ */

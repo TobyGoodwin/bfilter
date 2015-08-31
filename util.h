@@ -38,6 +38,7 @@ void *xrealloc(void *w, size_t n);
 char *xstrdup(const char *s);
 void xfree(void *v);
 ssize_t xread(int fd, void *buf, size_t count);
-unsigned char *memstr(const unsigned char *haystack, const size_t hlen, const unsigned char *needle, const size_t nlen);
+const char *memstr(const char *haystack, const size_t hlen,
+	const char *needle, const size_t nlen);
 
 #endif /* __UTIL_H_ */
