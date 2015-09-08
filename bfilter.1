@@ -5,13 +5,13 @@ bfilter \- simple Bayesian spam filter
 .SH SYNOPSIS
 \fBbfilter\fP (\fBisspam\fP|\fBisreal\fP|\fBtest\fP) < \fIemail\fP
 
-\fBbfilter\fP \fBcleandb\fP
+\fBbfilter\fP (\fBcleandb\fP|\fBstats\fP)
 .SH DESCRIPTION
 
 \fBbfilter\fP maintains a dictionary of `terms' (words, email addresses, URL
 fragments and so forth) and their occurences in sample spam and non-spam emails
 and uses these to estimate the probability that a given test email is spam. It
-has three modes:
+has four modes:
 .TP
 \fBisspam\fP, \fBisreal\fP
 In these modes, \fBbfilter\fP reads emails from standard input in Berkeley
@@ -29,13 +29,17 @@ headers.
 In this mode, \fBbfilter\fP will discard from its database terms which have not
 been referenced by any email during the past four weeks. Since the bfilter
 database grows large quite quickly, you should run this every so often.
+.TP
+\fBstats\fP
+In this mode, \fBbfilter\fP will print some statistics about its database.
+These are mainly of general interest.
 
 .SH USAGE
 Assemble a corpus of spam and of non-spam. The latter should include mail that
 you've sent. Feed them into \fBbfilter\fP with the appropriate options. Test
 the filter on some existing emails to satisfy yourself that it's working. Then
 you can feed new emails through \fBbfilter test\fP, and filter on the presence
-of header of the form
+of a header of the form
 
 .nf
   \fBX-Spam-Probability: YES (p=...)\fP
@@ -55,7 +59,7 @@ alternative database by specifying a filename in the environment variable
 BFILTER_DB.
 .SH SEE ALSO
 .BR procmail (1),
-.BR gdbm (3),
+.BR tdb (3),
 .br
 .IR http://ex-parrot.com/~chris/software.html#bfilter ,
 .br

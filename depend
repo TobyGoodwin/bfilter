@@ -2,4 +2,4 @@ bfilter.o: bfilter.c db.h skiplist.h util.h
 pool.o: pool.c pool.h util.h
 skiplist.o: skiplist.c pool.h skiplist.h util.h
 util.o: util.c util.h
-db.o: db.c util.h
+db.o: db.c /software/include/tdb.h util.h

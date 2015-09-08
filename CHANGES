@@ -1,5 +1,19 @@
 Change log for bfilter
-$Id: CHANGES,v 1.3 2004/04/18 14:04:45 chris Exp $
+$Id: CHANGES,v 1.9 2006/05/20 16:10:44 chris Exp $
+
+Fixed a crash bug in cleandb. Record log of `spam probaility' in
+X-Spam-Probability header.
+
+0.4
+
+Fixed typos in man page. The help message now prints the bfilter version. Added
+token history code, so that `Buy Cheap Viagra' now gives rise to the tokens
+`buy%cheap', `cheap%viagra' and `buy%cheap%viagra', in addition to the
+single-word ones used previously. Added a stats option for printing information
+about the contents of the database. Changed cleandb to work by copying the
+retained items to a new database file, then renaming it over the old one; this
+is faster than the old method and should ensure that disk space is reclaimed
+properly.
 
 0.3
 

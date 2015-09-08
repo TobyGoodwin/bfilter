@@ -5,21 +5,23 @@
 # Copyright (c) 2003 Chris Lightfoot. All rights reserved.
 # Email: chris@ex-parrot.com; WWW: http://www.ex-parrot.com/~chris/
 #
-# $Id: Makefile,v 1.9 2004/04/22 19:13:15 chris Exp $
+# $Id: Makefile,v 1.12 2005/06/07 16:41:42 chris Exp $
 #
 
 # Edit these until it compiles.
 CFLAGS += -g -Wall -I/software/include
 LDFLAGS += -g -L/software/lib
-LDLIBS += -ltdb -lcrypto #-lefence
+LDLIBS += -ltdb -lcrypto -lm #-lefence
 
 # No user-serviceable parts below this point.
-VERSION = 0.3
+VERSION = 0.4
 
 TXTS = README COPYING bfilter.1 CHANGES tokeniser-states.dot migrate-0.2-to-0.3
 SRCS = bfilter.c pool.c skiplist.c util.c db.c
 HDRS = pool.h skiplist.h util.h db.h
 OBJS = $(SRCS:.c=.o)
+
+CFLAGS += -DBFILTER_VERSION=\"$(VERSION)\"
 
 bfilter: $(OBJS) depend
 	$(CC) $(LDFLAGS) -o $@ $(OBJS) $(LDLIBS)
