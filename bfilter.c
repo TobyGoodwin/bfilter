@@ -133,6 +133,7 @@ void submit_text(char *text, size_t len, const int underscores) {
     char *com_start, *com_end, *p, *tok_start;
     enum tokstate { not_tok = 0, tok, tok_dot } state;
 
+//fprintf(stderr, "submit_text: %.*s\n", len, text);
     /* Strip HTML comments. */
     com_start = text;
     while ((com_start = (char *)memstr(com_start, len - (com_start - text), "<!--", 4))
@@ -152,10 +153,10 @@ void submit_text(char *text, size_t len, const int underscores) {
         tok_char = ((*p >= '0' && *p <= '9')
                     || (*p >= 'A' && *p <= 'Z')
                     || (*p >= 'a' && *p <= 'z')
+		    || *p == '-'
                     || *p >= 0xa0);
         
         dot = (*p == '.'
-               || *p == '-'
                || *p == '@'
                || *p == '/'
                || (underscores && *p == '_'));
@@ -485,6 +486,8 @@ int compare_by_probability(const void *k1, const size_t k1len, const void *k2, c
     }
 }
 
+int flag1 = 0;
+
 /* main ARGC ARGV
  * Entry point. Usage:
  *
@@ -499,17 +502,33 @@ int main(int argc, char *argv[]) {
     skiplist_iterator si;
     FILE *tempfile;
     int retval = 0;
+    int arg = 1;
 
-    if (argc != 2) {
+    while (argv[arg] && *argv[arg] == '-') {
+        char *cp = argv[arg] + 1;
+        while (*cp) {
+            switch (*cp) {
+                case '1':
+                    flag1 = 1;
+                    break;
+                default:
+                    usage(stderr);
+                    return 1;
+            }
+            ++cp;
+        }
+    }
+
+    if (argc - arg != 1) {
         usage(stderr);
         return 1;
-    } else if (strcmp(argv[1], "isspam") == 0)
+    } else if (strcmp(argv[arg], "isspam") == 0)
         mode = isspam;
-    else if (strcmp(argv[1], "isreal") == 0)
+    else if (strcmp(argv[arg], "isreal") == 0)
         mode = isreal;
-    else if (strcmp(argv[1], "test") == 0)
+    else if (strcmp(argv[arg], "test") == 0)
         mode = test;
-    else if (strcmp(argv[1], "cleandb") == 0)
+    else if (strcmp(argv[arg], "cleandb") == 0)
         mode = cleandb;
     else {
         usage(stderr);
@@ -527,7 +546,7 @@ int main(int argc, char *argv[]) {
                 int f;
                 errno = 0;
                 ++nemails;
-                f = read_email(1, 0, stdin, NULL);
+                f = read_email(!flag1, 0, stdin, NULL);
                 if (!f) {
                     fprintf(stderr, "bfilter: error while reading email (%s)\n", errno ? strerror(errno) : "no system error");
                     return 1;
