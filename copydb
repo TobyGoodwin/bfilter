@@ -1,0 +1,42 @@
+#!/usr/bin/perl -w
+#
+# copydb:
+#
+# Copyright (c) 2004 Chris Lightfoot. All rights reserved.
+# Email: chris@ex-parrot.com; WWW: http://www.ex-parrot.com/~chris/
+#
+
+my $rcsid = '$Id: copydb,v 1.1 2004/06/07 11:28:54 chris Exp $';
+
+use TDB_File;
+use IO::Handle;
+use Fcntl;
+
+die "two arguments are path to old database and path to new database\n" unless (@ARGV == 2);
+
+my ($oldf, $newf) = @ARGV;
+
+tie(%old, 'TDB_File', $oldf, TDB_DEFAULT, O_RDWR, 0644) or die "$oldf: $!\n";
+tie(%new, 'TDB_File', $newf, TDB_DEFAULT, O_RDWR | O_CREAT, 0644) or die "$newf: $!\n";
+
+my $total = scalar(keys(%old));
+my $chunk = 1 + int($total / 500);
+my ($kept, $discarded) = (0, 0);
+while (my ($k, $v) = each %old) {
+    my ($a, $b, $t) = unpack('NNN', $v);
+    if ($t > time() - (28 * 24 * 3600)) {
+        $new{$k} = $v;
+        ++$kept;
+    } else {
+        ++$discarded;
+    }
+    ++$N;
+    if (0 == ($N % $chunk)) {
+        STDERR->printf("\rKept % 8u Discarded % 8u %5.1f%% complete", $kept, $discarded, 100. * $N / $total);
+    }
+}
+
+STDERR->printf("\rKept % 8u Discarded % 8u %5.1f%% complete\n", $kept, $discarded, 100. * $N / $total);
+
+untie(%old);
+untie(%new);

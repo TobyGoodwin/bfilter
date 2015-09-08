@@ -7,7 +7,7 @@
  *
  */
 
-static const char rcsid[] = "$Id: bfilter.c,v 1.16 2004/04/12 01:22:08 chris Exp $";
+static const char rcsid[] = "$Id: bfilter.c,v 1.24 2005/06/07 16:41:22 chris Exp $";
 
 #include <sys/types.h>
 
@@ -27,6 +27,12 @@ static const char rcsid[] = "$Id: bfilter.c,v 1.16 2004/04/12 01:22:08 chris Exp
 #include "db.h"
 #include "skiplist.h"
 #include "util.h"
+
+/* HISTORY_LEN
+ * The number of terms we may amalgamate into a single token. You can tweak
+ * this; larger numbers use more database space, but should give more accurate
+ * discrimination of spam and nonspam. */
+#define HISTORY_LEN     3
 
 /* MAX_TOKENS
  * Largest number of tokens we generate from a single mail. */
@@ -78,9 +84,51 @@ struct wordcount {
     int nemail, n;
 };
 
+static int ntokens_submitted;
+static int history_index, ntokens_history;
+struct {
+    unsigned char term[MAX_TERM_LEN];
+    size_t len;
+} token_history[HISTORY_LEN];
+
+/* record_tokens
+ * Record the most recently submitted token, and composite tokens from the
+ * history. */
+void record_tokens(void) {
+    unsigned char term[(MAX_TERM_LEN + 1) * HISTORY_LEN];
+    struct wordcount *pw;
+    int n;
+
+    for (n = 1; n <= ntokens_history; ++n) {
+        unsigned char *p;
+        int i;
+        for (i = 0, p = term; i < n; ++i) {
+            int j;
+            if (i > 0) *(p++) = '%';
+            j = (history_index - n + i + HISTORY_LEN) % HISTORY_LEN;
+            memcpy(p, token_history[j].term, token_history[j].len);
+            p += token_history[j].len;
+        }
+
+        pw = skiplist_find(wordlist, term, p - term);
+        if (pw) {
+            if (pw->nemail < nemails) {
+                pw->nemail = nemails;
+                ++pw->n;
+            }
+        } else {
+            struct wordcount w = { 0 };
+            w.nemail = nemails;
+            w.n = 1;
+            skiplist_insert_copy(wordlist, term, p - term, &w, sizeof w);
+            termlength += p - term;
+            ++ntokens_submitted;
+        }
+    }
+}
+
 /* submit_token TOKEN LENGTH
  * Submit an individual LENGTH-character TOKEN to the list of known tokens. */
-static int ntokens_submitted;
 void submit_token(char *tok, size_t len) {
     if (len < 2 || ntokens_submitted > MAX_TOKENS)
         return;
@@ -89,7 +137,6 @@ void submit_token(char *tok, size_t len) {
     else {
         unsigned char term[MAX_TERM_LEN];
         int i, has_alpha = 0;
-        struct wordcount *pw;
         
         /* Discard long terms, dates, numbers other than IP numbers. */
         if (len > MAX_TERM_LEN)
@@ -108,22 +155,18 @@ void submit_token(char *tok, size_t len) {
         if (!has_alpha)
             return;
 
-        pw = skiplist_find(wordlist, term, len);
-        if (pw) {
-            if (pw->nemail < nemails) {
-                pw->nemail = nemails;
-                ++pw->n;
-            }
-        } else {
-            struct wordcount w = { 0 };
-            w.nemail = nemails;
-            w.n = 1;
-            skiplist_insert_copy(wordlist, term, len, &w, sizeof w);
-            termlength += len;
-            ++ntokens_submitted;
-        }
+        /* Update history. */
+        memcpy(token_history[history_index].term, term, len);
+        token_history[history_index].len = len;
+        history_index = (history_index + 1) % HISTORY_LEN;
+        if (ntokens_history < HISTORY_LEN)
+            ++ntokens_history;
+
+        /* Submit this token and composites with preceding ones. */
+        record_tokens();
     }
 }
+
 
 /* submit_text TEXT LENGTH UNDERSCORES
  * Submit some TEXT for word counting. We discard HTML comments. If UNDERSCORES
@@ -234,6 +277,7 @@ int read_email(const int fromline, const int passthrough, FILE *fp, FILE **tempf
     size_t b64len = 0, b64linelen = 0;
 
     ntokens_submitted = 0;  /* ugh. */
+    ntokens_history = 0;    /* ugh again. */
 
     /* 
      * Various tests we use to drive the state machine.
@@ -453,7 +497,9 @@ void usage(FILE *stream) {
 "        test        An X-Spam-Probability header is added to the email\n"
 "                    read from standard input\n"
 "        cleandb     Discard little-used terms from the database.\n"
+"        stats       Print some statistics about the database.\n"
 "\n"
+"bfilter, version " BFILTER_VERSION "\n"
 "Copyright (c) 2003-4 Chris Lightfoot <chris@ex-parrot.com>\n"
 "http://ex-parrot.com/~chris/\n"
         );
@@ -496,9 +542,10 @@ int flag1 = 0;
  *          test        An X-Spam-Probability header is added to the email
  *                      read from standard input
  *          cleandb     Discard terms which have not been used recently.
+ *          stats       Print some statistics about the database.
  */
 int main(int argc, char *argv[]) {
-    enum { isspam, isreal, test, cleandb } mode;
+    enum { isspam, isreal, test, cleandb, stats } mode;
     skiplist_iterator si;
     FILE *tempfile;
     int retval = 0;
@@ -530,6 +577,8 @@ int main(int argc, char *argv[]) {
         mode = test;
     else if (strcmp(argv[arg], "cleandb") == 0)
         mode = cleandb;
+    else if (strcmp(argv[1], "stats") == 0)
+        mode = stats;
     else {
         usage(stderr);
         return 1;
@@ -570,6 +619,7 @@ int main(int argc, char *argv[]) {
             break;
 
         case cleandb:
+        case stats:
             break;
     }
 
@@ -638,7 +688,7 @@ int main(int argc, char *argv[]) {
         int nspamtotal, nrealtotal;
         skiplist problist;
         size_t nterms, n, nsig = 15;
-        float a = 1., b = 1., score;
+        float a = 1., b = 1., loga = 0., logb = 0., score, logscore;
         
         problist = skiplist_new(compare_by_probability);
         db_get_pair("__emails__", &nspamtotal, &nrealtotal);
@@ -681,17 +731,21 @@ int main(int argc, char *argv[]) {
                 printf(" (%6.4f)", tp->prob);
             }
             a *= tp->prob;
+            loga += log(tp->prob);
             b *= 1. - tp->prob;
+            logb += log(1. - tp->prob);
         }
 
         printf("\n");
+
+        logscore = loga - log(exp(loga) + exp(logb));
 
         if (a == 0.)
             score = 0.;
         else
             score = a / (a + b);
         
-        printf("X-Spam-Probability: %s (p=%f)\n", score > 0.9 ? "YES" : "NO", score);
+        printf("X-Spam-Probability: %s (p=%f, |log p|=%f)\n", score > 0.9 ? "YES" : "NO", score, fabs(logscore));
 
         fseek(tempfile, 0, SEEK_SET);
         do {
@@ -710,10 +764,12 @@ int main(int argc, char *argv[]) {
             fprintf(stderr, "bfilter: standard output: write error (%s)\n", strerror(errno));
             retval = 1;
         }
-    } else if (mode == cleandb) {
-        /* Continue until no more terms need to be deleted. */
-        while (db_clean(28));
-    }
+    } else if (mode == cleandb)
+        /* Copy recent data to new database, replace old one. */
+        db_clean(28);
+    else if (mode == stats)
+        /* Print some statistics about the database. */
+        db_print_stats();
 
     db_close();
 
