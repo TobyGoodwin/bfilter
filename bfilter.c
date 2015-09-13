@@ -36,7 +36,7 @@ static const char rcsid[] = "$Id: bfilter.c,v 1.24 2005/06/07 16:41:22 chris Exp
 
 /* MAX_TOKENS
  * Largest number of tokens we generate from a single mail. */
-#define MAX_TOKENS      300
+#define MAX_TOKENS      3000
 
 /* MAX_TERM_LEN
  * Largest term we consider. */
@@ -492,16 +492,23 @@ abort:
  * Print a usage message to STREAM. */
 void usage(FILE *stream) {
     fprintf(stream,
-"bfilter isspam      From_ separated emails are read, added to spam corpus\n"
-"        isreal                                                real\n"
-"        test        An X-Spam-Probability header is added to the email\n"
-"                    read from standard input\n"
-"        cleandb     Discard little-used terms from the database.\n"
-"        stats       Print some statistics about the database.\n"
+"bfilter [FLAGS] COMMAND\n"
+"\n"
+"  Commands:\n"
+"    isspam      From_ separated emails are read, added to spam corpus\n"
+"    isreal                                                real\n"
+"    test        An X-Spam-Probability header is added to the email\n"
+"                read from standard input\n"
+"    cleandb     Discard little-used terms from the database.\n"
+"    stats       Print some statistics about the database.\n"
+"\n"
+"  Flags:\n"
+"    -b          Treat input as Berkeley format mbox file\n"
 "\n"
 "bfilter, version " BFILTER_VERSION "\n"
 "Copyright (c) 2003-4 Chris Lightfoot <chris@ex-parrot.com>\n"
-"http://ex-parrot.com/~chris/\n"
+"Copyright (c) 2015 Toby Goodwin <toby@paccrat.org>\n"
+"https://github.com/TobyGoodwin/bfilter\n"
         );
 }
 
@@ -532,7 +539,7 @@ int compare_by_probability(const void *k1, const size_t k1len, const void *k2, c
     }
 }
 
-int flag1 = 0;
+int flagb = 0;
 
 /* main ARGC ARGV
  * Entry point. Usage:
@@ -555,8 +562,8 @@ int main(int argc, char *argv[]) {
         char *cp = argv[arg] + 1;
         while (*cp) {
             switch (*cp) {
-                case '1':
-                    flag1 = 1;
+                case 'b':
+                    flagb = 1;
                     break;
                 default:
                     usage(stderr);
@@ -564,6 +571,7 @@ int main(int argc, char *argv[]) {
             }
             ++cp;
         }
+        ++arg;
     }
 
     if (argc - arg != 1) {
@@ -577,7 +585,7 @@ int main(int argc, char *argv[]) {
         mode = test;
     else if (strcmp(argv[arg], "cleandb") == 0)
         mode = cleandb;
-    else if (strcmp(argv[1], "stats") == 0)
+    else if (strcmp(argv[arg], "stats") == 0)
         mode = stats;
     else {
         usage(stderr);
@@ -595,7 +603,7 @@ int main(int argc, char *argv[]) {
                 int f;
                 errno = 0;
                 ++nemails;
-                f = read_email(!flag1, 0, stdin, NULL);
+                f = read_email(flagb, 0, stdin, NULL);
                 if (!f) {
                     fprintf(stderr, "bfilter: error while reading email (%s)\n", errno ? strerror(errno) : "no system error");
                     return 1;
