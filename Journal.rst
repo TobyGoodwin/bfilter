@@ -1,3 +1,15 @@
+2015-09-13
+==========
+
+Before I can make much progress with this program, it needs a test
+suite. For example, I want to tweak the tokenizer, but basically I've
+now become completely dependent on TDD. (Even if I hadn't, we need a
+test suite.)
+
+But before I can do *that*, I need to refactor the code somewhat. At
+present, the tokenizer is in ``bfilter.c``, which also contains
+``main()``. Let's see if I can mend that. Yes, nothing too painful.
+
 2015-09-11
 ==========
 
