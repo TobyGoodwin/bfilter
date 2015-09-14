@@ -19,7 +19,7 @@ XXX() {
     echo -n . >> $expfails
 }
 
-check() {
+equal() {
     if [ "$1" = "$2" ]; then
 	pass "$target: $1"
     else
@@ -47,7 +47,7 @@ script_from() {
 # try to find malloc bugs:
 export MALLOC_PERTURB_=1
 
-ts=${*:-unit/token.}
+ts=${*:-unit/token.c}
 
 for t in $ts; do
     target=$t
