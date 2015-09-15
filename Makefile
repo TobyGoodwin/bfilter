@@ -18,7 +18,7 @@ LDLIBS += -ltdb -lcrypto -lm #-lefence
 VERSION = 0.4
 
 TXTS = README COPYING bfilter.1 CHANGES tokeniser-states.dot migrate-0.2-to-0.3
-SRCS = bfilter.c main.c pool.c skiplist.c util.c db.c
+SRCS = bfilter.c main.c pool.c skiplist.c token.c util.c db.c
 HDRS = pool.h skiplist.h util.h db.h
 OBJS = $(SRCS:.c=.o)
 
