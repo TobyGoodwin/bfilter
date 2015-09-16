@@ -30,21 +30,6 @@ static const char rcsid[] = "$Id: bfilter.c,v 1.24 2005/06/07 16:41:22 chris Exp
 #include "token.h"
 #include "util.h"
 
-/* HISTORY_LEN
- * The number of terms we may amalgamate into a single token. You can tweak
- * this; larger numbers use more database space, but should give more accurate
- * discrimination of spam and nonspam. */
-#define HISTORY_LEN     3
-
-/* MAX_TOKENS
- * Largest number of tokens we generate from a single mail. */
-#define MAX_TOKENS      3000
-
-/* MAX_TERM_LEN
- * Largest term we consider. */
-#define MAX_TERM_LEN    32
-#define SS(x)   #x
-
 /* unbase64 CHAR
  * Decode a single base64 CHAR. */
 uint32_t unbase64(char c) {
@@ -75,12 +60,9 @@ size_t decode_base64(char *buf, size_t len) {
     return wr - buf;
 }
 
-static int ntokens_submitted;
-static int history_index, ntokens_history;
-struct {
-    unsigned char term[MAX_TERM_LEN];
-    size_t len;
-} token_history[HISTORY_LEN];
+int ntokens_submitted;
+int history_index, ntokens_history;
+struct thist token_history[HISTORY_LEN];
 
 /* wordlist is the list of tokens we find; each key is associated with a
  * struct wordcount which stores nemail, the highest-numbered email in which
@@ -241,7 +223,7 @@ int read_email(const int fromline, const int passthrough, FILE *fp, FILE **tempf
                 size_t n, m;                                \
                 n = b64len & ~3;                            \
                 m = decode_base64(b64buf, n);               \
-                tokenize(b64buf, m, 0, submit_token);       \
+                tokenize(b64buf, m, 0);       \
                 memmove(b64buf, b64buf + n, b64len - n);    \
                 b64len -= n;                                \
             } while (0)
@@ -250,7 +232,7 @@ int read_email(const int fromline, const int passthrough, FILE *fp, FILE **tempf
      * buffer. */
 #   define b64_submit_un()                                 \
             do {                                           \
-                tokenize(b64buf, b64len, 0, submit_token); \
+                tokenize(b64buf, b64len, 0); \
                 b64_reset();                               \
             } while (0)
                             
@@ -397,7 +379,7 @@ int read_email(const int fromline, const int passthrough, FILE *fp, FILE **tempf
             } if (!p)
                 p = buf;
 
-            tokenize(p, len, state == hdr_rel, submit_token);
+            tokenize(p, len, state == hdr_rel);
         }
     } while (state != end);
     

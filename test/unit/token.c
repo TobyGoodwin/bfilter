@@ -1,6 +1,8 @@
 /*
-echo foo
 check 'foo qux bar' '{foo}{qux}{bar}'
+check 'this, that' '{this}{that}'
+check '!$^%$$' ''
+check 'only £12.99' '{only}'
 */
 
 #include <stdio.h>
@@ -8,7 +10,7 @@ check 'foo qux bar' '{foo}{qux}{bar}'
 
 #include "token.h"
 
-void token_print(char *s, size_t l) {
+void submit(char *s, size_t l) {
     putchar('{');
     while (l--)
         putchar(*s++);
@@ -17,5 +19,5 @@ void token_print(char *s, size_t l) {
 
 
 int main(int argc, char **argv) {
-    tokenize(argv[1], strlen(argv[1]), 0, token_print);
+    tokenize(argv[1], strlen(argv[1]), 0);
 }

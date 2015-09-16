@@ -1,3 +1,19 @@
+2015-09-16
+==========
+
+It's all very well to carve out the tokenizer, and pass it a pointer to
+the function it should call for each token. But next I want to add tests
+for the ``read_email`` function (which calls the tokenizer).
+
+Would this approach work? The function that ``tokenize`` calls is always
+called ``submit`` (say), which has a declaration in ``submit.h``, and a
+definition in ``submit.c``. So ``token.c`` includes ``submit.h``.  Now
+for bfilter, we link ``token.o`` and ``submit.o``, but for the test case
+``unit/token.c`` can provide its own definition of ``submit()``, and the
+linker sorts it all out.
+
+Yes, of course that works, and will be much simpler to deal with.
+
 2015-09-13
 ==========
 

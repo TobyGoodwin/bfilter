@@ -1,3 +1,8 @@
+#ifndef BFILTER_H
+#define BFILTER_H
+
+#include <stdint.h>
+
 #include "skiplist.h"
 
 /* HISTORY_LEN
@@ -30,6 +35,14 @@ size_t decode_base64(char *buf, size_t len);
 int nemails;
 size_t termlength;
 
+int ntokens_submitted;
+int history_index, ntokens_history;
+struct thist {
+    unsigned char term[MAX_TERM_LEN];
+    size_t len;
+};
+struct thist token_history[HISTORY_LEN];
+
 skiplist wordlist;
 void record_tokens(void);
 
@@ -43,3 +56,5 @@ size_t nbytesrd;
 int read_email(const int fromline, const int passthrough, FILE *fp, FILE **tempfp);
 
 int compare_by_probability(const void *k1, const size_t k1len, const void *k2, const size_t k2len);
+
+#endif

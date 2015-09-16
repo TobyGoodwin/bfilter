@@ -1,5 +1,3 @@
-echo in run.sh
-
 check() {
 	r=$(./tester "$1" 2>&1)
 	equal "$r" "$2"
