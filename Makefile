@@ -27,8 +27,10 @@ CFLAGS += -DBFILTER_VERSION=\"$(VERSION)\"
 bfilter: $(OBJS) depend
 	$(CC) $(LDFLAGS) -o $@ $(OBJS) $(LDLIBS)
 
-# XXX DRY! Ideally, we should build all but main.c into a library
 test/tester: bfilter.o pool.o skiplist.o token.o util.o db.o test/main.o
+	$(CC) $(LDFLAGS) -o $@ $^ $(LDLIBS)
+
+test/readtester: bfilter.o pool.o skiplist.o util.o db.o test/read/read.o
 	$(CC) $(LDFLAGS) -o $@ $^ $(LDLIBS)
 
 clean:

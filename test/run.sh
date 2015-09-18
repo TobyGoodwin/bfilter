@@ -47,7 +47,7 @@ script_from() {
 # try to find malloc bugs:
 export MALLOC_PERTURB_=1
 
-ts=${*:-unit/token.c}
+ts=${*:-read/*.in unit/token.c}
 
 for t in $ts; do
     target=$t

@@ -1,5 +1,5 @@
 bfilter
 *.o
 test/*.o
-test/tester
+test/*tester
 test/main.c

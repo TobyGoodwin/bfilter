@@ -5,18 +5,22 @@ check '!$^%$$' ''
 check 'only £12.99' '{only}'
 */
 
+#define _DEFAULT_SOURCE 1
+
 #include <stdio.h>
-#include <string.h>
+#include <stdlib.h>
 
-#include "token.h"
+#include "bfilter.h"
 
-void submit(char *s, size_t l) {
-    putchar('{');
+void tokenize(char *s, size_t l) {
     while (l--)
         putchar(*s++);
-    putchar('}');
+    putchar('\n');
 }
 
+
 int main(int argc, char **argv) {
-    tokenize(argv[1], strlen(argv[1]), 0);
+    FILE *fh;
+
+    read_email(0, 0, stdin, &fh);
 }
