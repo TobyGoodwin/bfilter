@@ -6,7 +6,7 @@ check() {
 make -C.. test/readtester
 act=$(mktemp)
 exp=$(echo $target | sed 's,.in,.out,')
-./readtester < $target > $act
+./readtester $target > $act
 if diff -q $act $exp; then
 	pass $target
 else
