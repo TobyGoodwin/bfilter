@@ -48,10 +48,7 @@ shall devise something more symmetric. I think the function I want is::
         | otherwise = -1 + 1 / ((1 - p) * 2)
 
 This maps range (0-1) onto the entire number line. So 0.1 => -4, 0.4=>
--0.25, 0.5 => 0, 0.6 => 0.25, 0.9 => 4, 0.95 => 9, 0.99 => 49, etc. But
-having tried this, it gives crazy results, like
-``f.p=-359696800153600.000000``. Also, the calculations that go into the
-log value are beyond me at the moment.)
+-0.25, 0.5 => 0, 0.6 => 0.25, 0.9 => 4, 0.95 => 9, 0.99 => 49, etc.)
 
 Some results. Trained on 20 each ham and spam. Correctly identifies
 88.1% of ham corpus, and 75.9% of spams.

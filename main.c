@@ -208,7 +208,7 @@ int main(int argc, char *argv[]) {
         int nspamtotal, nrealtotal;
         skiplist problist;
         size_t nterms, n, nsig = 15;
-        float a = 1., b = 1., loga = 0., logb = 0., score, logscore, fscore;
+        float a = 1., b = 1., loga = 0., logb = 0., score, logscore;
         
         problist = skiplist_new(compare_by_probability);
         db_get_pair("__emails__", &nspamtotal, &nrealtotal);
@@ -264,13 +264,8 @@ int main(int argc, char *argv[]) {
             score = 0.;
         else
             score = a / (a + b);
-
-        if (score < 0.5)
-            fscore = 1 + 1 / (-score * 2);
-        else
-            fscore = -1 + 1 / ((1 - score) * 2);
         
-        printf("X-Spam-Probability: %s (p=%f, |log p|=%f, f.p=%f)\n", score > 0.9 ? "YES" : "NO", score, fabs(logscore), fscore);
+        printf("X-Spam-Probability: %s (p=%f, |log p|=%f)\n", score > 0.9 ? "YES" : "NO", score, fabs(logscore));
 
         fseek(tempfile, 0, SEEK_SET);
         do {
