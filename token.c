@@ -4,17 +4,22 @@
 #include <string.h>
 #include <unistd.h>
 
-#include "settings.h"
 #include "compose.h"
+#include "settings.h"
+#include "submit.h"
 #include "util.h"
 
 void token_submit(char *t, size_t l) {
     char term[MAX_TERM_LEN];
     int i, has_alpha = 0;
 
-    if (l < 2 || ntokens_submitted > MAX_TOKENS)
+    /* XXX probably want to move this test higher, as there's no point
+     * continuing to tokenize if we've reached the limit. */
+    if (ntokens_submitted > MAX_TOKENS)
         return;
-    else if (l > 16 && strncmp(t, "--", 2) == 0)
+    if (l < 2)
+        return;
+    if (l > 16 && strncmp(t, "--", 2) == 0)
         return; /* probably a MIME separator */
 
     /* Truncate long terms */
@@ -37,7 +42,7 @@ void token_submit(char *t, size_t l) {
         return;
     }
 
-    submit(term, l);
+    compose(term, l);
 }
 
 /* submit_text TEXT LENGTH UNDERSCORES

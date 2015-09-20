@@ -23,9 +23,10 @@
 #include <netinet/in.h>     /* for ntohl/htonl */
 
 #include "bfilter.h"
+#include "compose.h"
 #include "db.h"
 #include "skiplist.h"
-#include "compose.h"
+#include "submit.h"
 #include "util.h"
 
 /* usage STREAM
@@ -124,7 +125,7 @@ int main(int argc, char *argv[]) {
              
                 /* If we're running on a terminal, print stats. */
                 if (isatty(1))
-                    fprintf(stderr, "Reading: %8u emails (%8u bytes) %8lu terms avg length %8.2f\r", nemails, (unsigned)nbytesrd, skiplist_size(wordlist), (double)termlength / skiplist_size(wordlist));
+                    fprintf(stderr, "Reading: %8u emails (%8u bytes) %8lu terms avg length %8.2f\r", nemails, (unsigned)nbytesrd, skiplist_size(wordlist), (double)term_length / skiplist_size(wordlist));
             } while (!feof(stdin));
             if (isatty(1))
                 fprintf(stderr, "\n");

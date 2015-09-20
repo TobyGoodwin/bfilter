@@ -4,9 +4,10 @@
 #include <string.h>
 #include <unistd.h>
 
+#include "compose.h"
 #include "settings.h"
 #include "skiplist.h"
-#include "compose.h"
+#include "submit.h"
 
 skiplist wordlist;
 int nemails;
@@ -25,12 +26,11 @@ struct thist token_history[HISTORY_LEN];
  * Record the most recently submitted token, and composite tokens from the
  * history. */
 void record_tokens(void) {
-    unsigned char term[(MAX_TERM_LEN + 1) * HISTORY_LEN];
-    struct wordcount *pw;
+    char term[(MAX_TERM_LEN + 1) * HISTORY_LEN];
     int n;
 
     for (n = 1; n <= ntokens_history; ++n) {
-        unsigned char *p;
+        char *p;
         int i;
         for (i = 0, p = term; i < n; ++i) {
             int j;
@@ -40,26 +40,13 @@ void record_tokens(void) {
             p += token_history[j].len;
         }
 
-        pw = skiplist_find(wordlist, term, p - term);
-        if (pw) {
-            if (pw->nemail < nemails) {
-                pw->nemail = nemails;
-                ++pw->n;
-            }
-        } else {
-            struct wordcount w = { 0 };
-            w.nemail = nemails;
-            w.n = 1;
-            skiplist_insert_copy(wordlist, term, p - term, &w, sizeof w);
-            termlength += p - term;
-            ++ntokens_submitted;
-        }
+        submit(term, p - term);
     }
 }
 
 /* submit_token TERM LENGTH
  * Submit an individual LENGTH-character TERM to the list of known tokens. */
-void submit(char *term, size_t len) {
+void compose(char *term, size_t len) {
     /* Update history. */
     memcpy(token_history[history_index].term, term, len);
     token_history[history_index].len = len;
@@ -71,7 +58,7 @@ void submit(char *term, size_t len) {
     record_tokens();
 }
 
-void submit_reset(void) {
+void compose_reset(void) {
     ntokens_submitted = 0;
     ntokens_history = 0;
 }

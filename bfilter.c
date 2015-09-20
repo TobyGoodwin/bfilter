@@ -25,9 +25,9 @@ static const char rcsid[] = "$Id: bfilter.c,v 1.24 2005/06/07 16:41:22 chris Exp
 #include <netinet/in.h>     /* for ntohl/htonl */
 
 #include "bfilter.h"
+#include "compose.h"
 #include "db.h"
 #include "skiplist.h"
-#include "compose.h"
 #include "token.h"
 #include "util.h"
 
@@ -93,7 +93,7 @@ int read_email(const int fromline, const int passthrough, FILE *fp, FILE **tempf
     static size_t b64alloc;
     size_t b64len = 0, b64linelen = 0;
 
-    submit_reset();
+    compose_reset();
 
     /* 
      * Various tests we use to drive the state machine.

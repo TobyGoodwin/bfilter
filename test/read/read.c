@@ -21,6 +21,8 @@ void tokenize(char *s, size_t l) {
     putchar('\n');
 }
 
+void compose_reset(void) {
+}
 
 int main(int argc, char **argv) {
     _Bool from, pass;

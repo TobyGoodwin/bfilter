@@ -13,14 +13,14 @@ check 'we skip 1968-11-16 dates and 9/11/2001 other dates' '{we}{skip}{dates}{an
 
 #include "token.h"
 
-void submit(char *s, size_t l) {
+void compose(char *s, size_t l) {
     putchar('{');
     while (l--)
         putchar(*s++);
     putchar('}');
 }
 
-void submit_reset(void) {
+void compose_reset(void) {
 }
 
 int main(int argc, char **argv) {
