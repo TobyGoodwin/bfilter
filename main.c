@@ -25,6 +25,7 @@
 #include "bfilter.h"
 #include "db.h"
 #include "skiplist.h"
+#include "submit.h"
 #include "util.h"
 
 /* usage STREAM

@@ -30,7 +30,7 @@ bfilter: $(OBJS) depend
 test/tester: bfilter.o pool.o skiplist.o token.o util.o db.o test/main.o
 	$(CC) $(LDFLAGS) -o $@ $^ $(LDLIBS)
 
-test/readtester: bfilter.o pool.o skiplist.o util.o db.o test/read/read.o
+test/readtester: bfilter.o pool.o skiplist.o submit.o util.o db.o test/read/read.o
 	$(CC) $(LDFLAGS) -o $@ $^ $(LDLIBS)
 
 check:

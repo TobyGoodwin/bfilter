@@ -20,6 +20,9 @@ void submit(char *s, size_t l) {
     putchar('}');
 }
 
+void submit_reset(void) {
+}
+
 int main(int argc, char **argv) {
     tokenize(argv[1], strlen(argv[1]), 0);
 }

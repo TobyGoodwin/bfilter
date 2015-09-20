@@ -3,7 +3,7 @@ check() {
 	equal "$r" "$2"
 }
 
-make -C.. test/readtester
+make -C.. test/readtester || fail cannot build readtester
 act=$(mktemp)
 exp=$(echo $target | sed 's,.in,.out,')
 ./readtester $target > $act

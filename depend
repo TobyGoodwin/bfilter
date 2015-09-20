@@ -1,8 +1,8 @@
-bfilter.o: bfilter.c bfilter.h skiplist.h db.h token.h util.h
-main.o: main.c bfilter.h skiplist.h db.h util.h
+bfilter.o: bfilter.c bfilter.h skiplist.h db.h submit.h token.h util.h
+main.o: main.c bfilter.h skiplist.h db.h submit.h util.h
 pool.o: pool.c pool.h util.h
 skiplist.o: skiplist.c pool.h skiplist.h util.h
-submit.o: submit.c bfilter.h skiplist.h submit.h
-token.o: token.c bfilter.h skiplist.h submit.h util.h
+submit.o: submit.c settings.h skiplist.h submit.h
+token.o: token.c settings.h submit.h skiplist.h util.h
 util.o: util.c util.h
 db.o: db.c util.h

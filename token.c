@@ -4,7 +4,7 @@
 #include <string.h>
 #include <unistd.h>
 
-#include "bfilter.h"
+#include "settings.h"
 #include "submit.h"
 #include "util.h"
 

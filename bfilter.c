@@ -27,6 +27,7 @@ static const char rcsid[] = "$Id: bfilter.c,v 1.24 2005/06/07 16:41:22 chris Exp
 #include "bfilter.h"
 #include "db.h"
 #include "skiplist.h"
+#include "submit.h"
 #include "token.h"
 #include "util.h"
 
@@ -58,54 +59,6 @@ size_t decode_base64(char *buf, size_t len) {
     memset(wr, ' ', len - (wr - buf));
 
     return wr - buf;
-}
-
-int ntokens_submitted;
-int history_index, ntokens_history;
-struct thist token_history[HISTORY_LEN];
-
-/* wordlist is the list of tokens we find; each key is associated with a
- * struct wordcount which stores nemail, the highest-numbered email in which
- * this word was found, and n, the total number of emails in which this word
- * has been found during this session. */
-skiplist wordlist;
-int nemails;
-size_t termlength;
-
-/* record_tokens
- * Record the most recently submitted token, and composite tokens from the
- * history. */
-void record_tokens(void) {
-    unsigned char term[(MAX_TERM_LEN + 1) * HISTORY_LEN];
-    struct wordcount *pw;
-    int n;
-
-    for (n = 1; n <= ntokens_history; ++n) {
-        unsigned char *p;
-        int i;
-        for (i = 0, p = term; i < n; ++i) {
-            int j;
-            if (i > 0) *(p++) = '%';
-            j = (history_index - n + i + HISTORY_LEN) % HISTORY_LEN;
-            memcpy(p, token_history[j].term, token_history[j].len);
-            p += token_history[j].len;
-        }
-
-        pw = skiplist_find(wordlist, term, p - term);
-        if (pw) {
-            if (pw->nemail < nemails) {
-                pw->nemail = nemails;
-                ++pw->n;
-            }
-        } else {
-            struct wordcount w = { 0 };
-            w.nemail = nemails;
-            w.n = 1;
-            skiplist_insert_copy(wordlist, term, p - term, &w, sizeof w);
-            termlength += p - term;
-            ++ntokens_submitted;
-        }
-    }
 }
 
 /* is_b64_chars BUF LEN
@@ -140,8 +93,7 @@ int read_email(const int fromline, const int passthrough, FILE *fp, FILE **tempf
     static size_t b64alloc;
     size_t b64len = 0, b64linelen = 0;
 
-    ntokens_submitted = 0;  /* ugh. */
-    ntokens_history = 0;    /* ugh again. */
+    submit_reset();
 
     /* 
      * Various tests we use to drive the state machine.
