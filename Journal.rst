@@ -1,3 +1,17 @@
+2015-09-20
+==========
+
+I'm gradually carving this thing up "at the joints". For example, I've
+finally managed to extract the function that actually adds a token to
+the skiplist. (I think this had suffered when the token history feature
+was added.)
+
+It's occurred to me that I can (and should) have both unit tests and
+integration tests. For example I can test the ``compose()`` function in
+isolation, and as part of the ``read_email()`` -> ``tokenize()`` ->
+``compose()`` chain. The only tricky part is getting the makefile to put
+everything together in the right order.
+
 2015-09-16
 ==========
 
