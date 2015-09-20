@@ -56,7 +56,8 @@ Some results. Trained on 20 each ham and spam. Correctly identifies
 (Random observations: we still seem to be seeing multipart separators as
 tokens. And, there is really no point in having pure numbers as tokens,
 e.g.  30, 4.2.2, 166.90. *Particularly* because of the 300 token limit,
-this is bad news.)
+this is bad news. On further investigation, such things are discard in
+``submit()``, but I shall probably move these tests to ``tokenize()``.)
 
 After training 5 more spams (although probabilities very close to 0), it
 is now correct on 89.9%. (As you might expect, training spams does not

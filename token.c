@@ -1,8 +1,44 @@
+// for fprinf only
+#include <stdio.h>
+
 #include <string.h>
 #include <unistd.h>
 
+#include "bfilter.h"
 #include "submit.h"
 #include "util.h"
+
+void token_submit(char *t, size_t l) {
+    char term[MAX_TERM_LEN];
+    int i, has_alpha = 0;
+
+    if (l < 2 || ntokens_submitted > MAX_TOKENS)
+        return;
+    else if (l > 16 && strncmp(t, "--", 2) == 0)
+        return; /* probably a MIME separator */
+
+    /* Truncate long terms */
+    if (l > MAX_TERM_LEN)
+        l = MAX_TERM_LEN;
+
+    /* Fold to lower case, check for letters. */
+    for (i = 0; i < l; ++i) {
+        if (t[i] > 0xa0 || !strchr("0123456789-_.@/", t[i]))
+            has_alpha = 1;
+        if (t[i] >= 'A' && t[i] <= 'Z')
+            term[i] = t[i] + 'a' - 'A';
+        else
+            term[i] = t[i];
+    }
+
+    /* Discard dates, numbers, etc. */
+    if (!has_alpha) {
+        fprintf(stderr, "discarding %.*s\n", (int)l, term);
+        return;
+    }
+
+    submit(term, l);
+}
 
 /* submit_text TEXT LENGTH UNDERSCORES
  * Submit some TEXT for word counting. We discard HTML comments. If UNDERSCORES
@@ -52,7 +88,7 @@ void tokenize(char *text, size_t len, const int underscores) {
                 else if (!tok_char) {
                     state = not_tok;
                     if (tok_start)
-                        submit(tok_start, p - tok_start);
+                        token_submit(tok_start, p - tok_start);
                 }
                 break;
 
@@ -60,7 +96,7 @@ void tokenize(char *text, size_t len, const int underscores) {
                 if (dot || !tok_char) {
                     state = not_tok;
                     if (tok_start)
-                        submit(tok_start, p - tok_start - 1);
+                        token_submit(tok_start, p - tok_start - 1);
                 } else if (tok_char)
                     state = tok;
                 break;
@@ -70,9 +106,9 @@ void tokenize(char *text, size_t len, const int underscores) {
     /* Submit last token. */
     if (tok_start) {
         if (state == tok)
-            submit(tok_start, p - tok_start);
+            token_submit(tok_start, p - tok_start);
         else if (state == tok_dot)
-            submit(tok_start, p - tok_start - 1);
+            token_submit(tok_start, p - tok_start - 1);
     }
 
     /* Done. */
