@@ -6,7 +6,7 @@
 
 #include "settings.h"
 #include "skiplist.h"
-#include "submit.h"
+#include "compose.h"
 
 skiplist wordlist;
 int nemails;

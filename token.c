@@ -5,7 +5,7 @@
 #include <unistd.h>
 
 #include "settings.h"
-#include "submit.h"
+#include "compose.h"
 #include "util.h"
 
 void token_submit(char *t, size_t l) {

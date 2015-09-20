@@ -27,7 +27,7 @@ static const char rcsid[] = "$Id: bfilter.c,v 1.24 2005/06/07 16:41:22 chris Exp
 #include "bfilter.h"
 #include "db.h"
 #include "skiplist.h"
-#include "submit.h"
+#include "compose.h"
 #include "token.h"
 #include "util.h"
 
