@@ -27,13 +27,13 @@ CFLAGS += -DBFILTER_VERSION=\"$(VERSION)\"
 bfilter: $(OBJS) depend
 	$(CC) $(LDFLAGS) -o $@ $(OBJS) $(LDLIBS)
 
-test/tester: bfilter.o pool.o skiplist.o token.o util.o db.o test/main.o
-	$(CC) $(LDFLAGS) -o $@ $^ $(LDLIBS)
-
 test/readtester: bfilter.o pool.o skiplist.o util.o db.o test/read/read.o
 	$(CC) $(LDFLAGS) -o $@ $^ $(LDLIBS)
 
 test/ucompose: test/unit/compose.o compose.o
+	$(CC) $(LDFLAGS) -o $@ $^ $(LDLIBS)
+
+test/utoken: test/unit/token.o token.o util.o
 	$(CC) $(LDFLAGS) -o $@ $^ $(LDLIBS)
 
 check:

@@ -1,4 +1,5 @@
 /*
+depends test/utoken
 check 'foo qux bar' '{foo}{qux}{bar}'
 check 'this, that' '{this}{that}'
 check '!$^%$$' ''

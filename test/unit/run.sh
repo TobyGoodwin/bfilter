@@ -13,13 +13,3 @@ depends() {
 }
 
 script_from $target
-
-exit 0
-
-
-cp $target main.c
-if make -C.. test/tester; then
-	script_from $target
-else
-        fail 'cannot build tester'
-fi
