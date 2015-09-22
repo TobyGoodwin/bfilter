@@ -38,7 +38,7 @@ void token_submit(char *t, size_t l) {
 
     /* Discard dates, numbers, etc. */
     if (!has_alpha) {
-        fprintf(stderr, "discarding %.*s\n", (int)l, term);
+        //fprintf(stderr, "discarding %.*s\n", (int)l, term);
         return;
     }
 

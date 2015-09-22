@@ -1,0 +1,60 @@
+#! /bin/sh
+
+ntrain=20
+
+corpus=$1
+
+if [ ! '(' -d $corpus/ham -a -d $corpus/spam ')' ]; then
+    echo $corpus does not look like a corpus: ham/, spam/, or both missing >&2
+    exit 1
+fi
+
+bf=$(pwd)/bfilter
+
+if [ ! -x $bf ]; then
+    echo $bf is not executable >&2
+    exit 1
+fi
+
+export BFILTER_DB=$(mktemp)
+
+cd $corpus/ham
+nham=$(ls | wc -l)
+mham=$(echo $nham / 20 | bc)
+
+for m in $(ls | awk "NR % $mham == 0 { print }"); do
+    echo $m
+    $bf isreal < $m
+done
+
+cd $corpus/spam
+nspam=$(ls | wc -l)
+mspam=$(echo $nspam / 20 | bc)
+
+for m in $(ls | awk "NR % $mspam == 0 { print }"); do
+    echo $m
+    $bf isspam < $m
+done
+
+cd $corpus/ham
+out=$(mktemp)
+for m in $(ls); do
+    $bf test < $m 2>/dev/null
+done | grep '^X-Spam-Probability: ' > $out
+right=$(grep -c NO $out)
+wrong=$(grep -c YES $out)
+pham=$(echo "scale=2; $right * 100 / ($right + $wrong)" | bc)
+rm $out
+
+cd $corpus/spam
+out=$(mktemp)
+for m in $(ls); do
+    $bf test < $m 2>/dev/null
+done | grep '^X-Spam-Probability: ' > $out
+right=$(grep -c YES $out)
+wrong=$(grep -c NO $out)
+pspam=$(echo "scale=2; $right * 100 / ($right + $wrong)" | bc)
+rm $out
+
+echo
+echo "ham: $pham% correct, spam: $pspam% correct"

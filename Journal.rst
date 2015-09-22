@@ -1,3 +1,12 @@
+2015-09-22
+==========
+
+OK, the test suite is coming along. Next, I think I need to completely
+automate the corpus tester. Obviously I won't be checking my entire
+corpus into the bfilter git repo, but I want to get to the stage where I
+can point it at a directory containing ``ham`` and ``spam`` subdirs, and
+it churns away till it produces some numbers.
+
 2015-09-20
 ==========
 
