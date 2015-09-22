@@ -27,6 +27,15 @@ equal() {
     fi
 }
 
+depends() {
+    if make -C.. $1; then
+        command=./$(basename $1)
+    else
+        fail "cannot build $1"
+        command=:
+    fi
+}
+
 script_from() {
     # Extract a test script from a C-style comment in a test case. The
     # sed script is surprisingly hard to get right. It's really hard to

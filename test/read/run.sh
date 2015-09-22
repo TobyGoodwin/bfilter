@@ -1,12 +1,7 @@
-check() {
-	r=$(./tester "$1" 2>&1)
-	equal "$r" "$2"
-}
-
-make -C.. test/readtester || fail cannot build readtester
+depends test/uread
 act=$(mktemp)
 exp=$(echo $target | sed 's,.in,.out,')
-./readtester $target > $act
+$command $target > $act
 if diff -q $act $exp; then
 	pass $target
 else

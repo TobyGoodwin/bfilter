@@ -3,3 +3,6 @@ bfilter
 test/*.o
 test/*tester
 test/main.c
+test/ucompose
+test/uread
+test/utoken
