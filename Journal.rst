@@ -21,6 +21,23 @@ immediately account for. What if we consider *all* the terms?
 
 Oh. It's just getting the sums wrong. Which makes me think that the
 bayes calculation is actually bogus, because it surely shouldn't matter?
+Ah, hmm. I think that's because we assign 0.4 to never-seen tokens.
+
+OK. `Graham says`_ "I only use the 15 most significant [tokens]". But,
+as far as I can tell, Oggie is using the 15 tokens with the lowest
+probability. That's surely not the same thing as significant? Indeed
+not...
+
+    "Another effect of a larger vocabulary is that when you look at an
+    incoming mail you find more interesting tokens, meaning those with
+    probabilities far from .5. I use the 15 most interesting to decide
+    if mail is spam."
+
+.. _graham says: http://www.paulgraham.com/better.html
+
+Go back to 15 terms (this is barmey at this stage, but oh well) and
+throw in the ideas of doubling the counts for good emails, and needing
+the count to be > 5 before we do anything.
 
 2015-09-22
 ==========
