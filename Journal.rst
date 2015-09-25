@@ -1,3 +1,27 @@
+2015-09-25
+==========
+
+The refactoring continues. I've started pulling out the code that
+actually calculates the probability, and as far as I can tell it only
+considers the 15 terms (``nsig``) with the lowest probability. This
+seems extraordinary. What happens if we bump it up?
+
+With MAX_TOKENS 300, and nsig 30:
+
+    ham: 87.80% correct, spam: 62.90% correct
+    -rw-------. 1 toby toby 561152 Sep 25 22:19 /tmp/tmp.DXQoavDWBe
+    11.34user 5.25system 0:16.33elapsed 101%CPU (3480maxresident)k
+
+That's rather better on hams, but much worse on spams, which I can't
+immediately account for. What if we consider *all* the terms?
+
+    ham: 99.90% correct, spam: 4.40% correct
+    -rw-------. 1 toby toby 561152 Sep 25 22:22 /tmp/tmp.pK2ICNFKIe
+    11.31user 5.28system 0:16.33elapsed 101%CPU (3516maxresident)k
+
+Oh. It's just getting the sums wrong. Which makes me think that the
+bayes calculation is actually bogus, because it surely shouldn't matter?
+
 2015-09-22
 ==========
 

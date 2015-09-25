@@ -18,7 +18,7 @@ void skiplist_dump(skiplist s) {
 
         k = (char *)skiplist_itr_key(s, x, &l);
         pw = skiplist_itr_value(s, x);
-        printf("%*.s => (%d, %d)\n", (int)l, k, pw->nemail, pw->n);
+        printf("%.*s => (%d, %d)\n", (int)l, k, pw->nemail, pw->n);
     }
 }
 
@@ -32,10 +32,10 @@ int bayes(skiplist wordlist, FILE *tempfile) {
     int retval;
     skiplist problist;
     skiplist_iterator si;
-    size_t nterms, n, nsig = 15;
+    size_t nterms, n, nsig = 30;
     float a = 1., b = 1., loga = 0., logb = 0., score, logscore;
 
-    skiplist_dump(wordlist);
+    //skiplist_dump(wordlist);
     problist = skiplist_new(compare_by_probability);
     db_get_pair("__emails__", &nspamtotal, &nrealtotal);
 
@@ -49,6 +49,7 @@ int bayes(skiplist wordlist, FILE *tempfile) {
         if (db_get_pair(t.term, &nspam, &nreal))
             t.prob = ((float)nspam / (float)nspamtotal) / ((float)nspam / (float)nspamtotal + (float)nreal / (float)nrealtotal);
 
+//fprintf(stderr, "%.*s => %f\n", (int)t.tlen, t.term, t.prob);
         if (t.prob == 0.)
             t.prob = 0.00001;
         else if (t.prob == 1.)
@@ -59,12 +60,14 @@ int bayes(skiplist wordlist, FILE *tempfile) {
 
     nterms = skiplist_size(problist);
     printf("X-Spam-Words: %lu terms\n significant:", nterms);
-    if (nsig > nterms)
+    //if (nsig > nterms)
         nsig = nterms;
 
     for (si = skiplist_itr_first(problist), n = 0; si && n < nsig; si = skiplist_itr_next(problist, si), ++n) {
         struct termprob *tp;
         tp = (struct termprob*)skiplist_itr_key(problist, si, NULL);
+
+//fprintf(stderr, "considering %.*s => %f\n", (int)tp->tlen, tp->term, tp->prob);
         if (n < 6) {
             /* Avoid emitting high bit characters in the header. */
             char *p;
