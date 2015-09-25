@@ -58,3 +58,4 @@ rm $out
 
 echo
 echo "ham: $pham% correct, spam: $pspam% correct"
+ls -l $BFILTER_DB

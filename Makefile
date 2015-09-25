@@ -33,6 +33,9 @@ test/uread: test/read/read.o bfilter.o util.o
 test/ucompose: test/unit/compose.o compose.o
 	$(CC) $(LDFLAGS) -o $@ $^ $(LDLIBS)
 
+test/uskiplist: test/unit/skiplist.o pool.o skiplist.o util.o
+	$(CC) $(LDFLAGS) -o $@ $^ $(LDLIBS)
+
 test/utoken: test/unit/token.o token.o util.o
 	$(CC) $(LDFLAGS) -o $@ $^ $(LDLIBS)
 

@@ -3,4 +3,11 @@ check() {
 	equal "$r" "$2"
 }
 
+mcheck() {
+        exp="$1"
+        shift
+	r=$($command "$@")
+	equal "$r" "$exp"
+}
+
 script_from $target

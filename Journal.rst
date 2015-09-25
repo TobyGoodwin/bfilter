@@ -7,6 +7,57 @@ corpus into the bfilter git repo, but I want to get to the stage where I
 can point it at a directory containing ``ham`` and ``spam`` subdirs, and
 it churns away till it produces some numbers.
 
+Done. Oh, I also want to report the size of the database. Observation:
+my corpus is way too big for this sort of thing.
+
+First results:
+
+    ham: 98.28% correct, spam: 62.60% correct
+
+Which at least has a very low rate of false positives.
+
+Another way to arrange the corpus test would be to take messages in date
+order, mixed, classify each one, then train mistakes. (Hmm... ultimately
+I want to end up with UNSURE as well as YES and NO.) But let's not worry
+about that now.
+
+Right, I've cut my corpus down to 1000 each (pretty much at random, not
+reviewed). Now I can classify 40 messages and test 2000 in reasonable
+time.
+
+First results, with MAX_TOKENS 300:
+
+  ham: 81.00% correct, spam: 76.80% correct
+  -rw-------. 1 toby toby 561152 Sep 23 22:13 /tmp/tmp.CVxtp72ShT
+  11.35user 5.17system 0:16.22elapsed 101%CPU (3764maxresident)k
+
+And with MAX_TOKENS 3000:
+
+  ham: 84.10% correct, spam: 84.30% correct
+  -rw-------. 1 toby toby 3379200 Sep 23 21:59 /tmp/tmp.C47usqoJTU
+  93.03user 9.34system 1:42.12elapsed 100%CPU (6648maxresident)k
+
+So, that's roughly 6x slower, and 6x more data, for a useful improvement
+in accuracy.
+
+One random thought that's occurred to me is that bfilter is perhaps too
+picky about what's allowed in a token, and will have a hard time with
+the modern trend for masking words like "c0ck".
+
+Another random thought: I could use Oggie's rather splendid state
+machine (non)-parser to build something that looks for urls in email
+messages. As both the URL blocklist idea and the "fresh bread" (is it?)
+idea are really rather good. Obviously this would be a separate tool to
+bfilter.
+
+On that note, I need to continue the job of splitting things off and
+writing test frameworks for them (and ultimately making them into a
+library). There's skiplist which is already independent, just needs the
+testery. And there's the calculation of the probability itself. I'm
+currently suspecting that this may not be quite right, as it seems to
+clamp very close to 0 or 1 a lot of the item. (However, most times that
+I've doubted Oggie's code, I've been wrong, and the code right.)
+
 2015-09-20
 ==========
 

@@ -5,4 +5,5 @@ test/*tester
 test/main.c
 test/ucompose
 test/uread
+test/uskiplist
 test/utoken
