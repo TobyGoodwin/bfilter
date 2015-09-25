@@ -55,6 +55,20 @@ void usage(FILE *stream) {
 
 int flagb = 0;
 
+void skiplist_dump(skiplist s) {
+    skiplist_iterator x;
+
+    for (x = skiplist_itr_first(s); x; x =skiplist_itr_next(s, x)) {
+        char *k;
+        struct wordcount *pw;
+        size_t l;
+
+        k = (char *)skiplist_itr_key(s, x, &l);
+        pw = skiplist_itr_value(s, x);
+        printf("%*.s => (%d, %d)\n", (int)l, k, pw->nemail, pw->n);
+    }
+}
+
 /* main ARGC ARGV
  * Entry point. Usage:
  *
@@ -212,6 +226,7 @@ int main(int argc, char *argv[]) {
         size_t nterms, n, nsig = 15;
         float a = 1., b = 1., loga = 0., logb = 0., score, logscore;
         
+skiplist_dump(wordlist);
         problist = skiplist_new(compare_by_probability);
         db_get_pair("__emails__", &nspamtotal, &nrealtotal);
         
