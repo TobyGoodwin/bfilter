@@ -1,6 +1,8 @@
+bayes.o: bayes.c bayes.h skiplist.h bfilter.h db.h submit.h
 bfilter.o: bfilter.c bfilter.h skiplist.h compose.h db.h token.h util.h
 compose.o: compose.c compose.h skiplist.h settings.h submit.h
-main.o: main.c bfilter.h skiplist.h compose.h db.h submit.h util.h
+main.o: main.c bayes.h skiplist.h bfilter.h compose.h db.h submit.h \
+ util.h
 pool.o: pool.c pool.h util.h
 skiplist.o: skiplist.c pool.h skiplist.h util.h
 submit.o: submit.c settings.h submit.h skiplist.h

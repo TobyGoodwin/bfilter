@@ -22,6 +22,7 @@
 
 #include <netinet/in.h>     /* for ntohl/htonl */
 
+#include "bayes.h"
 #include "bfilter.h"
 #include "compose.h"
 #include "db.h"
@@ -54,20 +55,6 @@ void usage(FILE *stream) {
 }
 
 int flagb = 0;
-
-void skiplist_dump(skiplist s) {
-    skiplist_iterator x;
-
-    for (x = skiplist_itr_first(s); x; x =skiplist_itr_next(s, x)) {
-        char *k;
-        struct wordcount *pw;
-        size_t l;
-
-        k = (char *)skiplist_itr_key(s, x, &l);
-        pw = skiplist_itr_value(s, x);
-        printf("%*.s => (%d, %d)\n", (int)l, k, pw->nemail, pw->n);
-    }
-}
 
 /* main ARGC ARGV
  * Entry point. Usage:
@@ -217,6 +204,8 @@ int main(int argc, char *argv[]) {
 
         free(term);
     } else if (mode == test) {
+        retval = bayes(wordlist, tempfile);
+#if 0
         /* The headers of the email have already been written to standard
          * output; we compute a `spam probability' from the words we've read
          * and those recorded in the database, write out an appropriate
@@ -226,7 +215,6 @@ int main(int argc, char *argv[]) {
         size_t nterms, n, nsig = 15;
         float a = 1., b = 1., loga = 0., logb = 0., score, logscore;
         
-skiplist_dump(wordlist);
         problist = skiplist_new(compare_by_probability);
         db_get_pair("__emails__", &nspamtotal, &nrealtotal);
         
@@ -301,6 +289,7 @@ skiplist_dump(wordlist);
             fprintf(stderr, "bfilter: standard output: write error (%s)\n", strerror(errno));
             retval = 1;
         }
+#endif
     } else if (mode == cleandb)
         /* Copy recent data to new database, replace old one. */
         db_clean(28);
