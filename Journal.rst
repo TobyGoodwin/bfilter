@@ -90,6 +90,32 @@ such as ``floor(log(nspam + nreal))``, and call this ``rank``. Now, sort
 first by rank, then the current criteria (modified to consider
 probabilities within a delta to be equal). Let's try that...
 
+OK, so the highest ranked terms are all short common words, "of",
+"have", etc. I can't see this working out too well, but who knows?
+We're still training 100 messages, with 3000 tokens::
+
+    ham: 99.40% correct, spam: 11.50% correct
+    -rw-------. 1 toby toby 6606848 Sep 26 22:38 /tmp/tmp.ebqR2rJGGU
+    286.03user 11.75system 4:58.13elapsed 99%CPU (9892maxresident)k
+
+So this looks like a classic case of estimating p too low. Or is it that
+the threshold of 0.9 is too high? ::
+
+    X-Spam-Words: 3002 terms
+     significant: on (0.4154) br (0.5606) href (0.5500) the (0.4524) at (0.4531) in (0.4595)
+    X-Spam-Probability: NO (p=0.676646, |log p|=0.390607)
+
+Suppose the threshold were 0.5, rather than 0.9? ::
+
+    ham: 98.50% correct, spam: 22.70% correct
+    -rw-------. 1 toby toby 6606848 Sep 26 22:57 /tmp/tmp.MLCk8gxap3
+    288.09user 11.97system 5:00.34elapsed 99%CPU (9896maxresident)k
+
+OK, well I think the rank idea is basically a good one, but needs more
+work. The fundamental problem at this stage is I have 2 different
+dimensions of *significant*, and I need a more subtle way of combining
+them. 
+
 2015-09-25
 ==========
 

@@ -9,7 +9,8 @@
 #include "submit.h"
 
 struct termprob {
-    float prob;
+    int rank;
+    double prob;
     char *term;
     size_t tlen;
 };
@@ -21,7 +22,7 @@ static void problist_dump(skiplist s) {
         struct termprob *tp;
 
         tp = skiplist_itr_key(s, x, 0);
-        printf("%.*s => %f\n", (int)tp->tlen, tp->term, tp->prob);
+        printf("%.*s => %d, %f\n", (int)tp->tlen, tp->term, tp->rank, tp->prob);
     }
 }
 
@@ -43,23 +44,28 @@ static void wordlist_dump(skiplist s) {
 static int compare_by_probability(const void *k1, const size_t k1len,
         const void *k2, const size_t k2len) {
     struct termprob *t1, *t2;
-    float p1, p2;
+    double p1, p2;
     t1 = (struct termprob*)k1;
     t2 = (struct termprob*)k2;
+
+    if (t1->rank < t2->rank)
+        return 1;
+    if (t1->rank > t2->rank)
+        return -1;
+
     p1 = fabs(0.5 - t1->prob);
     p2 = fabs(0.5 - t2->prob);
-    if (p1 < p2)
-        return 1;
-    else if (p1 > p2)
-        return -1;
-    else {
-        if (t1->tlen < t2->tlen)
+    if (fabs(p1 - p2) > 0.001) {
+        if (p1 < p2)
             return 1;
-        else if (t1->tlen > t2->tlen)
+        if (p1 > p2)
             return -1;
-        else
-            return memcmp(t1->term, t2->term, t1->tlen);
     }
+    if (t1->tlen < t2->tlen)
+        return 1;
+    if (t1->tlen > t2->tlen)
+        return -1;
+    return memcmp(t1->term, t2->term, t1->tlen);
 }
 
 /* this needs to be better refactored */
@@ -68,31 +74,36 @@ int bayes(skiplist wordlist, FILE *tempfile) {
      * output; we compute a `spam probability' from the words we've read
      * and those recorded in the database, write out an appropriate
      * header and then dump the rest of the email. */
-    int nspamtotal, nrealtotal;
+    int inspamtotal, inrealtotal;
+    double nspamtotal, nrealtotal;
     int retval;
     skiplist problist;
     skiplist_iterator si;
     size_t nterms, n, nsig = 15;
-    float a = 1., b = 1., loga = 0., logb = 0., score, logscore;
+    double a = 1., b = 1., loga = 0., logb = 0., score, logscore;
 
     //skiplist_dump(wordlist);
     problist = skiplist_new(compare_by_probability);
-    db_get_pair("__emails__", &nspamtotal, &nrealtotal);
+    db_get_pair("__emails__", &inspamtotal, &inrealtotal);
+    nspamtotal = inspamtotal; nrealtotal = inrealtotal;
 
     for (si = skiplist_itr_first(wordlist); si; si = skiplist_itr_next(wordlist, si)) {
         struct termprob t = { 0 };
-        int nspam, nreal;
+        int inspam, inreal;
 
         t.term = (char*)skiplist_itr_key(wordlist, si, &t.tlen);
         t.prob = 0.4;
 
-        if (db_get_pair(t.term, &nspam, &nreal)) {
+        if (db_get_pair(t.term, &inspam, &inreal)) {
+            double nspam = inspam, nreal = inreal;
 //            nreal *= 2;
 //            if (nreal + nspam > 3)
-                t.prob = ((float)nspam / (float)nspamtotal) / ((float)nspam / (float)nspamtotal + (float)nreal / (float)nrealtotal);
+            t.rank = floor(log(nspam + nreal));
+            t.prob = (nspam / nspamtotal) /
+                (nspam / nspamtotal + nreal / nrealtotal);
+//fprintf(stderr, "%.*s => %f (%d, %d)\n", (int)t.tlen, t.term, t.prob, nreal, nspam);
         }
 
-fprintf(stderr, "%.*s => %f (%d, %d)\n", (int)t.tlen, t.term, t.prob, nreal, nspam);
         if (t.prob == 0.)
             t.prob = 0.00001;
         else if (t.prob == 1.)
@@ -101,7 +112,7 @@ fprintf(stderr, "%.*s => %f (%d, %d)\n", (int)t.tlen, t.term, t.prob, nreal, nsp
         skiplist_insert(problist, &t, sizeof t, NULL); /* shouldn't fail */
     }
 
-problist_dump(problist);
+//problist_dump(problist);
     nterms = skiplist_size(problist);
     printf("X-Spam-Words: %lu terms\n significant:", nterms);
     if (nsig > nterms)
@@ -111,7 +122,7 @@ problist_dump(problist);
         struct termprob *tp;
         tp = (struct termprob*)skiplist_itr_key(problist, si, NULL);
 
-fprintf(stderr, "considering %.*s => %f\n", (int)tp->tlen, tp->term, tp->prob);
+//fprintf(stderr, "considering %.*s => %f\n", (int)tp->tlen, tp->term, tp->prob);
         if (n < 6) {
             /* Avoid emitting high bit characters in the header. */
             char *p;
@@ -138,7 +149,7 @@ fprintf(stderr, "considering %.*s => %f\n", (int)tp->tlen, tp->term, tp->prob);
     else
         score = a / (a + b);
 
-    printf("X-Spam-Probability: %s (p=%f, |log p|=%f)\n", score > 0.9 ? "YES" : "NO", score, fabs(logscore));
+    printf("X-Spam-Probability: %s (p=%f, |log p|=%f)\n", score > 0.5 ? "YES" : "NO", score, fabs(logscore));
 
     fseek(tempfile, 0, SEEK_SET);
     do {
