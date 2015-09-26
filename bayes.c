@@ -8,7 +8,7 @@
 #include "db.h"
 #include "submit.h"
 
-void skiplist_dump(skiplist s) {
+static void skiplist_dump(skiplist s) {
     skiplist_iterator x;
 
     for (x = skiplist_itr_first(s); x; x =skiplist_itr_next(s, x)) {
@@ -69,12 +69,12 @@ int bayes(skiplist wordlist, FILE *tempfile) {
         t.prob = 0.4;
 
         if (db_get_pair(t.term, &nspam, &nreal)) {
-            nreal *= 2;
-            if (nreal + nspam > 3)
+//            nreal *= 2;
+//            if (nreal + nspam > 3)
                 t.prob = ((float)nspam / (float)nspamtotal) / ((float)nspam / (float)nspamtotal + (float)nreal / (float)nrealtotal);
         }
 
-fprintf(stderr, "%.*s => %f (%d, %d)\n", (int)t.tlen, t.term, t.prob, nreal, nspam);
+//fprintf(stderr, "%.*s => %f (%d, %d)\n", (int)t.tlen, t.term, t.prob, nreal, nspam);
         if (t.prob == 0.)
             t.prob = 0.00001;
         else if (t.prob == 1.)

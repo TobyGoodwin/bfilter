@@ -6,7 +6,7 @@
 
 /* MAX_TOKENS
  * Largest number of tokens we generate from a single mail. */
-#define MAX_TOKENS      300
+#define MAX_TOKENS      3000
 
 /* MAX_TERM_LEN
  * Largest term we consider. */

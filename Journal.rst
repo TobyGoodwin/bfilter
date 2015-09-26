@@ -1,3 +1,31 @@
+2015-09-26
+==========
+
+Oh you silly man! The probability list uses a custom comparison
+function, ``compare_by_probability()``, which does indeed pick out most
+significant (furthest from 0.5) probabilities.
+
+So at this stage I've more or less convinced myself that most of the
+maths is as suggested by Graham. Two things I still want to play with:
+first, Graham clamps the probability range to (0.01,0.99), while Oggie
+uses a dodgy looking float comparison to clamp to (0.00001,0.99999).
+Secondly, I think we should use doubles throughout.
+
+(Graham uses ``(min 1 (/ b nbad))`` which has no equivalent in Oggie's
+code. Since ``b <= nbad``, the only time I can see that making any
+difference is if ``nbad == 0``, in which case we avoid the division by
+zero. I'm not sure how Oggie avoids division by zero here, but at some
+point I intend to declare that p == 0 unless you've trained at least *n*
+reals and spams.)
+
+On that subject, I think ``corpus-test`` needs to train rather more
+messages if its results are to be meaningful. If I bump ``ntrain`` up to
+50, and sticking to 3000 ``MAX_TOKENS``, I get:
+
+    ham: 95.20% correct, spam: 81.10% correct
+    -rw-------. 1 toby toby 6606848 Sep 26 09:37 /tmp/tmp.JkxAf33sAU
+    276.65user 11.57system 4:48.21elapsed 100%CPU (9732maxresident)k
+
 2015-09-25
 ==========
 

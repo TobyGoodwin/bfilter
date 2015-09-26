@@ -1,6 +1,6 @@
 #! /bin/sh
 
-ntrain=20
+ntrain=50
 
 corpus=$1
 
@@ -20,7 +20,7 @@ export BFILTER_DB=$(mktemp)
 
 cd $corpus/ham
 nham=$(ls | wc -l)
-mham=$(echo $nham / 20 | bc)
+mham=$(echo $nham / $ntrain | bc)
 
 for m in $(ls | awk "NR % $mham == 0 { print }"); do
     echo $m
@@ -29,7 +29,7 @@ done
 
 cd $corpus/spam
 nspam=$(ls | wc -l)
-mspam=$(echo $nspam / 20 | bc)
+mspam=$(echo $nspam / $ntrain | bc)
 
 for m in $(ls | awk "NR % $mspam == 0 { print }"); do
     echo $m
