@@ -304,23 +304,3 @@ abort:
     
 }
 
-int compare_by_probability(const void *k1, const size_t k1len, const void *k2, const size_t k2len) {
-    struct termprob *t1, *t2;
-    float p1, p2;
-    t1 = (struct termprob*)k1;
-    t2 = (struct termprob*)k2;
-    p1 = fabs(0.5 - t1->prob);
-    p2 = fabs(0.5 - t2->prob);
-    if (p1 < p2)
-        return 1;
-    else if (p1 > p2)
-        return -1;
-    else {
-        if (t1->tlen < t2->tlen)
-            return 1;
-        else if (t1->tlen > t2->tlen)
-            return -1;
-        else
-            return memcmp(t1->term, t2->term, t1->tlen);
-    }
-}

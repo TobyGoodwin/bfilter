@@ -30,6 +30,4 @@ int is_b64_chars(const char *buf, size_t len);
 size_t nbytesrd;
 int read_email(const int fromline, const int passthrough, FILE *fp, FILE **tempfp);
 
-int compare_by_probability(const void *k1, const size_t k1len, const void *k2, const size_t k2len);
-
 #endif
