@@ -7,12 +7,6 @@
 
 #define SS(x)   #x
 
-struct termprob {
-    float prob;
-    char *term;
-    size_t tlen;
-};
-
 uint32_t unbase64(char c);
 size_t decode_base64(char *buf, size_t len);
 int nemails;

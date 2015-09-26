@@ -8,6 +8,12 @@
 #include "db.h"
 #include "submit.h"
 
+struct termprob {
+    float prob;
+    char *term;
+    size_t tlen;
+};
+
 static void skiplist_dump(skiplist s) {
     skiplist_iterator x;
 
