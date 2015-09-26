@@ -114,7 +114,15 @@ Suppose the threshold were 0.5, rather than 0.9? ::
 OK, well I think the rank idea is basically a good one, but needs more
 work. The fundamental problem at this stage is I have 2 different
 dimensions of *significant*, and I need a more subtle way of combining
-them. 
+them. Or not... how about just ignoring any probs in (0.4 - 0.6)? That's
+where all the high-ranking but neutral words seem to end up::
+
+    ham: 84.90% correct, spam: 76.80% correct
+    -rw-------. 1 toby toby 6606848 Sep 26 23:18 /tmp/tmp.RCuF9qXLz4
+    309.98user 12.67system 5:22.90elapsed 99%CPU (9892maxresident)k
+
+Well, those are the most promising results I've had in a while (and that
+was with the threshold still at 0.5).
 
 2015-09-25
 ==========

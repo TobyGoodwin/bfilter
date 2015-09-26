@@ -48,13 +48,16 @@ static int compare_by_probability(const void *k1, const size_t k1len,
     t1 = (struct termprob*)k1;
     t2 = (struct termprob*)k2;
 
-    if (t1->rank < t2->rank)
-        return 1;
-    if (t1->rank > t2->rank)
-        return -1;
-
     p1 = fabs(0.5 - t1->prob);
     p2 = fabs(0.5 - t2->prob);
+
+    if (p1 > 0.1 && p2 > 0.1) {
+        if (t1->rank < t2->rank)
+            return 1;
+        if (t1->rank > t2->rank)
+            return -1;
+    }
+
     if (fabs(p1 - p2) > 0.001) {
         if (p1 < p2)
             return 1;
