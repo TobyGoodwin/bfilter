@@ -26,6 +26,70 @@ messages if its results are to be meaningful. If I bump ``ntrain`` up to
     -rw-------. 1 toby toby 6606848 Sep 26 09:37 /tmp/tmp.JkxAf33sAU
     276.65user 11.57system 4:48.21elapsed 100%CPU (9732maxresident)k
 
+OK. Now, change ``float`` to ``double`` and...
+
+    ham: 19.20% correct, spam: 98.50% correct
+    -rw-------. 1 toby toby 6606848 Sep 26 10:09 /tmp/tmp.2vErSShMmb
+    275.40user 11.69system 4:47.05elapsed 100%CPU (9768maxresident)k
+
+What!?!
+
+Looking at some examples, it seems that all the chosen terms are spam
+ones.  With this, still relatively small, training corpus, almost all
+the significant terms have been clamped. I need to refactor and write
+some tests, but presumably ``compare_by_probability()`` in the
+``double`` version always finds 0.99999 is (very fractionally) more
+significant than 0.00001. And, presumably, in the ``float()`` version
+they're the same, so we get an arbitrary choice.
+
+I wrote ``problist_dump()`` to examine the situation. The choice is not
+quite arbitrary, but depends on the length of the term
+
+Now, all this got me thinking. Particularly with the rather small
+training sets that I'm currently using, just about every significant
+term will be clamped, because it will either appear only in spams or
+only in reals. Look at what happens if all the terms are clamped, first
+to Oggie's 99.999%::
+
+    00 1.000000
+    ...
+    06 1.000000
+    07 0.999990
+    08 0.000010
+    09 0.000000
+    10 0.000000
+    ...
+    15 0.000000
+
+And if we use Graham's 99%, that doesn't help much::
+
+    00 1.000000
+    ...
+    05 1.000000
+    06 0.999999
+    07 0.990000
+    08 0.010000
+    09 0.000001
+    10 0.000000
+    ...
+    15 0.000000
+
+Consider a message which has 20 clamped terms, 10 near 0 and 10 near 1.
+We should assign p=0.5, as we have absolutely no idea whether or not
+this is spam.  But in fact we will pronounce with near certainty that it
+is either spam or real; the choice will be arbitrary and fragile.
+
+Graham mitigates this problem by insisting that a term has been seen at
+least 5 times in the training corpus (otherwise we'll just assign its
+occurrence in the message the standard 0.4, which is likely to knock it
+off the top 15 list).
+
+I have a more sneaky idea. What if we look at the total number of
+occurences of a term, ``nspam + nreal``. Fold this down in some way,
+such as ``floor(log(nspam + nreal))``, and call this ``rank``. Now, sort
+first by rank, then the current criteria (modified to consider
+probabilities within a delta to be equal). Let's try that...
+
 2015-09-25
 ==========
 

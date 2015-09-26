@@ -14,7 +14,19 @@ struct termprob {
     size_t tlen;
 };
 
-static void skiplist_dump(skiplist s) {
+static void problist_dump(skiplist s) {
+    skiplist_iterator x;
+
+    for (x = skiplist_itr_first(s); x; x =skiplist_itr_next(s, x)) {
+        struct termprob *tp;
+
+        tp = skiplist_itr_key(s, x, 0);
+        printf("%.*s => %f\n", (int)tp->tlen, tp->term, tp->prob);
+    }
+}
+
+
+static void wordlist_dump(skiplist s) {
     skiplist_iterator x;
 
     for (x = skiplist_itr_first(s); x; x =skiplist_itr_next(s, x)) {
@@ -80,7 +92,7 @@ int bayes(skiplist wordlist, FILE *tempfile) {
                 t.prob = ((float)nspam / (float)nspamtotal) / ((float)nspam / (float)nspamtotal + (float)nreal / (float)nrealtotal);
         }
 
-//fprintf(stderr, "%.*s => %f (%d, %d)\n", (int)t.tlen, t.term, t.prob, nreal, nspam);
+fprintf(stderr, "%.*s => %f (%d, %d)\n", (int)t.tlen, t.term, t.prob, nreal, nspam);
         if (t.prob == 0.)
             t.prob = 0.00001;
         else if (t.prob == 1.)
@@ -89,6 +101,7 @@ int bayes(skiplist wordlist, FILE *tempfile) {
         skiplist_insert(problist, &t, sizeof t, NULL); /* shouldn't fail */
     }
 
+problist_dump(problist);
     nterms = skiplist_size(problist);
     printf("X-Spam-Words: %lu terms\n significant:", nterms);
     if (nsig > nterms)
@@ -98,7 +111,7 @@ int bayes(skiplist wordlist, FILE *tempfile) {
         struct termprob *tp;
         tp = (struct termprob*)skiplist_itr_key(problist, si, NULL);
 
-//fprintf(stderr, "considering %.*s => %f\n", (int)tp->tlen, tp->term, tp->prob);
+fprintf(stderr, "considering %.*s => %f\n", (int)tp->tlen, tp->term, tp->prob);
         if (n < 6) {
             /* Avoid emitting high bit characters in the header. */
             char *p;
