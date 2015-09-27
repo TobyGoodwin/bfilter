@@ -53,6 +53,7 @@ static int termprob_compare(const void *k1, const size_t k1len,
         const void *k2, const size_t k2len) {
     struct termprob *t1, *t2;
     double r1, r2;
+
     t1 = (struct termprob*)k1;
     t2 = (struct termprob*)k2;
 
@@ -122,6 +123,8 @@ double bayes(skiplist wordlist) {
         a *= tp->p_spam;
         b *= 1. - tp->p_spam;
     }
+
+    skiplist_delete(problist);
 
     return a / (a + b);
 }
