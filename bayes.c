@@ -9,11 +9,18 @@
 #include "submit.h"
 
 struct termprob {
-    int rank;
-    double prob;
+    double p_spam;
+    double p_present;
     char *term;
     size_t tlen;
 };
+
+double termprob_radius(struct termprob *tp) {
+    double x = tp->p_spam * 2 - 1;
+    double y = tp->p_present;
+
+    return sqrt(x * x + y * y);
+}
 
 static void problist_dump(skiplist s) {
     skiplist_iterator x;
@@ -22,10 +29,10 @@ static void problist_dump(skiplist s) {
         struct termprob *tp;
 
         tp = skiplist_itr_key(s, x, 0);
-        printf("%.*s => %d, %f\n", (int)tp->tlen, tp->term, tp->rank, tp->prob);
+        printf("%.*s => %f, %f => %f\n", (int)tp->tlen, tp->term,
+                tp->p_spam, tp->p_present, termprob_radius(tp));
     }
 }
-
 
 static void wordlist_dump(skiplist s) {
     skiplist_iterator x;
@@ -44,24 +51,17 @@ static void wordlist_dump(skiplist s) {
 static int compare_by_probability(const void *k1, const size_t k1len,
         const void *k2, const size_t k2len) {
     struct termprob *t1, *t2;
-    double p1, p2;
+    double r1, r2;
     t1 = (struct termprob*)k1;
     t2 = (struct termprob*)k2;
 
-    p1 = fabs(0.5 - t1->prob);
-    p2 = fabs(0.5 - t2->prob);
+    r1 = termprob_radius(t1);
+    r2 = termprob_radius(t2);
 
-    if (p1 > 0.1 && p2 > 0.1) {
-        if (t1->rank < t2->rank)
+    if (fabs(r1 - r2) > 0.001) {
+        if (r1 < r2)
             return 1;
-        if (t1->rank > t2->rank)
-            return -1;
-    }
-
-    if (fabs(p1 - p2) > 0.001) {
-        if (p1 < p2)
-            return 1;
-        if (p1 > p2)
+        if (r1 > r2)
             return -1;
     }
     if (t1->tlen < t2->tlen)
@@ -95,27 +95,27 @@ int bayes(skiplist wordlist, FILE *tempfile) {
         int inspam, inreal;
 
         t.term = (char*)skiplist_itr_key(wordlist, si, &t.tlen);
-        t.prob = 0.4;
+        t.p_spam = 0.4;
 
         if (db_get_pair(t.term, &inspam, &inreal)) {
             double nspam = inspam, nreal = inreal;
 //            nreal *= 2;
 //            if (nreal + nspam > 3)
-            t.rank = floor(log(nspam + nreal));
-            t.prob = (nspam / nspamtotal) /
+            t.p_spam = (nspam / nspamtotal) /
                 (nspam / nspamtotal + nreal / nrealtotal);
 //fprintf(stderr, "%.*s => %f (%d, %d)\n", (int)t.tlen, t.term, t.prob, nreal, nspam);
+            t.p_present = (nspam + nreal) / (nspamtotal + nrealtotal);
         }
 
-        if (t.prob == 0.)
-            t.prob = 0.00001;
-        else if (t.prob == 1.)
-            t.prob = 0.99999;
+        if (t.p_spam < 0.01)
+            t.p_spam = 0.01;
+        else if (t.p_spam > 0.99)
+            t.p_spam = 0.99;
 
         skiplist_insert(problist, &t, sizeof t, NULL); /* shouldn't fail */
     }
 
-//problist_dump(problist);
+problist_dump(problist);
     nterms = skiplist_size(problist);
     printf("X-Spam-Words: %lu terms\n significant:", nterms);
     if (nsig > nterms)
@@ -135,12 +135,12 @@ int bayes(skiplist wordlist, FILE *tempfile) {
                     putchar(*p);
                 else
                     printf("\\x%02x", (unsigned int)*p);
-            printf(" (%6.4f)", tp->prob);
+            printf(" (%6.4f)", tp->p_spam);
         }
-        a *= tp->prob;
-        loga += log(tp->prob);
-        b *= 1. - tp->prob;
-        logb += log(1. - tp->prob);
+        a *= tp->p_spam;
+        loga += log(tp->p_spam);
+        b *= 1. - tp->p_spam;
+        logb += log(1. - tp->p_spam);
     }
 
     printf("\n");
@@ -152,7 +152,7 @@ int bayes(skiplist wordlist, FILE *tempfile) {
     else
         score = a / (a + b);
 
-    printf("X-Spam-Probability: %s (p=%f, |log p|=%f)\n", score > 0.5 ? "YES" : "NO", score, fabs(logscore));
+    printf("X-Spam-Probability: %s (p=%f, |log p|=%f)\n", score > 0.9 ? "YES" : "NO", score, fabs(logscore));
 
     fseek(tempfile, 0, SEEK_SET);
     do {

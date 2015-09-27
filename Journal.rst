@@ -1,3 +1,27 @@
+2015-09-27
+==========
+
+My *rank* idea is along the right lines, but not quite there. New
+insight to try comes from the idea that we are examining significance
+along two dimensions, which we need to combine.
+
+Calculate p(spam) as currently (I'm going to fasten onto Graham's
+clamps, till I have reason to do otherwise). Now calculate p(present),
+which is simply the total number of messages containing this term over
+the total number of messages. Let x = p(spam) * 2 - 1, so that more
+significant probabilities are further from 0. And y = p(present). Now
+just calculate r = sqrt(x^2 + y^2), and this is the measure of
+significance.
+
+This may be brilliant, but anyway, let's see it in action::
+
+    ham: 97.70% correct, spam: 83.40% correct
+    -rw-------. 1 toby toby 6606848 Sep 27 12:05 /tmp/tmp.0SMnNAJlyN
+    292.97user 12.64system 5:16.00elapsed 96%CPU (9744maxresident)k
+
+This is great! And it's much less arbitrary than just saying "5 or
+more". A real breakthrough!
+
 2015-09-26
 ==========
 
@@ -42,8 +66,9 @@ some tests, but presumably ``compare_by_probability()`` in the
 significant than 0.00001. And, presumably, in the ``float()`` version
 they're the same, so we get an arbitrary choice.
 
-I wrote ``problist_dump()`` to examine the situation. The choice is not
-quite arbitrary, but depends on the length of the term
+I wrote ``problist_dump()`` to examine the situation, and yeah, that's
+basically true. (The choice is not quite arbitrary, but depends on the
+length of the term.)
 
 Now, all this got me thinking. Particularly with the rather small
 training sets that I'm currently using, just about every significant
