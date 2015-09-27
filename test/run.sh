@@ -14,6 +14,13 @@ pass() {
     echo -n . >> $passes
 }
 
+tap() {
+    x=$($command)
+    echo "$x"
+    echo "$x" | awk 'BEGIN { ORS = "" } /^ok / {print "."}' >> $passes
+    echo "$x" | awk 'BEGIN { ORS = "" } /^not ok / {print "."}' >> $fails
+}
+
 XXX() {
     echo expect fail
     echo -n . >> $expfails

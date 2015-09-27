@@ -28,6 +28,9 @@ CFLAGS += -DBFILTER_VERSION=\"$(VERSION)\"
 bfilter: $(OBJS) depend
 	$(CC) $(LDFLAGS) -o $@ $(OBJS) $(LDLIBS)
 
+test/ubayes: test/unit/bayes.o bayes.o pool.o skiplist.o submit.o util.o
+	$(CC) $(LDFLAGS) -o $@ $^ $(LDLIBS)
+
 test/uread: test/read/read.o bfilter.o util.o
 	$(CC) $(LDFLAGS) -o $@ $^ $(LDLIBS)
 

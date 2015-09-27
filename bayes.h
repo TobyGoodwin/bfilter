@@ -1,3 +1,3 @@
 #include "skiplist.h"
 
-int bayes(skiplist);
+double bayes(skiplist);

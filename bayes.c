@@ -4,8 +4,9 @@
 #include <string.h>
 
 #include "bayes.h"
-#include "bfilter.h"
 #include "db.h"
+#include "settings.h"
+/* for struct wordcount: */
 #include "submit.h"
 
 struct termprob {
@@ -48,7 +49,7 @@ static void wordlist_dump(skiplist s) {
     }
 }
 
-static int compare_by_probability(const void *k1, const size_t k1len,
+static int termprob_compare(const void *k1, const size_t k1len,
         const void *k2, const size_t k2len) {
     struct termprob *t1, *t2;
     double r1, r2;
@@ -71,26 +72,25 @@ static int compare_by_probability(const void *k1, const size_t k1len,
     return memcmp(t1->term, t2->term, t1->tlen);
 }
 
-/* this needs to be better refactored */
-int bayes(skiplist wordlist) {
-    /* The headers of the email have already been written to standard
-     * output; we compute a `spam probability' from the words we've read
-     * and those recorded in the database, write out an appropriate
-     * header and then dump the rest of the email. */
+/* Calculate an overall spam probability for a wordlist */
+double bayes(skiplist wordlist) {
     int inspamtotal, inrealtotal;
     double nspamtotal, nrealtotal;
-    int retval = 0;
     skiplist problist;
     skiplist_iterator si;
-    size_t nterms, n, nsig = 15;
-    double a = 1., b = 1., loga = 0., logb = 0., score, logscore;
+    size_t nterms, n, nsig = SIGNIFICANT_TERMS;
+    double a = 1., b = 1.;
 
-    //skiplist_dump(wordlist);
-    problist = skiplist_new(compare_by_probability);
+    //wordlist_dump(wordlist);
+    
+    problist = skiplist_new(termprob_compare);
     db_get_pair("__emails__", &inspamtotal, &inrealtotal);
+    if (inspamtotal == 0 || inrealtotal == 0)
+        return 0.;
     nspamtotal = inspamtotal; nrealtotal = inrealtotal;
 
-    for (si = skiplist_itr_first(wordlist); si; si = skiplist_itr_next(wordlist, si)) {
+    for (si = skiplist_itr_first(wordlist); si;
+            si = skiplist_itr_next(wordlist, si)) {
         struct termprob t = { 0 };
         int inspam, inreal;
 
@@ -99,60 +99,29 @@ int bayes(skiplist wordlist) {
 
         if (db_get_pair(t.term, &inspam, &inreal)) {
             double nspam = inspam, nreal = inreal;
-//            nreal *= 2;
-//            if (nreal + nspam > 3)
             t.p_spam = (nspam / nspamtotal) /
                 (nspam / nspamtotal + nreal / nrealtotal);
-//fprintf(stderr, "%.*s => %f (%d, %d)\n", (int)t.tlen, t.term, t.prob, nreal, nspam);
             t.p_present = (nspam + nreal) / (nspamtotal + nrealtotal);
         }
 
-        if (t.p_spam < 0.01)
-            t.p_spam = 0.01;
-        else if (t.p_spam > 0.99)
-            t.p_spam = 0.99;
+        if (t.p_spam < 0.01) t.p_spam = 0.01;
+        if (t.p_spam > 0.99) t.p_spam = 0.99;
 
         skiplist_insert(problist, &t, sizeof t, NULL); /* shouldn't fail */
     }
 
-problist_dump(problist);
+//problist_dump(problist);
     nterms = skiplist_size(problist);
-    printf("X-Spam-Words: %lu terms\n significant:", nterms);
-    if (nsig > nterms)
-        nsig = nterms;
+    if (nsig > nterms) nsig = nterms;
 
-    for (si = skiplist_itr_first(problist), n = 0; si && n < nsig; si = skiplist_itr_next(problist, si), ++n) {
+    for (si = skiplist_itr_first(problist), n = 0;
+            si && n < nsig; si = skiplist_itr_next(problist, si), ++n) {
         struct termprob *tp;
-        tp = (struct termprob*)skiplist_itr_key(problist, si, NULL);
 
-//fprintf(stderr, "considering %.*s => %f\n", (int)tp->tlen, tp->term, tp->prob);
-        if (n < 6) {
-            /* Avoid emitting high bit characters in the header. */
-            char *p;
-            putchar(' ');
-            for (p = tp->term; *p; ++p)
-                if (*p < 0x80)
-                    putchar(*p);
-                else
-                    printf("\\x%02x", (unsigned int)*p);
-            printf(" (%6.4f)", tp->p_spam);
-        }
+        tp = (struct termprob*)skiplist_itr_key(problist, si, NULL);
         a *= tp->p_spam;
-        loga += log(tp->p_spam);
         b *= 1. - tp->p_spam;
-        logb += log(1. - tp->p_spam);
     }
 
-    printf("\n");
-
-    logscore = loga - log(exp(loga) + exp(logb));
-
-    if (a == 0.)
-        score = 0.;
-    else
-        score = a / (a + b);
-
-    printf("X-Spam-Probability: %s (p=%f, |log p|=%f)\n", score > 0.9 ? "YES" : "NO", score, fabs(logscore));
-
-    return retval;
+    return a / (a + b);
 }

@@ -26,6 +26,7 @@
 #include "bfilter.h"
 #include "compose.h"
 #include "db.h"
+#include "settings.h"
 #include "skiplist.h"
 #include "submit.h"
 #include "util.h"
@@ -204,11 +205,12 @@ int main(int argc, char *argv[]) {
 
         free(term);
     } else if (mode == test) {
+        double score;
         /* The headers of the email have already been written to standard
          * output; we compute a `spam probability' from the words we've read
          * and those recorded in the database, write out an appropriate
          * header and then dump the rest of the email. */
-        retval = bayes(wordlist);
+        score = bayes(wordlist);
 #if 0
         int nspamtotal, nrealtotal;
         skiplist problist;
@@ -273,6 +275,8 @@ int main(int argc, char *argv[]) {
         printf("X-Spam-Probability: %s (p=%f, |log p|=%f)\n", score > 0.9 ? "YES" : "NO", score, fabs(logscore));
 
 #endif
+        printf("X-Spam-Probability: %s (p=%f)\n",
+                score > SPAM_THRESHOLD ? "YES" : "NO", score);
         fseek(tempfile, 0, SEEK_SET);
         do {
             unsigned char buf[8192];
