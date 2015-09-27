@@ -204,12 +204,12 @@ int main(int argc, char *argv[]) {
 
         free(term);
     } else if (mode == test) {
-        retval = bayes(wordlist, tempfile);
-#if 0
         /* The headers of the email have already been written to standard
          * output; we compute a `spam probability' from the words we've read
          * and those recorded in the database, write out an appropriate
          * header and then dump the rest of the email. */
+        retval = bayes(wordlist);
+#if 0
         int nspamtotal, nrealtotal;
         skiplist problist;
         size_t nterms, n, nsig = 15;
@@ -272,6 +272,7 @@ int main(int argc, char *argv[]) {
         
         printf("X-Spam-Probability: %s (p=%f, |log p|=%f)\n", score > 0.9 ? "YES" : "NO", score, fabs(logscore));
 
+#endif
         fseek(tempfile, 0, SEEK_SET);
         do {
             unsigned char buf[8192];
@@ -289,7 +290,6 @@ int main(int argc, char *argv[]) {
             fprintf(stderr, "bfilter: standard output: write error (%s)\n", strerror(errno));
             retval = 1;
         }
-#endif
     } else if (mode == cleandb)
         /* Copy recent data to new database, replace old one. */
         db_clean(28);

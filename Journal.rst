@@ -22,6 +22,11 @@ This may be brilliant, but anyway, let's see it in action::
 This is great! And it's much less arbitrary than just saying "5 or
 more". A real breakthrough!
 
+So, next, need to carve up bayes.c even more, and generate more test
+cases. Then I can get back to the interesting job of improving
+tokenization. (At present, snippets of HTML and CSS feature far too
+strongly.)
+
 2015-09-26
 ==========
 

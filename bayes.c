@@ -72,14 +72,14 @@ static int compare_by_probability(const void *k1, const size_t k1len,
 }
 
 /* this needs to be better refactored */
-int bayes(skiplist wordlist, FILE *tempfile) {
+int bayes(skiplist wordlist) {
     /* The headers of the email have already been written to standard
      * output; we compute a `spam probability' from the words we've read
      * and those recorded in the database, write out an appropriate
      * header and then dump the rest of the email. */
     int inspamtotal, inrealtotal;
     double nspamtotal, nrealtotal;
-    int retval;
+    int retval = 0;
     skiplist problist;
     skiplist_iterator si;
     size_t nterms, n, nsig = 15;
@@ -153,24 +153,6 @@ problist_dump(problist);
         score = a / (a + b);
 
     printf("X-Spam-Probability: %s (p=%f, |log p|=%f)\n", score > 0.9 ? "YES" : "NO", score, fabs(logscore));
-
-    fseek(tempfile, 0, SEEK_SET);
-    do {
-        unsigned char buf[8192];
-        size_t n;
-
-        n = fread(buf, 1, 8192, tempfile);
-        if (ferror(tempfile) || (n > 0 && fwrite(buf, 1, n, stdout) != n))
-            break;
-    } while (!feof(tempfile) && !ferror(tempfile));
-
-    if (ferror(tempfile)) {
-        fprintf(stderr, "bfilter: temporary file: read error (%s)\n", strerror(errno));
-        retval = 1;
-    } else if (ferror(stdout)) {
-        fprintf(stderr, "bfilter: standard output: write error (%s)\n", strerror(errno));
-        retval = 1;
-    }
 
     return retval;
 }
