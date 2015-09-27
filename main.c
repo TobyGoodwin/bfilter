@@ -80,6 +80,9 @@ _Bool fdump(FILE *f) {
     return 1;
 }
 
+enum mode { isspam, isreal, test, annotate, cleandb, stats } mode;
+int run(enum mode mode);
+
 /* main ARGC ARGV
  * Entry point. Usage:
  *
@@ -92,10 +95,7 @@ _Bool fdump(FILE *f) {
  *          stats       Print some statistics about the database.
  */
 int main(int argc, char *argv[]) {
-    enum { isspam, isreal, test, annotate, cleandb, stats } mode;
-    skiplist_iterator si;
-    FILE *tempfile;
-    int retval = 0;
+    enum mode mode;
     int arg = 1;
 
     while (argv[arg] && *argv[arg] == '-') {
@@ -134,9 +134,17 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
+    return run(mode);
+}
+
+int run(enum mode mode) {
+    int retval;
+    skiplist_iterator si;
+    FILE *tempfile;
+
     /* Now read whatever emails we need to, and record the terms which appear
      * in them. */
-    wordlist = skiplist_new(NULL);
+    token_list = skiplist_new(NULL);
 
     switch (mode) {
         case isspam:
@@ -147,13 +155,14 @@ int main(int argc, char *argv[]) {
                 ++nemails;
                 f = read_email(flagb, 0, stdin, NULL);
                 if (!f) {
-                    fprintf(stderr, "bfilter: error while reading email (%s)\n", errno ? strerror(errno) : "no system error");
+                    fprintf(stderr,
+                            "bfilter: error while reading email (%s)\n", errno ? strerror(errno) : "no system error");
                     return 1;
                 }
              
                 /* If we're running on a terminal, print stats. */
                 if (isatty(1))
-                    fprintf(stderr, "Reading: %8u emails (%8u bytes) %8lu terms avg length %8.2f\r", nemails, (unsigned)nbytesrd, skiplist_size(wordlist), (double)term_length / skiplist_size(wordlist));
+                    fprintf(stderr, "Reading: %8u emails (%8u bytes) %8lu terms avg length %8.2f\r", nemails, (unsigned)nbytesrd, skiplist_size(token_list), (double)term_length / skiplist_size(token_list));
             } while (!feof(stdin));
             if (isatty(1))
                 fprintf(stderr, "\n");
@@ -208,21 +217,21 @@ int main(int argc, char *argv[]) {
                 if (isatty(1))
                     fprintf(stderr, "Writing: corpus now contains %8u spam / %8u nonspam emails\n", nspam, nreal);
 
-                nterms = skiplist_size(wordlist);
+                nterms = skiplist_size(token_list);
 
-                for (si = skiplist_itr_first(wordlist), ntermswr = 0, ntermsnew = 0; si; si = skiplist_itr_next(wordlist, si), ++ntermswr) {
+                for (si = skiplist_itr_first(token_list), ntermswr = 0, ntermsnew = 0; si; si = skiplist_itr_next(token_list, si), ++ntermswr) {
                     char *k;
                     size_t kl;
                     struct wordcount *pw;
 
-                    k = skiplist_itr_key(wordlist, si, &kl);
+                    k = skiplist_itr_key(token_list, si, &kl);
 
                     if (!term || kl + 1 > termlen)
                         term = xrealloc(term, termlen = 2 * (kl + 1));
                     term[kl] = 0;
                     memcpy(term, k, kl);
 
-                    pw = skiplist_itr_value(wordlist, si);
+                    pw = skiplist_itr_value(token_list, si);
 
                     if (!db_get_pair(term, &nspam, &nreal)) {
                         nspam = nreal = 0;
@@ -248,7 +257,7 @@ int main(int argc, char *argv[]) {
             break;
 
         case test:
-            printf("%f\n", bayes(wordlist));
+            printf("%f\n", bayes(token_list));
             break;
 
         case annotate:
@@ -257,7 +266,7 @@ int main(int argc, char *argv[]) {
                 /* Headers of the email have already been written, and
                  * remainder saved in tempfile. Compute p(spam), write
                  * our header, then dump the rest of the email. */
-                score = bayes(wordlist);
+                score = bayes(token_list);
                 printf("X-Spam-Probability: %s (p=%f)\n",
                         score > SPAM_THRESHOLD ? "YES" : "NO", score);
                 if (!fdump(tempfile)) retval = 1;
@@ -274,7 +283,7 @@ int main(int argc, char *argv[]) {
 
     db_close();
 
-    skiplist_delete(wordlist);
+    skiplist_delete(token_list);
 
     return retval;
 }

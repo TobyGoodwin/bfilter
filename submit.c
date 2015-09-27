@@ -4,7 +4,7 @@
 #include "settings.h"
 #include "submit.h"
 
-skiplist wordlist;
+skiplist token_list;
 int nemails, ntokens_submitted;
 size_t term_length;
 
@@ -13,7 +13,7 @@ size_t term_length;
 void submit(char *t, size_t l) {
     struct wordcount *pw;
 
-    pw = skiplist_find(wordlist, t, l);
+    pw = skiplist_find(token_list, t, l);
     if (pw) {
         if (pw->nemail < nemails) {
             pw->nemail = nemails;
@@ -23,7 +23,7 @@ void submit(char *t, size_t l) {
         struct wordcount w = { 0 };
         w.nemail = nemails;
         w.n = 1;
-        skiplist_insert_copy(wordlist, t, l, &w, sizeof w);
+        skiplist_insert_copy(token_list, t, l, &w, sizeof w);
         term_length += l;
         ++ntokens_submitted;
     }

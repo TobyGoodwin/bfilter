@@ -37,26 +37,26 @@ int main(void) {
 
     printf("1..4\n");
 
-    wordlist = skiplist_new(0);
-    p = bayes(wordlist);
+    token_list = skiplist_new(0);
+    p = bayes(token_list);
     if (!equal(p, 0.5)) printf("not ");
-    printf("ok 1 empty\n");
+    printf("ok 1 empty: %f\n", p);
 
     submit("spam", 4);
-    p = bayes(wordlist);
+    p = bayes(token_list);
     if (!equal(p, 0.99)) printf("not ");
-    printf("ok 2 single spam\n");
+    printf("ok 2 single spam: %f\n", p);
 
-    wordlist = skiplist_new(0);
+    token_list = skiplist_new(0);
     submit("ham", 3);
-    p = bayes(wordlist);
+    p = bayes(token_list);
     if (!equal(p, 0.01)) printf("not ");
-    printf("ok 3 single ham\n");
+    printf("ok 3 single ham: %f\n", p);
 
     submit("spam", 4);
-    p = bayes(wordlist);
+    p = bayes(token_list);
     if (!equal(p, 0.5)) printf("not ");
-    printf("ok 4 one each\n");
+    printf("ok 4 one each: %f\n", p);
 
     return 0;
 }

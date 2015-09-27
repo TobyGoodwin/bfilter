@@ -35,7 +35,7 @@ static void problist_dump(skiplist s) {
     }
 }
 
-static void wordlist_dump(skiplist s) {
+static void token_list_dump(skiplist s) {
     skiplist_iterator x;
 
     for (x = skiplist_itr_first(s); x; x =skiplist_itr_next(s, x)) {
@@ -73,8 +73,8 @@ static int termprob_compare(const void *k1, const size_t k1len,
     return memcmp(t1->term, t2->term, t1->tlen);
 }
 
-/* Calculate an overall spam probability for a wordlist */
-double bayes(skiplist wordlist) {
+/* Calculate an overall spam probability for a token list */
+double bayes(skiplist tokens) {
     int inspamtotal, inrealtotal;
     double nspamtotal, nrealtotal;
     skiplist problist;
@@ -82,7 +82,7 @@ double bayes(skiplist wordlist) {
     size_t nterms, n, nsig = SIGNIFICANT_TERMS;
     double a = 1., b = 1.;
 
-    //wordlist_dump(wordlist);
+    //token_list_dump(tokens);
     
     problist = skiplist_new(termprob_compare);
     db_get_pair("__emails__", &inspamtotal, &inrealtotal);
@@ -90,12 +90,12 @@ double bayes(skiplist wordlist) {
         return 0.;
     nspamtotal = inspamtotal; nrealtotal = inrealtotal;
 
-    for (si = skiplist_itr_first(wordlist); si;
-            si = skiplist_itr_next(wordlist, si)) {
+    for (si = skiplist_itr_first(tokens); si;
+            si = skiplist_itr_next(tokens, si)) {
         struct termprob t = { 0 };
         int inspam, inreal;
 
-        t.term = (char*)skiplist_itr_key(wordlist, si, &t.tlen);
+        t.term = (char*)skiplist_itr_key(tokens, si, &t.tlen);
         t.p_spam = 0.4;
 
         if (db_get_pair(t.term, &inspam, &inreal)) {

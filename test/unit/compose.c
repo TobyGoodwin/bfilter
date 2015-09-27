@@ -1,9 +1,10 @@
 /*
 depends test/ucompose
-check foo bar
+mcheck '{hello}{world}{hello%world}' hello world
 */
 
 #include <stdio.h>
+#include <string.h>
 
 #include "compose.h"
 
@@ -14,7 +15,10 @@ void submit(char *s, size_t l) {
     putchar('}');
 }
 
-int main(void) {
-    compose("hello", 5);
-    compose("world", 5);
+int main(int argc, char **argv) {
+    int i;
+
+    for (i = 1; i < argc; ++i) {
+        compose(argv[i], strlen(argv[i]));
+    }
 }
