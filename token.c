@@ -10,7 +10,6 @@
 #include "util.h"
 
 void token_submit(char *t, size_t l) {
-    char term[MAX_TERM_LEN];
     int i, has_alpha = 0;
 
     /* XXX probably want to move this test higher, as there's no point
@@ -30,12 +29,6 @@ void token_submit(char *t, size_t l) {
     for (i = 0; i < l; ++i) {
         if (t[i] > 0xa0 || !strchr("0123456789-_.@/", t[i]))
             has_alpha = 1;
-#if 0
-        if (t[i] >= 'A' && t[i] <= 'Z')
-            term[i] = t[i] + 'a' - 'A';
-        else
-#endif
-            term[i] = t[i];
     }
 
     /* Discard dates, numbers, etc. */
@@ -44,7 +37,7 @@ void token_submit(char *t, size_t l) {
         return;
     }
 
-    compose(term, l);
+    compose(t, l);
 }
 
 /* submit_text TEXT LENGTH UNDERSCORES

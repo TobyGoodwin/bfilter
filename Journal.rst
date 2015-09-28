@@ -35,8 +35,15 @@ recommends in *Better*? ::
     -rw-------. 1 toby toby 2162688 Sep 28 21:47 /tmp/tmp.9scDkeVhU5
     30.37user 6.80system 0:37.00elapsed 100%CPU (5280maxresident)k
 
+Well, it's not any worse. What about at 3000 tokens? ::
 
+    ham: 97.00% correct, spam: 81.10% correct
+    -rw-------. 1 toby toby 6606848 Sep 28 21:56 /tmp/tmp.8mxFDwCqSX
+    314.08user 12.40system 5:27.15elapsed 99%CPU (9860maxresident)k
 
+Which is, ever so slightly, worse. Still, I think we can leave case
+folding turned off. Apart from anything else, it's a very parochial sort
+of folding that was going on.
 
 2015-09-27
 ==========
