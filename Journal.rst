@@ -1,3 +1,43 @@
+2015-09-28
+==========
+
+Further cleanups and refactorings performed. There may still be some
+small tweaks, but I think most of the code is now in the right files.
+
+Now, what is a good value for MAX_TOKENS? Let's try a few different
+ones, see how the time and accuracy measure up::
+
+    _300 -   23s, 83.3 / 89.8
+     500 -   39s, 87.1 / 88.5
+    1000 - 1m27s, 93.3 / 81.8
+    1500 - 2m31s, 95.9 / 75.7
+    2000 - 3m38s, 96.1 / 79.7
+    3000 - 5m16s, 97.7 / 83.4
+    5000 - 7m05s, 97.4 / 84.7
+
+Which is all sadly uninformative. Unsurprisingly, the fewer tokens we
+ignore, the better the ham results. I have no idea why the spam figures
+sometimes go the other way.
+
+Anyway, I think I shall fix on 500 for testing purposes, as it keeps the
+runtime reasonable, and is less likely to go awry than a smaller number.
+I think for actual production use, one would want a rather higher
+figure. So my baseline result is::
+
+    ham: 87.10% correct, spam: 88.50% correct
+    -rw-------. 1 toby toby 2162688 Sep 28 21:45 /tmp/tmp.TH4Ax507b2
+    30.23user 6.80system 0:36.85elapsed 100%CPU (5280maxresident)k
+
+First thing to try: what happens if we stop folding case, as Graham
+recommends in *Better*? ::
+
+    ham: 87.60% correct, spam: 89.40% correct
+    -rw-------. 1 toby toby 2162688 Sep 28 21:47 /tmp/tmp.9scDkeVhU5
+    30.37user 6.80system 0:37.00elapsed 100%CPU (5280maxresident)k
+
+
+
+
 2015-09-27
 ==========
 

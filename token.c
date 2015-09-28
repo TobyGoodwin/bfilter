@@ -30,9 +30,11 @@ void token_submit(char *t, size_t l) {
     for (i = 0; i < l; ++i) {
         if (t[i] > 0xa0 || !strchr("0123456789-_.@/", t[i]))
             has_alpha = 1;
+#if 0
         if (t[i] >= 'A' && t[i] <= 'Z')
             term[i] = t[i] + 'a' - 'A';
         else
+#endif
             term[i] = t[i];
     }
 
