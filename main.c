@@ -1,38 +1,38 @@
 /*
- * bfilter.c:
- * Simple Bayesian email filter, in C.
- *
- * Copyright (c) 2003 Chris Lightfoot. All rights reserved.
- * Copyright (c) 2015 Toby Goodwin.
- * toby@paccrat.org
- * https://github.com/TobyGoodwin/bfilter
- *
- */
 
-#include <sys/types.h>
+    Copyright (c) 2003 Chris Lightfoot. All rights reserved.
+    Copyright (c) 2015 Toby Goodwin.
+    toby@paccrat.org
+    https://github.com/TobyGoodwin/bfilter
+
+    This file is part of bfilter.
+
+    Bfilter is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Bfilter is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with bfilter.  If not, see <http://www.gnu.org/licenses/>.
+
+*/
 
 #include <errno.h>
-#include <math.h>
-#include <pwd.h>
 #include <stdio.h>
-#include <stdint.h>
-#include <stdlib.h>
 #include <string.h>
-#include <strings.h>
-#include <time.h>
-#include <unistd.h>
-
-#include <netinet/in.h>     /* for ntohl/htonl */
 
 #include "bayes.h"
 #include "bfilter.h"
-#include "compose.h"
 #include "db.h"
+#include "read.h"
 #include "settings.h"
-#include "skiplist.h"
 #include "submit.h"
 #include "train.h"
-#include "util.h"
 
 /* usage STREAM
  * Print a usage message to STREAM. */

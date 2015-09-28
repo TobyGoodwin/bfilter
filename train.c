@@ -30,6 +30,7 @@
 
 #include "bfilter.h"
 #include "db.h"
+#include "read.h"
 #include "skiplist.h"
 #include "submit.h"
 #include "train.h"

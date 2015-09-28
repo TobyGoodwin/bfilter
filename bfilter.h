@@ -1,30 +1,11 @@
-#ifndef BFILTER_H
-#define BFILTER_H
-
 #include <stdint.h>
 
 #include "skiplist.h"
 
 enum mode { isspam, isreal, test, annotate, cleandb, stats } mode;
 
-uint32_t unbase64(char c);
-size_t decode_base64(char *buf, size_t len);
-int nemails;
-size_t termlength;
-
-void record_tokens(void);
-
-void submit_token(char *tok, size_t len);
-
-void submit_text(char *text, size_t len, const int underscores);
-
-int is_b64_chars(const char *buf, size_t len);
-
-int read_email(const int fromline, const int passthrough, FILE *fp, FILE **tempfp);
-
 /* Global variables are bad, m'kay? */
-size_t nbytesrd;
-skiplist wordlist;
 _Bool flagb;
-
-#endif
+int nemails;
+size_t nbytesrd, termlength;
+skiplist wordlist;

@@ -1,14 +1,26 @@
 /*
- * bfilter.c:
- * Simple Bayesian email filter, in C.
- *
- * Copyright (c) 2003 Chris Lightfoot. All rights reserved.
- * Email: chris@ex-parrot.com; WWW: http://www.ex-parrot.com/~chris/
- *
- */
 
-static const char rcsid[] = "$Id: bfilter.c,v 1.24 2005/06/07 16:41:22 chris Exp $";
+    Copyright (c) 2003 Chris Lightfoot. All rights reserved.
+    Copyright (c) 2015 Toby Goodwin.
+    toby@paccrat.org
+    https://github.com/TobyGoodwin/bfilter
 
+    This file is part of bfilter.
+
+    Bfilter is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Bfilter is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with bfilter.  If not, see <http://www.gnu.org/licenses/>.
+
+*/
 #include <sys/types.h>
 
 #include <errno.h>
@@ -29,6 +41,7 @@ static const char rcsid[] = "$Id: bfilter.c,v 1.24 2005/06/07 16:41:22 chris Exp
 #include "db.h"
 #include "skiplist.h"
 #include "token.h"
+#include "read.h"
 #include "util.h"
 
 /* unbase64 CHAR
@@ -84,7 +97,8 @@ int is_b64_chars(const char *buf, size_t len) {
  * stdio stream in *TEMPFILE; in this case, any X-Spam-Probability: header is
  * discarded from the email. Returns 1 on success or 0 on failure. */
 size_t nbytesrd;
-int read_email(const int fromline, const int passthrough, FILE *fp, FILE **tempfp) {
+int read_email(const _Bool fromline, const _Bool passthrough,
+        FILE *fp, FILE **tempfp) {
     static size_t buflen;
     static char *buf;
     int i, j;
