@@ -39,7 +39,7 @@ done
 cd $corpus/ham
 out=$(mktemp)
 for m in $(ls); do
-    $bf test < $m 2>/dev/null
+    $bf annotate < $m 2>/dev/null
 done | grep '^X-Spam-Probability: ' > $out
 right=$(grep -c NO $out)
 wrong=$(grep -c YES $out)
@@ -49,7 +49,7 @@ rm $out
 cd $corpus/spam
 out=$(mktemp)
 for m in $(ls); do
-    $bf test < $m 2>/dev/null
+    $bf annotate < $m 2>/dev/null
 done | grep '^X-Spam-Probability: ' > $out
 right=$(grep -c YES $out)
 wrong=$(grep -c NO $out)
