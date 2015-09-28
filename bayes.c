@@ -16,7 +16,7 @@ struct termprob {
     size_t tlen;
 };
 
-double termprob_radius(struct termprob *tp) {
+static double termprob_radius(struct termprob *tp) {
     double x = tp->p_spam * 2 - 1;
     double y = tp->p_present;
 

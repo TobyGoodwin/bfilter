@@ -27,6 +27,19 @@ cases. Then I can get back to the interesting job of improving
 tokenization. (At present, snippets of HTML and CSS feature far too
 strongly.)
 
+Just by way of comparison, here's the starting point: Oggie's final
+version, with MAX_TOKENS 3000, on the train-100 corpus::
+
+    ham: 95.40% correct, spam: 80.70% correct
+    -rw-------. 1 toby toby 6606848 Sep 28 08:09 /tmp/tmp.TPEoOz9AWP
+    323.44user 12.88system 5:37.65elapsed 99%CPU (9980maxresident)k
+
+I actually have no idea why I'm running faster. Perhaps
+``termprob_compare()`` is quicker that ``compare_by_probability()``? But
+the important point is that I am now definitely better at categorizing
+emails. Further improvements will come from better token selection, I
+hope.
+
 2015-09-26
 ==========
 
