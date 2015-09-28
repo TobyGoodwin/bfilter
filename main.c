@@ -3,7 +3,9 @@
  * Simple Bayesian email filter, in C.
  *
  * Copyright (c) 2003 Chris Lightfoot. All rights reserved.
- * Email: chris@ex-parrot.com; WWW: http://www.ex-parrot.com/~chris/
+ * Copyright (c) 2015 Toby Goodwin.
+ * toby@paccrat.org
+ * https://github.com/TobyGoodwin/bfilter
  *
  */
 
@@ -70,13 +72,18 @@ _Bool fdump(FILE *f) {
     } while (!feof(f) && !ferror(f));
 
     if (ferror(f)) {
-        fprintf(stderr, "bfilter: temporary file: read error (%s)\n", strerror(errno));
+        fprintf(stderr, "bfilter: temporary file: read error (%s)\n",
+                strerror(errno));
         return 0;
     }
+
+    fflush(stdout);
     if (ferror(stdout)) {
-        fprintf(stderr, "bfilter: standard output: write error (%s)\n", strerror(errno));
+        fprintf(stderr, "bfilter: standard output: write error (%s)\n",
+                strerror(errno));
         return 0;
     }
+
     return 1;
 }
 
@@ -137,9 +144,89 @@ int main(int argc, char *argv[]) {
     return run(mode);
 }
 
+_Bool train_read(void) {
+    do {
+        int f;
+        errno = 0;
+        ++nemails;
+        f = read_email(flagb, 0, stdin, NULL);
+        if (!f) {
+            fprintf(stderr, "bfilter: error while reading email (%s)\n",
+                    errno ? strerror(errno) : "no system error");
+            return 0;
+        }
+
+        /* If we're running on a terminal, print stats. */
+        if (isatty(1))
+            fprintf(stderr,
+        "Reading: %8u emails (%8u bytes) %8lu terms avg length %8.2f\r",
+                nemails, (unsigned)nbytesrd, skiplist_size(token_list),
+                (double)term_length / skiplist_size(token_list));
+    } while (!feof(stdin));
+    if (isatty(1))
+        fprintf(stderr, "\n");
+    return 1;
+}
+
+void train_update(enum mode mode) {
+    /* Update total number of emails and the data for each word. */
+    int nspam, nreal;
+    char *term = NULL;
+    size_t termlen = 1;
+    skiplist_iterator si;
+    unsigned int nterms, ntermswr, ntermsnew;
+
+    if (!db_get_pair("__emails__", &nspam, &nreal))
+        nspam = nreal = 0;
+    if (mode == isspam)
+        nspam += nemails;
+    else
+        nreal += nemails;
+    db_set_pair("__emails__", nspam, nreal);
+
+    if (isatty(1))
+        fprintf(stderr, "Writing: corpus now contains %8u spam / %8u nonspam emails\n", nspam, nreal);
+
+    nterms = skiplist_size(token_list);
+
+    for (si = skiplist_itr_first(token_list), ntermswr = 0, ntermsnew = 0; si; si = skiplist_itr_next(token_list, si), ++ntermswr) {
+        char *k;
+        size_t kl;
+        struct wordcount *pw;
+
+        k = skiplist_itr_key(token_list, si, &kl);
+
+        if (!term || kl + 1 > termlen)
+            term = xrealloc(term, termlen = 2 * (kl + 1));
+        term[kl] = 0;
+        memcpy(term, k, kl);
+
+        pw = skiplist_itr_value(token_list, si);
+
+        if (!db_get_pair(term, &nspam, &nreal)) {
+            nspam = nreal = 0;
+            ++ntermsnew;
+        }
+
+        if (mode == isspam)
+            nspam += pw->n;
+        else
+            nreal += pw->n;
+
+        db_set_pair(term, nspam, nreal);
+
+        if (isatty(1) && (ntermswr % 500) == 0)
+            fprintf(stderr, "Writing: %8u / %8u terms (%8u new)\r", ntermswr, nterms, ntermsnew);
+    }
+
+    if (isatty(1))
+        fprintf(stderr, "Writing: %8u / %8u terms (%8u new)\n", ntermswr, nterms, ntermsnew);
+
+    free(term);
+}
+
 int run(enum mode mode) {
     int retval;
-    skiplist_iterator si;
     FILE *tempfile;
 
     /* Now read whatever emails we need to, and record the terms which appear
@@ -149,6 +236,11 @@ int run(enum mode mode) {
     switch (mode) {
         case isspam:
         case isreal:
+            if (!train_read())
+                return 1;
+            break;
+
+#if 0
             do {
                 int f;
                 errno = 0;
@@ -167,6 +259,7 @@ int run(enum mode mode) {
             if (isatty(1))
                 fprintf(stderr, "\n");
             break;
+#endif
 
         case test:
             /* Read a single email. */
@@ -199,6 +292,9 @@ int run(enum mode mode) {
     switch (mode) {
         case isspam:
         case isreal:
+            train_update(mode);
+
+#if 0
             {
                 /* Update total number of emails and the data for each word. */
                 int nspam, nreal;
@@ -254,6 +350,7 @@ int run(enum mode mode) {
 
                 free(term);
             }
+#endif
             break;
 
         case test:
@@ -272,10 +369,12 @@ int run(enum mode mode) {
                 if (!fdump(tempfile)) retval = 1;
             }
             break;
+
         case cleandb:
             /* Copy recent data to new database, replace old one. */
             db_clean(28);
             break;
+
         case stats:
             db_print_stats();
             break;
