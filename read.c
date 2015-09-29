@@ -116,10 +116,12 @@ int read_email(const _Bool fromline, const _Bool passthrough,
 #   define starts_nwsp()   (j > 0 && !strchr(" \t", buf[0]))
 #   define is_hdr_xsp()    ((j >= 19 && strncasecmp(buf, "X-Spam-Probability:", 19) == 0)   \
                             || (j >= 13 && strncasecmp(buf, "X-Spam-Words:", 13) == 0))
-#   define is_hdr_rel()    ((j >= 5 && strncasecmp(buf, "From:", 5) == 0)           \
-                            || (j >= 8 && strncasecmp(buf, "Subject:", 8) == 0)     \
-                            || (j >= 3 && strncasecmp(buf, "To:", 3) == 0)          \
-                            || (j >= 14 && strncasecmp(buf, "X-Spam-Status:", 14) == 0))
+#define is_hdr_rel() \
+        ((j >= 5 && strncasecmp(buf, "From:", 5) == 0)           \
+         || (j >= 8 && strncasecmp(buf, "Return-Path:", 8) == 0)     \
+         || (j >= 8 && strncasecmp(buf, "Subject:", 8) == 0)     \
+         || (j >= 3 && strncasecmp(buf, "To:", 3) == 0)          \
+         || (j >= 14 && strncasecmp(buf, "X-Spam-Status:", 14) == 0))
 #   define is_from_()      (fromline && j >= 5 && strncmp(buf, "From ", 5) == 0)
 #   define is_b64()        is_b64_chars(buf, j)
 

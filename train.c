@@ -88,12 +88,14 @@ void train_update(enum mode mode) {
 
         k = skiplist_itr_key(token_list, si, &kl);
 
+        /* NUL-terminate */
         if (!term || kl + 1 > termlen)
             term = xrealloc(term, termlen = 2 * (kl + 1));
         term[kl] = 0;
         memcpy(term, k, kl);
 
         pw = skiplist_itr_value(token_list, si);
+//fprintf(stderr, "%d %s \n", pw->n, term);
 
         if (!db_get_pair(term, &nspam, &nreal)) {
             nspam = nreal = 0;

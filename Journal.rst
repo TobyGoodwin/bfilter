@@ -3,7 +3,36 @@
 
 Just starting to play with tokenization. First discovery, an input of
 ``don't`` gives rise to the token ``don`` (and, presumably, ``t`` which
-is then discarded as too short).
+is then discarded as too short). That's simple to fix.
+
+Now, I want to skip any text in angle brackets. Except that skips email
+addresses, so only skip if we're not in a header line (I renamed
+``underscores`` to ``header``, as that describes what it means better.
+I'm not sure I really care about underscores though.) This probably
+obviates the test for HTML comments. On the other hand, I probably
+*don't* really want to skip *all* text in angle brackets, as I really
+need to include link targets, unless I can defer that to the vapourware
+urlfilter.
+
+So how does that do? ::
+
+    ham: 92.10% correct, spam: 84.70% correct
+    -rw-------. 1 toby toby 2162688 Sep 29 22:17 /tmp/tmp.AwAqbB2lKr
+    28.13user 6.44system 0:34.39elapsed 100%CPU (5284maxresident)k
+
+Hmm. Better on hams, not so good on spams. I wonder why?
+
+Just for fun, I pushed it out to 3000 tokens::
+
+    ham: 98.60% correct, spam: 80.20% correct
+    -rw-------. 1 toby toby 6606848 Sep 29 22:21 /tmp/tmp.4wwmWX056e
+    217.06user 10.60system 3:47.72elapsed 99%CPU (9316maxresident)k
+
+Very similar story: usefully better on hams, mysteriously worse on
+spams. I suppose I'll need to examine some spams that were previously
+detected but no longer are, and see what tweaks are needed. Anyway, the
+other odd thing about that result is that we are now *substantially*
+faster. I have no idea why.  Could it possibly be the use of ``_Bool``?
 
 2015-09-28
 ==========
