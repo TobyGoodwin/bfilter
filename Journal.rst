@@ -1,3 +1,10 @@
+2015-09-29
+==========
+
+Just starting to play with tokenization. First discovery, an input of
+``don't`` gives rise to the token ``don`` (and, presumably, ``t`` which
+is then discarded as too short).
+
 2015-09-28
 ==========
 
