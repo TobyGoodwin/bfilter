@@ -1,3 +1,20 @@
+2015-09-30
+==========
+
+I'm just going to see if ``_Bool`` vs ``int`` is the reason for that
+speedup. No, it's not that.
+
+A minor snag with trying to work out why a tweak affects the results
+(specifically, why it leads us to detecting fewer spams) is that there
+are two ways it might cause the effect: training and testing. I don't
+know if I might at some stage have to try and tease these apart. Anyway,
+to begin with let's identify some particular messages that are
+classified differently before and after.
+
+Quick bodge to avoid discarding link targets: if I see ``'<'`` and the
+next character is ``'a'`` or ``'A'``, then don't go into ``bra_ket``
+mode.
+
 2015-09-29
 ==========
 
