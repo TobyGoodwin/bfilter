@@ -20,7 +20,6 @@ though, I currently have::
     -rw-------. 1 toby toby 2162688 Oct  3 09:19 /tmp/tmp.lV1plPO3pI
     67.21user 9.44system 1:16.65elapsed 100%CPU (6164maxresident)k
 
-
 2015-10-02
 ==========
 
