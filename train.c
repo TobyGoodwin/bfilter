@@ -38,11 +38,9 @@
 
 _Bool train_read(void) {
     do {
-        int f;
         errno = 0;
         ++nemails;
-        f = read_email(flagb, 0, stdin, NULL);
-        if (!f) {
+        if (!read_email(flagb, 0, stdin, NULL)) {
             fprintf(stderr, "bfilter: error while reading email (%s)\n",
                     errno ? strerror(errno) : "no system error");
             return 0;

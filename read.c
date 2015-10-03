@@ -216,12 +216,16 @@ int read_email(const _Bool fromline, const _Bool passthrough,
             goto abort;
 
         /* End of file ends the email. */
+        if (feof(fp)) state = end;
+#if 0
+        // state can now be b64... do we care to check it?
         if (feof(fp)) {
             if (state != bdy && state != bdy_blank && state != bdy_soft_eol)
                 goto abort;
             else
                 state = end;
         }
+#endif
 
         /*
          * State machine. This is quite complicated. See tokeniser-states.dot
