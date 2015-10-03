@@ -89,6 +89,30 @@ int is_b64_chars(const char *buf, size_t len) {
     return 1;
 }
 
+static char *save_buf = 0;
+static size_t save_len = 0;
+static size_t save_alloc = 0;
+
+_Bool save(char *p, size_t l) {
+    if (save_len + l > save_alloc) {
+        char *n;
+
+        save_alloc = save_len + l;
+        n = realloc(save_buf, save_alloc);
+        if (!n) return 0;
+        save_buf = n;
+    }
+    memcpy(save_buf + save_len, p, l);
+    save_len += l;
+    return 1;
+}
+
+void submit_and_clear(void) {
+    if (save_len)
+        tokenize(save_buf, save_len, 0);
+    save_len = 0;
+}
+
 /* read_email FROMLINE PASSTHROUGH STREAM TEMPFILE
  * Read an email from STREAM, tokenize and submit.
  * Stops at end of file, or, if FROMLINE is nonzero, when a "\n\nFrom " line
@@ -102,7 +126,7 @@ int read_email(const _Bool fromline, const _Bool passthrough,
     static size_t buflen;
     static char *buf;
     int i, j;
-    enum parsestate { hdr = 0, hdr_xsp, hdr_rel, bdy_blank, bdy, bdy_b64_1, bdy_b64, end } state = hdr;
+    enum parsestate { hdr = 0, hdr_xsp, hdr_rel, bdy_blank, bdy, bdy_b64_1, bdy_b64, bdy_soft_eol, end } state = hdr;
     static char *b64buf = NULL;
     static size_t b64alloc;
     size_t b64len = 0, b64linelen = 0;
@@ -176,7 +200,6 @@ int read_email(const _Bool fromline, const _Bool passthrough,
     do {
         /* Obtain a line from the email. */
         j = 0;
-read_another:
         while ((i = getc(fp)) != EOF) {
             buf[j++] = (char)i;
             ++nbytesrd;
@@ -186,11 +209,19 @@ read_another:
         }
 
         --j; /* j is now the number of non-\n characters */
-printf("buf is now: {%.*s}\n", j, buf);
-printf("state is %d\n", state);
+//printf("buf is now: {%.*s}\n", j, buf);
+//printf("state is %d\n", state);
         
         if (ferror(fp))
             goto abort;
+
+        /* End of file ends the email. */
+        if (feof(fp)) {
+            if (state != bdy && state != bdy_blank && state != bdy_soft_eol)
+                goto abort;
+            else
+                state = end;
+        }
 
         /*
          * State machine. This is quite complicated. See tokeniser-states.dot
@@ -230,8 +261,10 @@ printf("state is %d\n", state);
                     b64linelen = j;
                     state = bdy_b64_1;
                 } else if (is_soft_eol()) {
-                    --j;
-                    goto read_another;
+                    if (save(buf, j - 1))
+                        state = bdy_soft_eol;
+                    else
+                        goto abort;
                 } else if (!is_blank())
                     state = bdy;
                 break;
@@ -240,9 +273,28 @@ printf("state is %d\n", state);
             case bdy:
                 if (is_blank())
                     state = bdy_blank;
-                else if (is_soft_eol() && !feof(fp)) {
-                    --j;
-                    goto read_another;
+                else if (is_soft_eol()) {
+                    if (save(buf, j - 1))
+                        state = bdy_soft_eol;
+                    else
+                        goto abort;
+                }
+                break;
+
+            case bdy_soft_eol:
+                if (is_blank())
+                    state = bdy_blank;
+                else if (is_soft_eol()) {
+                    if (save(buf, j - 1))
+                        state = bdy_soft_eol;
+                    else
+                        goto abort;
+                } else {
+                    if (save(buf, j)) {
+                        submit_and_clear();
+                        state = bdy_blank; /* do not submit again */
+                    } else
+                        goto abort;
                 }
                 break;
 
@@ -275,16 +327,9 @@ printf("state is %d\n", state);
                 break;
 
             case end:
+                submit_and_clear();
                 /* No way out. */
                 break;
-        }
-
-        /* End of file ends the email. */
-        if (feof(fp)) {
-            if (state != bdy && state != bdy_blank)
-                goto abort;
-            else
-                state = end;
         }
 
         /* Possibly emit/save text. */
@@ -331,4 +376,3 @@ abort:
     return 0;
     
 }
-

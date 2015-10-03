@@ -20,6 +20,13 @@ though, I currently have::
     -rw-------. 1 toby toby 2162688 Oct  3 09:19 /tmp/tmp.lV1plPO3pI
     67.21user 9.44system 1:16.65elapsed 100%CPU (6164maxresident)k
 
+Argh! First attempt at handling soft eols joined lines together "in
+place", which looked reasonable, but would completely break passthrough
+mode. We will need a new state, and a separate buffer. (To be honest,
+``read_email()`` is already a bit of a mess, and adding extra stuff is
+unlikely to make it less messy, but I don't think I have the strength to
+rewrite it at the moment.)
+
 2015-10-02
 ==========
 
