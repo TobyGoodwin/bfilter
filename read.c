@@ -114,6 +114,7 @@ int read_email(const _Bool fromline, const _Bool passthrough,
      */
 #   define is_blank()      (j == 0)
 #   define starts_nwsp()   (j > 0 && !strchr(" \t", buf[0]))
+#   define is_soft_eol()   (j > 0 && buf[j - 1] == '=')
 #   define is_hdr_xsp()    ((j >= 19 && strncasecmp(buf, "X-Spam-Probability:", 19) == 0)   \
                             || (j >= 13 && strncasecmp(buf, "X-Spam-Words:", 13) == 0))
 #define is_hdr_rel() \
@@ -124,6 +125,7 @@ int read_email(const _Bool fromline, const _Bool passthrough,
          || (j >= 14 && strncasecmp(buf, "X-Spam-Status:", 14) == 0))
 #   define is_from_()      (fromline && j >= 5 && strncmp(buf, "From ", 5) == 0)
 #   define is_b64()        is_b64_chars(buf, j)
+    
 
     /*
      * Various things to do with identifying and parsing base64 data.
@@ -174,6 +176,7 @@ int read_email(const _Bool fromline, const _Bool passthrough,
     do {
         /* Obtain a line from the email. */
         j = 0;
+read_another:
         while ((i = getc(fp)) != EOF) {
             buf[j++] = (char)i;
             ++nbytesrd;
@@ -183,6 +186,8 @@ int read_email(const _Bool fromline, const _Bool passthrough,
         }
 
         --j; /* j is now the number of non-\n characters */
+printf("buf is now: {%.*s}\n", j, buf);
+printf("state is %d\n", state);
         
         if (ferror(fp))
             goto abort;
@@ -224,6 +229,9 @@ int read_email(const _Bool fromline, const _Bool passthrough,
                     b64_save();
                     b64linelen = j;
                     state = bdy_b64_1;
+                } else if (is_soft_eol()) {
+                    --j;
+                    goto read_another;
                 } else if (!is_blank())
                     state = bdy;
                 break;
@@ -232,6 +240,10 @@ int read_email(const _Bool fromline, const _Bool passthrough,
             case bdy:
                 if (is_blank())
                     state = bdy_blank;
+                else if (is_soft_eol() && !feof(fp)) {
+                    --j;
+                    goto read_another;
+                }
                 break;
 
             /* bdy_b64_1: candidate first line of base64 data */

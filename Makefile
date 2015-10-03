@@ -31,7 +31,7 @@ bfilter: $(OBJS) depend
 test/ubayes: test/unit/bayes.o bayes.o pool.o skiplist.o submit.o util.o
 	$(CC) $(LDFLAGS) -o $@ $^ $(LDLIBS)
 
-test/uread: test/read/read.o bfilter.o util.o
+test/uread: test/read/read.o read.o util.o
 	$(CC) $(LDFLAGS) -o $@ $^ $(LDLIBS)
 
 test/ucompose: test/unit/compose.o compose.o
