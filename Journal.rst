@@ -27,6 +27,14 @@ mode. We will need a new state, and a separate buffer. (To be honest,
 unlikely to make it less messy, but I don't think I have the strength to
 rewrite it at the moment.)
 
+Well, that's disappointing::
+
+    ham: 94.00% correct, spam: 76.90% correct
+    -rw-------. 1 toby toby 2162688 Oct  3 22:14 /tmp/tmp.s5VYuQNnOq
+    57.64user 9.16system 1:06.58elapsed 100%CPU (6164maxresident)k
+
+Let's look more closely...
+
 2015-10-02
 ==========
 
