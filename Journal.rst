@@ -1,3 +1,64 @@
+2015-10-03
+==========
+
+So I'm not finding this playing around with tests terribly enlightening.
+One key point is that many of the spam regressions (when increasing
+MAX_TRAIN_TOKENS) are very heavy on CSS terms. In fact, these are often
+the *only* significant terms! Sometimes there is actually a stylesheet,
+but often inline stlye attributes are used, but the HTML skipper fails
+because quoted-printable is in use.
+
+I think understanding q-p, or at the very least, eliding "=\n"
+sequences, could produce a worthwhile improvement. Baseline first,
+though, I currently have::
+
+    #define MAX_TRAIN_TOKENS 5000
+    #define MAX_TEST_TOKENS 500
+    #define SIGNIFICANT_TERMS 23
+
+    ham: 93.80% correct, spam: 85.30% correct
+    -rw-------. 1 toby toby 2162688 Oct  3 09:19 /tmp/tmp.lV1plPO3pI
+    67.21user 9.44system 1:16.65elapsed 100%CPU (6164maxresident)k
+
+
+2015-10-02
+==========
+
+I've written some scripts to help with testing. If you create "A" and
+"B" versions of bfilter, and call them ``bfilter-a`` and ``bfilter-b``,
+then ``ab-test`` runs the corpus test on both, ``ab-check spam`` reports
+the 10 most significant spam regressions. And if ``bfilter`` is a
+version that dumps the probability list, ``ab-prob <message>`` diffs the
+output from the "A" and "B" databases. (Hmm... so that last bit isn't
+too useful actually. I think I need to add debug flags to print this
+stuff, so I can use the *actual* "A" and "B" versions.)
+
+Anyway, looking at regressions when bumping up max_tokens when
+training... I don't think there's anything very much to conclude, the
+differences just look like not enough input.
+
+One thing that does strike me is that, with the token chains, we almost
+certainly want to bump up nsig. In the (still small) training set that I
+am using, and with the higher training token count, the phrase "You are
+receiving this because" is strongly associated with spam. One of the
+regressions features this::
+
+    +receiving%this%because => 0.990000, 0.025000 => 0.980319
+    +are%receiving%this => 0.990000, 0.025000 => 0.980319
+    +You%are%receiving => 0.990000, 0.025000 => 0.980319
+    +receiving%this => 0.990000, 0.025000 => 0.980319
+    +are%receiving => 0.990000, 0.025000 => 0.980319
+    +this%because => 0.990000, 0.025000 => 0.980319
+
+So that one phrase has contributed 6 significant tokens, which is
+unfortunate. Let's just quickly try with ``SIGNIFICANT_TERMS = 50``::
+
+    ham: 90.40% correct, spam: 88.60% correct
+    -rw-------. 1 toby toby 6606848 Oct  2 22:55 /tmp/tmp.hopdGCAYZm
+    112.65user 8.46system 2:01.22elapsed 99%CPU (0avgtext+0avgdata
+    9440maxresident)k
+    88inputs+0outputs (1major+712841minor)pagefaults 0swaps
+
 2015-09-30
 ==========
 
@@ -11,9 +72,31 @@ know if I might at some stage have to try and tease these apart. Anyway,
 to begin with let's identify some particular messages that are
 classified differently before and after.
 
+Ah, OK. So these are HTML-heavy messages, that were being detected on
+the basis of features of the HTML. Now we're just looking at the message
+text, they're slipping through. I don't think there's much I can do
+about that: further training should be able to spot them. The effect
+isn't too serious, anyway.
+
 Quick bodge to avoid discarding link targets: if I see ``'<'`` and the
 next character is ``'a'`` or ``'A'``, then don't go into ``bra_ket``
-mode.
+mode. (That sadly misses ``<img src="...">``.) 
+
+Random thought: what happens if we bump up MAX_TOKENS when training?
+Hmm... usual story. Multiply by 10, and we go from 92.10 / 84.70 results
+below to::
+
+    ham: 94.30% correct, spam: 83.70% correct
+    -rw-------. 1 toby toby 6606848 Sep 30 20:54 /tmp/tmp.UwhAMk5TXl
+    105.63user 8.40system 1:53.83elapsed 100%CPU (9424maxresident)k
+
+Useful extra 2% right on the hams. Why have the spams dropped this time?
+Obviously it's a training problem, but maybe looking at some differently
+classified messages can give us a clue.
+
+Probably I should split this into two settings, MAX_TRAIN_TOKENS and
+MAX_TEST_TOKENS or similar. Or possibly there should be no limit when
+training.
 
 2015-09-29
 ==========

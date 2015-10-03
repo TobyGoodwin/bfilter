@@ -1,0 +1,47 @@
+#! /usr/bin/perl
+
+use strict;
+use warnings;
+
+my ($ia, $ib, %a, %b);
+
+if ($ARGV[0] ne 'spam' and $ARGV[0] ne 'ham') {
+    die "must give ham or spam as argument\n";
+}
+
+$ia = "/tmp/a-$ARGV[0]";
+$ib = "/tmp/b-$ARGV[0]";
+
+open(my $fa, $ia) or die "cannot open $ia";
+while (<$fa>) {
+    chomp;
+    my ($msg, $p) = split;
+    $a{$msg} = $p;
+}
+close $fa;
+
+open(my $fb, $ib) or die "cannot open $ib";
+while (<$fb>) {
+    chomp;
+    my ($msg, $p) = split;
+    $b{$msg} = $p;
+}
+close $fb;
+
+my (%d);
+
+foreach my $x (keys %a) {
+    # we're interested in regressions: for ham, this is where the
+    # probability has become larger, for spams smaller
+    if ($ARGV[0] eq 'ham') {
+        $d{$x} = $a{$x} - $b{$x};
+    } else {
+        $d{$x} = $b{$x} - $a{$x};
+    }
+}
+
+my @d = sort { $d{$a} <=> $d{$b} } keys %d;
+
+for (my $i = 0; $i < 10; ++$i) {
+     print $d[$i], "\n";
+}   

@@ -90,6 +90,8 @@ _Bool fdump(FILE *f) {
 
 int run(enum mode mode);
 
+unsigned int max_tokens;
+
 /* main ARGC ARGV
  * Entry point. Usage:
  *
@@ -145,7 +147,7 @@ int main(int argc, char *argv[]) {
 }
 
 int run(enum mode mode) {
-    int retval;
+    int retval = 0;
     FILE *tempfile;
 
     /* Now read whatever emails we need to, and record the terms which appear
@@ -155,24 +157,18 @@ int run(enum mode mode) {
     switch (mode) {
         case isspam:
         case isreal:
+            max_tokens = MAX_TEST_TOKENS;
             if (!train_read())
                 return 1;
             break;
 
         case test:
+        case annotate:
+            max_tokens = MAX_TRAIN_TOKENS;
             /* Read a single email. */
             errno = 0;
-            if (!read_email(0, 0, stdin, 0)) {
-                fprintf(stderr, "bfilter: failed to read email (%s)\n",
-                        errno ? strerror(errno) : "no system error");
-                return 1;
-            }
-            break;
-
-        case annotate:
-            /* Read a single email in pass-through mode. */
-            errno = 0;
-            if (!read_email(0, 1, stdin, &tempfile)) {
+            if (!read_email(0, mode == annotate, stdin, 
+                        mode == annotate ? &tempfile : 0)) {
                 fprintf(stderr, "bfilter: failed to read email (%s)\n",
                         errno ? strerror(errno) : "no system error");
                 return 1;

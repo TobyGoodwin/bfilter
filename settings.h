@@ -5,8 +5,12 @@
 #define HISTORY_LEN     3
 
 /* MAX_TOKENS
- * Largest number of tokens we generate from a single mail. */
-#define MAX_TOKENS      500
+ * Largest number of tokens we generate from a single mail, when
+ * training... */
+#define MAX_TRAIN_TOKENS 5000
+/* ...and when testing. */
+#define MAX_TEST_TOKENS 500
+unsigned int max_tokens;
 
 /* MAX_TERM_LEN
  * Largest term we consider. */
@@ -16,7 +20,7 @@
  * Once we have collected terms, we order them by significance. Only the
  * first few most significant terms are used to calculate the
  * probability for a message. */
-#define SIGNIFICANT_TERMS 15
+#define SIGNIFICANT_TERMS 23
 
 /* SPAM_THRESHOLD
  * If p > SPAM_THRESHOLD, label this message as spam. */

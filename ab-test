@@ -1,0 +1,68 @@
+#! /bin/sh
+
+corpus=$1
+ntrain=50
+
+if [ ! '(' -d $corpus/ham -a -d $corpus/spam ')' ]; then
+    echo $corpus does not look like a corpus: ham/, spam/, or both missing >&2
+    exit 1
+fi
+
+bfa=$(pwd)/bfilter-a
+bfb=$(pwd)/bfilter-b
+
+if [ ! -x $bfa ]; then
+    echo $bfa is not executable >&2
+    exit 1
+fi
+
+dba=/tmp/a-db
+dbb=/tmp/b-db
+
+rm -f $dba $dbb
+
+cd $corpus/ham
+nham=$(ls | wc -l)
+mham=$(echo $nham / $ntrain | bc)
+
+for m in $(ls | awk "NR % $mham == 0 { print }"); do
+    echo $m
+    BFILTER_DB=$dba $bfa isreal < $m
+    BFILTER_DB=$dbb $bfb isreal < $m
+done
+
+cd $corpus/spam
+nspam=$(ls | wc -l)
+mspam=$(echo $nspam / $ntrain | bc)
+
+for m in $(ls | awk "NR % $mspam == 0 { print }"); do
+    echo $m
+    BFILTER_DB=$dba $bfa isspam < $m
+    BFILTER_DB=$dbb $bfb isspam < $m
+done
+
+cd $corpus/ham
+outa=/tmp/a-ham
+for m in $(ls); do
+    echo -n $m ''
+    BFILTER_DB=$dba $bfa test < $m
+done > $outa
+
+outb=/tmp/b-ham
+for m in $(ls); do
+    echo -n $m ''
+    BFILTER_DB=$dbb $bfb test < $m
+done > $outb
+
+cd $corpus/spam
+outa=/tmp/a-spam
+for m in $(ls); do
+    echo -n $m ''
+    BFILTER_DB=$dba $bfa test < $m
+done > $outa
+
+outb=/tmp/b-spam
+for m in $(ls); do
+    echo -n $m ''
+    BFILTER_DB=$dbb $bfb test < $m
+done > $outb

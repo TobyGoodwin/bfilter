@@ -16,6 +16,7 @@ struct termprob {
     size_t tlen;
 };
 
+/* XXX don't actually need to take the root here */
 static double termprob_radius(struct termprob *tp) {
     double x = tp->p_spam * 2 - 1;
     double y = tp->p_present;
@@ -77,12 +78,15 @@ static int termprob_compare(const void *k1, const size_t k1len,
 double bayes(skiplist tokens) {
     int inspamtotal, inrealtotal;
     double nspamtotal, nrealtotal;
+    /* XXX use a heap for this - although asymptotically it may be the same
+     * order as a skiplist, the constants should be rather smaller for both
+     * space and time. */
     skiplist problist;
     skiplist_iterator si;
     size_t nterms, n, nsig = SIGNIFICANT_TERMS;
     double a = 1., b = 1.;
 
-    //token_list_dump(tokens);
+//token_list_dump(tokens);
     
     problist = skiplist_new(termprob_compare);
     db_get_pair("__emails__", &inspamtotal, &inrealtotal);
@@ -120,6 +124,7 @@ double bayes(skiplist tokens) {
         struct termprob *tp;
 
         tp = (struct termprob*)skiplist_itr_key(problist, si, NULL);
+//printf("%.*s => %f, %f => %f\n", (int)tp->tlen, tp->term, tp->p_spam, tp->p_present, termprob_radius(tp));
         a *= tp->p_spam;
         b *= 1. - tp->p_spam;
     }

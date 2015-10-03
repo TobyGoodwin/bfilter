@@ -14,7 +14,7 @@ void token_submit(char *t, size_t l) {
 
     /* XXX probably want to move this test higher, as there's no point
      * continuing to tokenize if we've reached the limit. */
-    if (ntokens_submitted > MAX_TOKENS)
+    if (ntokens_submitted > max_tokens)
         return;
     if (l < 2)
         return;
