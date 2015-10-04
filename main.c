@@ -190,7 +190,8 @@ int run(enum mode mode) {
             break;
 
         case test:
-            printf("%f\n", bayes(token_list));
+            //printf("%f\n", bayes(token_list));
+            printf("%f\n", bayes2(token_list));
             break;
 
         case annotate:

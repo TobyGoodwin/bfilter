@@ -1,3 +1,65 @@
+2015-10-04
+==========
+
+Where are we at, then? Time for a todo list.
+
+1. improve ``read.c`` and teach it more about quoted-printable
+2. think about non-ASCII characters
+3. look at bayes theorem some more
+4. consider Graham's "better" ideas
+5. add debug flags
+6. replace the probability skiplist with a heap
+
+For 1, I'm pretty certain I actually broke some things last night: it's
+wrong to set ``end`` the moment we see eof, as we haven't processed the
+last line. I'm still vacillating between hack vs rewrite.
+
+Number 2 is a bit worrying. Oggie's only concession to non-ASCII seems
+to be that any character with the high-bit set is treated as a word
+character. This might, possibly, just about, make things work by virtue
+of UTF-8, but it's a bit pants. On the other hand, using UTF-32 for
+everything would be a major change, and might just be over-engineering.
+Definitely need to do something with RFC 2047-encoded headers.
+
+On the topic of 3, I've been looking at `naive Bayes classification`_,
+and I don't think we're doing it quite right.
+
+.. _naive bayes classification: https://en.wikipedia.org/wiki/Naive_Bayes_classifier
+
+By 4, I mean tweaks like using ``subject*foo`` as the token for the word
+"foo" occurring in the subject line. These are tweaks, though, and not
+worth doing till more substantial changes have occurred.
+
+Adding debug flags is trivial, and will make things like the A/B test
+much nicer.
+
+In 6, I'm sure it's a win, but it is a performance hack that can wait
+till much later in the day.
+
+Looking at this, the highest priority must be to consider point 2. If
+everything's going to shift to UTF-32, that's a *major* change, even the
+test suite will need a lot of work. (For example, if we submit UTF-32
+tokens, the "fake" ``tokenize()`` will need to convert back to UTF-8.
+Well, or the sample outputs could be UTF-32... actually vim seems to
+know about UTF-32 pretty well.)
+
+The other option is to keep it all in UTF-8. In truth, that's probably
+simpler for my short-term sanity, and frankly most of the mail I care
+about *is* mainly ASCII, so -32 would just use more space. Although it
+also affords me (and the rest of the english speaking world) the
+"opportunity" to be sloppy about character encoding issues.
+
+Gosh and golly gosh. I spent a while beating my head over naive bayes
+classifiers, and rewrote ``bayes()`` to calculate something more like
+what I was reading about. Initial results::
+
+    ham: 92.00% correct, spam: 87.10% correct
+    -rw-------. 1 toby toby 2162688 Oct  4 16:31 /tmp/tmp.z3o3AtgKMG
+    50.42user 8.79system 1:06.20elapsed 89%CPU (6172maxresident)k
+
+I really didn't expect anything as decent as that. Whether we're
+actually calculating anything very much different, I'm not really sure.
+
 2015-10-03
 ==========
 
@@ -33,7 +95,18 @@ Well, that's disappointing::
     -rw-------. 1 toby toby 2162688 Oct  3 22:14 /tmp/tmp.s5VYuQNnOq
     57.64user 9.16system 1:06.58elapsed 100%CPU (6164maxresident)k
 
-Let's look more closely...
+Let's look more closely... oh, ah, it's bombing out half the time. This
+is better::
+
+    ham: 91.90% correct, spam: 87.10% correct
+    -rw-------. 1 toby toby 2162688 Oct  3 22:43 /tmp/tmp.tV9kyr3eF4
+    48.88user 8.50system 0:57.13elapsed 100%CPU (6116maxresident)k
+
+As expected, we're better at spams, although only marginally. Sad that
+hams have dropped though. OK, so there are several hams from quidco in
+the top 10, and some other quasi-spams. (Actually, there's one that's
+*so* close to being a spam that I'm tempted to replace it in the corpus
+with a "better" ham. So that's actually a success of the new code!)
 
 2015-10-02
 ==========
