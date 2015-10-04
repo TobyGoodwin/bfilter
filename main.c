@@ -29,6 +29,7 @@
 #include "bayes.h"
 #include "bfilter.h"
 #include "db.h"
+#include "fdump.h"
 #include "read.h"
 #include "settings.h"
 #include "submit.h"
@@ -61,32 +62,6 @@ void usage(FILE *stream) {
 
 _Bool flagb = 0;
 
-_Bool fdump(FILE *f) {
-    rewind(f);
-    do {
-        unsigned char buf[8192];
-        size_t n;
-
-        n = fread(buf, 1, 8192, f);
-        if (ferror(f) || (n > 0 && fwrite(buf, 1, n, stdout) != n))
-            break;
-    } while (!feof(f) && !ferror(f));
-
-    if (ferror(f)) {
-        fprintf(stderr, "bfilter: temporary file: read error (%s)\n",
-                strerror(errno));
-        return 0;
-    }
-
-    fflush(stdout);
-    if (ferror(stdout)) {
-        fprintf(stderr, "bfilter: standard output: write error (%s)\n",
-                strerror(errno));
-        return 0;
-    }
-
-    return 1;
-}
 
 int run(enum mode mode);
 
@@ -190,8 +165,7 @@ int run(enum mode mode) {
             break;
 
         case test:
-            //printf("%f\n", bayes(token_list));
-            printf("%f\n", bayes2(token_list));
+            printf("%f\n", bayes(token_list));
             break;
 
         case annotate:

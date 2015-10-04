@@ -5,6 +5,7 @@ test/*tester
 test/main.c
 test/ubayes
 test/ucompose
+test/upass
 test/uread
 test/uskiplist
 test/utoken

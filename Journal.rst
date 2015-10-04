@@ -12,7 +12,8 @@ Where are we at, then? Time for a todo list.
 
 For 1, I'm pretty certain I actually broke some things last night: it's
 wrong to set ``end`` the moment we see eof, as we haven't processed the
-last line. I'm still vacillating between hack vs rewrite.
+last line. However, I haven't yet managed to produce a test case that
+demonstrates a bug. I'm still vacillating between hack vs rewrite.
 
 Number 2 is a bit worrying. Oggie's only concession to non-ASCII seems
 to be that any character with the high-bit set is treated as a word
@@ -59,6 +60,21 @@ what I was reading about. Initial results::
 
 I really didn't expect anything as decent as that. Whether we're
 actually calculating anything very much different, I'm not really sure.
+I had been worrying again about the clamping in Graham's method, but
+with the more standard NBC that I just implemented, the algorithm simply
+tells you which class is the answer, so that's even worse!  I do think
+it's optimistic to call the number we calculate *p(spam)*, and I'd
+really like some measure of confidence, or way to produce an "unsure,
+train me" answer. But I think for now I'll stick to Graham's maths, as I
+don't have anything better.
+
+I want another test framework: for the passthrough flag. There are some
+tests in ``read/`` that are supposed to exercise this, but they rely on
+the ``.out`` file exactly reproducing the ``.in`` file (with any other
+output interspersed.) It would obviously make more sense to have
+specific tests that ensure the output is byte-for-byte identical with
+the input. And, good, this reveals the bug I made last night. (Fixing it
+will have to wait till tomorrow.)
 
 2015-10-03
 ==========
