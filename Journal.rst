@@ -35,6 +35,19 @@ tables.
 Anyway, it's actually pretty easy to look at some text and determine
 with high probability whether or not it is UTF-8.
 
+Log of various changes.
+
+* Having the character count (was ``j``, now ``l``) be the number of
+non-\n charecters is dangerous. It means we have to use ``feof()`` to
+discover the end of the email. More seriously, at that point ``j`` is
+``(size_t) -1``, which is not a nice value to have floating around.
+
+* There was both a ``passthrough`` flag, and a pointer to a ``FILE *``,
+which both needed to be set for passthrough mode. The flag has now gone.
+
+* The tests in ``test/read`` no longer ever enable passthrough mode, use
+the more reliable ``test/pass`` for that.
+
 2015-10-04
 ==========
 

@@ -4,39 +4,52 @@
 #include "read.h"
 #include "util.h"
 
-/* the current line, as read */
-char *line = 0;
-size_t l = 0, line_alloc = 0;
+struct line {
+    char *x;  /* contents */
+    size_t l; /* length */
+    size_t a; /* allocated */
+};
 
-void read_line(FILE *in) {
+enum state { hdr, bdy, end };
+
+void read_line(FILE *in, struct line *l) {
     int i;
 
-    l = 0;
+    l->l = 0;
     while ((i = getc(in)) != EOF) {
-        if (l == line_alloc)
-            line = xrealloc(line, line_alloc += line_alloc + 1);
-        line[l++] = (char)i;
+        if (l->l == l->a)
+            l->x = xrealloc(l->x, l->a += l->a + 1);
+        l->x[l->l++] = (char)i;
         ++nbytesrd;
         if (i == '\n') break;
     }
 }
 
-_Bool write_line(FILE *out) {
-    return fwrite(line, 1, l, out) == l;
+_Bool write_line(FILE *out, struct line *l) {
+    return fwrite(l->x, 1, l->l, out) == l->l;
 }
 
-int read_email(const _Bool fromline, FILE *in, FILE **tmp) {
+enum state transition(enum state s) {
+    return s;
+}
+
+_Bool read_email(const _Bool fromline, FILE *in, FILE **tmp) {
+    enum state s_old, s_new;
+    struct line l = { 0 };
+
+    s_old = hdr;
+
     /* If tmp is set, we are in "passthrough" mode; *tmp is the FILE * where we
      * will stash the body of the email, to be output later. */
     if (tmp && !(*tmp = tmpfile()))
             return 0;
 
     while (1) {
-        read_line(in);
-        if (l == 0) break;
-        if (tmp)
-            if (!write_line(stdout))
-                goto abort;
+        read_line(in, &l);
+        //s_new = transition(s_old);
+        if (l.l == 0) break;
+        if (tmp && !write_line(stdout, &l))
+            goto abort;
     }
     return 1;
 
