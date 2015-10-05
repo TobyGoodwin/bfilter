@@ -1,3 +1,40 @@
+2015-10-05
+==========
+
+I am going to rewrite ``read.c``. There are several things it needs to
+do that it doesn't already, and the code is already too messy.
+
+The basic idea is a mild extension and generalization of the existing
+code for base64. Basically we will have input buffer, which is written
+directly to output in passthrough mode. And there will be a separate
+hold space, which may have transformations performed on it, and is
+submitted to the tokenizer at appropriate points.
+
+Transformations include:
+* base64 decoding
+* soft EOL folding
+* q-p decoding
+* html entity decoding
+* interpreting things that can't be utf-8 on the assumption that they're
+latin-1 (eek, this came out sounding a bit different from what I'd
+hoped).
+
+It would be *possible* to be more clever about character sets. It's
+occurred to me that the state machine should be able to do a reasonable
+job of spotting mime boundaries, and could then flip back into header
+mode (or part-header, or something), and while in header mode it could
+watch out for Content-Type: headers, and attempt to extract character
+sets from them.
+
+However, suppose we decide that a hunk of text is in fact in iso-8859-7,
+what are we going to do with this information? I was thinking we'd have
+to throw libicu at it, which I'm really not sure is a good plan. But for
+the 8-bit sets at least, it wouldn't be too painful to have lookup
+tables. 
+
+Anyway, it's actually pretty easy to look at some text and determine
+with high probability whether or not it is UTF-8.
+
 2015-10-04
 ==========
 

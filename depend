@@ -4,7 +4,7 @@ fdump.o: fdump.c fdump.h
 main.o: main.c bayes.h skiplist.h bfilter.h db.h fdump.h read.h \
  settings.h submit.h train.h
 pool.o: pool.c pool.h util.h
-read.o: read.c bfilter.h skiplist.h compose.h db.h token.h read.h util.h
+read.o: read.c bfilter.h skiplist.h read.h util.h
 skiplist.o: skiplist.c pool.h skiplist.h util.h
 submit.o: submit.c settings.h submit.h skiplist.h
 token.o: token.c compose.h skiplist.h settings.h submit.h util.h

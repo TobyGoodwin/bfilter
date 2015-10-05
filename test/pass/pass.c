@@ -19,7 +19,7 @@ int main(int argc, char **argv) {
     in = fopen(argv[1], "r");
     from = strchr(argv[1], 'F') != 0;
     do {
-        read_email(from, 1, in, &out);
+        read_email(from, in, &out);
     } while (from && !feof(in));
     fclose(in);
     fdump(out);
