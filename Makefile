@@ -18,9 +18,9 @@ LDLIBS += -ltdb -lcrypto -lm #-lefence
 VERSION = 0.4
 
 TXTS = README COPYING bfilter.1 CHANGES tokeniser-states.dot migrate-0.2-to-0.3
-SRCS = bayes.c compose.c fdump.c main.c pool.c read.c skiplist.c submit.c \
-       token.c train.c util.c db.c
-HDRS = fdump.h pool.h read.h skiplist.h util.h db.h
+SRCS = bayes.c compose.c fdump.c line.c main.c pool.c read.c skiplist.c \
+       submit.c token.c train.c util.c db.c
+HDRS = fdump.h line.h pool.h read.h skiplist.h util.h db.h
 OBJS = $(SRCS:.c=.o)
 
 CFLAGS += -DBFILTER_VERSION=\"$(VERSION)\"
@@ -34,10 +34,13 @@ test/ubayes: test/unit/bayes.o bayes.o pool.o skiplist.o submit.o util.o
 test/ucompose: test/unit/compose.o compose.o
 	$(CC) $(LDFLAGS) -o $@ $^ $(LDLIBS)
 
-test/upass: test/pass/pass.o fdump.o read.o util.o
+test/uline: test/unit/line.o line.o util.o
 	$(CC) $(LDFLAGS) -o $@ $^ $(LDLIBS)
 
-test/uread: test/read/read.o read.o util.o
+test/upass: test/pass/pass.o fdump.o line.o read.o util.o
+	$(CC) $(LDFLAGS) -o $@ $^ $(LDLIBS)
+
+test/uread: test/read/read.o line.o read.o util.o
 	$(CC) $(LDFLAGS) -o $@ $^ $(LDLIBS)
 
 test/uskiplist: test/unit/skiplist.o pool.o skiplist.o util.o

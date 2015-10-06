@@ -3,51 +3,12 @@
 #include <strings.h>
 
 #include "bfilter.h"
+#include "line.h"
 #include "read.h"
+#include "token.h"
 #include "util.h"
 
-struct line {
-    char *x;  /* contents */
-    size_t l; /* length */
-    size_t a; /* allocated */
-};
-
 enum state { hdr, hdr_rel, bdy, end };
-
-void read_line(FILE *in, struct line *l) {
-    int i;
-
-    l->l = 0;
-    while ((i = getc(in)) != EOF) {
-        if (l->l == l->a)
-            l->x = xrealloc(l->x, l->a += l->a + 1);
-        l->x[l->l++] = (char)i;
-        ++nbytesrd;
-        if (i == '\n') break;
-    }
-}
-
-_Bool write_line(FILE *out, struct line *l) {
-    return fwrite(l->x, 1, l->l, out) == l->l;
-}
-
-_Bool line_blank(struct line *l) {
-    return l->l == 1 && l->x[0] == '\n';
-}
-
-_Bool line_empty(struct line *l) {
-    return l->l == 0;
-}
-
-_Bool line_starts(struct line *l, const char *m) {
-    size_t len = strlen(m);
-
-    return l->l >= len && strncasecmp(l->x, m, len) == 0;
-}
-
-_Bool line_hdr_cont(struct line *l) {
-    return line_starts(l, " ") || line_starts(l, "\t");
-}
 
 enum state transition(enum state s, struct line *l) {
     if (line_empty(l))
@@ -66,9 +27,9 @@ enum state transition(enum state s, struct line *l) {
         case hdr_rel:
             if (line_blank(l))
                 return bdy;
-            if (line_hdr_cont(l))
-                return hdr_rel;
-            return hdr;
+            if (!line_hdr_cont(l))
+                return hdr;
+            break;
 
         case end:
             break;
@@ -76,8 +37,31 @@ enum state transition(enum state s, struct line *l) {
     return s;
 }
 
+void maybe_save(enum state old, enum state cur,
+        struct line *t, struct line *x) {
+    _Bool save = 0;
+    switch (cur) {
+        case hdr_rel:
+            save = 1;
+            break;
+    }
+    if (save)
+        line_cat(t, x);
+}
+
+void maybe_submit(enum state old, enum state cur, struct line *t) {
+    _Bool submit = 1;
+
+    switch(cur) {
+    }
+    if (!submit)
+        return;
+    tokenize(t->x, t->l, 0);
+    t->l = 0;
+}
+
 _Bool read_email(const _Bool fromline, FILE *in, FILE **tmp) {
-    enum state s_old, s_new;
+    enum state s_old, s_cur;
     /* One line to Tokenize, and one to Xmit */
     struct line t = { 0 }, x = { 0 };
 
@@ -89,11 +73,15 @@ _Bool read_email(const _Bool fromline, FILE *in, FILE **tmp) {
             return 0;
 
     while (1) {
-        read_line(in, &x);
-        s_new = transition(s_old, &x);
-        if (s_new == end) break;
-        if (tmp && !write_line(stdout, &x))
+        line_read(in, &x);
+        nbytesrd += x.l;
+        s_cur = transition(s_old, &x);
+        maybe_save(s_old, s_cur, &t, &x);
+        maybe_submit(s_old, s_cur, &t);
+        if (s_cur == end) break;
+        if (tmp && !line_write(stdout, &x))
             goto abort;
+        s_old = s_cur;
     }
     return 1;
 
