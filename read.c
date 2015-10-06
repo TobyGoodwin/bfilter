@@ -40,36 +40,38 @@ enum state transition(enum state s, struct line *l) {
 
 void maybe_save(enum state old, enum state cur,
         struct line *t, struct line *x) {
-    char *p;
-    enum { no, raw, cooked } save = no;
-    struct line tmp = { 0 };
+    _Bool save = 0;
 
     switch (cur) {
         case hdr_rel:
-            line_copy(&tmp, x);
-            if ((p = memchr(tmp.x, ':', tmp.l) + 1)) {
-                    memmove(tmp.x, p, tmp.x + tmp.l - p);
-                    tmp.l -= p - tmp.x;
-            }
-            save = cooked;
+            save = 1;
             break;
     }
-    if (save == no)
+
+    if (!save)
         return;
 
-    line_cat(t, save == raw ? x : &tmp);
+    line_cat(t, x);
+    /* drop trailing \n */
     assert(t->l > 0);
     --t->l;
 }
 
 void maybe_submit(enum state old, enum state cur, struct line *t) {
-    _Bool submit = 1;
+    _Bool submit = 0;
+    char *p;
 
     if (t->l == 0)
         return;
     switch (old) {
-        case hdr:
         case hdr_rel:
+            submit = 1;
+            /* move past field name */
+            if ((p = memchr(t->x, ':', t->l))) {
+                ++p;
+                memmove(t->x, p, t->x + t->l - p);
+                t->l -= p - t->x;
+            }
             break;
     }
     if (!submit)
