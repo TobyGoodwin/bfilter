@@ -1,4 +1,6 @@
 #include <stdio.h>
+#include <string.h>
+#include <strings.h>
 
 #include "bfilter.h"
 #include "read.h"
@@ -10,7 +12,7 @@ struct line {
     size_t a; /* allocated */
 };
 
-enum state { hdr, bdy, end };
+enum state { hdr, hdr_rel, bdy, end };
 
 void read_line(FILE *in, struct line *l) {
     int i;
@@ -29,9 +31,48 @@ _Bool write_line(FILE *out, struct line *l) {
     return fwrite(l->x, 1, l->l, out) == l->l;
 }
 
+_Bool line_blank(struct line *l) {
+    return l->l == 1 && l->x[0] == '\n';
+}
+
+_Bool line_empty(struct line *l) {
+    return l->l == 0;
+}
+
+_Bool line_starts(struct line *l, const char *m) {
+    size_t len = strlen(m);
+
+    return l->l >= len && strncasecmp(l->x, m, len) == 0;
+}
+
+_Bool line_hdr_cont(struct line *l) {
+    return line_starts(l, " ") || line_starts(l, "\t");
+}
+
 enum state transition(enum state s, struct line *l) {
-    if (l->l == 0)
+    if (line_empty(l))
         return end;
+    switch (s) {
+        case bdy:
+            break;
+
+        case hdr:
+            if (line_blank(l))
+                return bdy;
+            if (line_starts(l, "subject:"))
+                return hdr_rel;
+            break;
+
+        case hdr_rel:
+            if (line_blank(l))
+                return bdy;
+            if (line_hdr_cont(l))
+                return hdr_rel;
+            return hdr;
+
+        case end:
+            break;
+    }
     return s;
 }
 
