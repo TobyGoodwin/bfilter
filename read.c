@@ -29,13 +29,16 @@ _Bool write_line(FILE *out, struct line *l) {
     return fwrite(l->x, 1, l->l, out) == l->l;
 }
 
-enum state transition(enum state s) {
+enum state transition(enum state s, struct line *l) {
+    if (l->l == 0)
+        return end;
     return s;
 }
 
 _Bool read_email(const _Bool fromline, FILE *in, FILE **tmp) {
     enum state s_old, s_new;
-    struct line l = { 0 };
+    /* One line to Tokenize, and one to Xmit */
+    struct line t = { 0 }, x = { 0 };
 
     s_old = hdr;
 
@@ -45,10 +48,10 @@ _Bool read_email(const _Bool fromline, FILE *in, FILE **tmp) {
             return 0;
 
     while (1) {
-        read_line(in, &l);
-        //s_new = transition(s_old);
-        if (l.l == 0) break;
-        if (tmp && !write_line(stdout, &l))
+        read_line(in, &x);
+        s_new = transition(s_old, &x);
+        if (s_new == end) break;
+        if (tmp && !write_line(stdout, &x))
             goto abort;
     }
     return 1;
