@@ -30,6 +30,11 @@ void line_cat(struct line *dst, struct line *src) {
     dst->l = len;
 }
 
+void line_copy(struct line *dst, struct line *src) {
+    dst->l = 0;
+    line_cat(dst, src);
+}
+
 _Bool line_blank(struct line *l) {
     return l->l == 1 && l->x[0] == '\n';
 }

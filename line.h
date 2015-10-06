@@ -8,6 +8,7 @@ void line_read(FILE *, struct line *);
 _Bool line_write(FILE *out, struct line *l);
 
 void line_cat(struct line *, struct line *);
+void line_copy(struct line *, struct line *);
 
 _Bool line_blank(struct line *);
 _Bool line_empty(struct line *);
