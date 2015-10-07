@@ -1,12 +1,9 @@
 bfilter
 *.o
-test/*.o
-test/*tester
-test/main.c
+test/ipass
+test/iread
 test/ubayes
 test/ucompose
 test/uline
-test/upass
-test/uread
 test/uskiplist
 test/utoken

@@ -1,11 +1,12 @@
 bayes.o: bayes.c bayes.h skiplist.h db.h settings.h submit.h
 compose.o: compose.c compose.h skiplist.h settings.h submit.h
+cook.o: cook.c cook.h line.h
 fdump.o: fdump.c fdump.h
 line.o: line.c line.h util.h
 main.o: main.c bayes.h skiplist.h bfilter.h db.h fdump.h read.h \
  settings.h submit.h train.h
 pool.o: pool.c pool.h util.h
-read.o: read.c bfilter.h skiplist.h line.h read.h token.h util.h
+read.o: read.c bfilter.h skiplist.h cook.h line.h read.h token.h util.h
 skiplist.o: skiplist.c pool.h skiplist.h util.h
 submit.o: submit.c settings.h submit.h skiplist.h
 token.o: token.c compose.h skiplist.h settings.h submit.h util.h

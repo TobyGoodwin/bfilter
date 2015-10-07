@@ -1,3 +1,18 @@
+2015-10-07
+==========
+
+The rewrite of ``read.c`` is going well, and I'm confident the end
+result will be much cleaner and more extensible than previously.
+
+I've been mulling over Graham's comments about headers, and I at least
+want to experiment with adding *every* header, prefixed by its name.
+This means that we'll generate an awful lot of tokens like
+``received*from``, ``received*haskell.org``, etc., and may need to bump
+up MAX_TOKENS.
+
+Still, before making any changes, I need to complete the
+reimplementation.
+
 2015-10-05
 ==========
 

@@ -1,4 +1,4 @@
-depends test/upass
+depends test/ipass
 act=$(mktemp)
 echo $command $target '>' $act
 $command $target > $act

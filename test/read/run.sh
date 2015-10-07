@@ -1,4 +1,4 @@
-depends test/uread
+depends test/iread
 act=$(mktemp)
 exp=$(echo $target | sed 's,.in,.out,')
 echo $command $target '>' $act

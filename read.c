@@ -4,12 +4,14 @@
 #include <strings.h>
 
 #include "bfilter.h"
+#include "cook.h"
 #include "line.h"
 #include "read.h"
 #include "token.h"
 #include "util.h"
 
-enum state { hdr, hdr_rel, bdy, end };
+/* note that hdr_cont at the moment really means hdr_rel_cont */
+enum state { hdr, hdr_rel, hdr_cont, bdy, end };
 
 enum state transition(enum state s, struct line *l) {
     if (line_empty(l))
@@ -26,10 +28,11 @@ enum state transition(enum state s, struct line *l) {
             break;
 
         case hdr_rel:
+        case hdr_cont:
             if (line_blank(l))
                 return bdy;
-            if (!line_hdr_cont(l))
-                return hdr;
+            if (line_hdr_cont(l))
+                return hdr_cont;
             break;
 
         case end:
@@ -44,6 +47,7 @@ void maybe_save(enum state old, enum state cur,
 
     switch (cur) {
         case hdr_rel:
+        case hdr_cont:
             save = 1;
             break;
     }
@@ -59,18 +63,15 @@ void maybe_save(enum state old, enum state cur,
 
 void maybe_submit(enum state old, enum state cur, struct line *t) {
     _Bool submit = 0;
-    char *p;
 
     if (t->l == 0)
         return;
     switch (old) {
         case hdr_rel:
-            submit = 1;
-            /* move past field name */
-            if ((p = memchr(t->x, ':', t->l))) {
-                ++p;
-                memmove(t->x, p, t->x + t->l - p);
-                t->l -= p - t->x;
+        case hdr_cont:
+            if (cur != hdr_cont) {
+                submit = 1;
+                cook_header(t);
             }
             break;
     }

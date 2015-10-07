@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "fdump.h"
 #include "read.h"
 
 void tokenize(char *s, size_t l) {
@@ -13,7 +14,7 @@ void compose_reset(void) {
 }
 
 int main(int argc, char **argv) {
-    _Bool from, pass;
+    _Bool from;
     FILE *in, *out;
 
     in = fopen(argv[1], "r");
