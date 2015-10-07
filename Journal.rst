@@ -11,7 +11,12 @@ This means that we'll generate an awful lot of tokens like
 up MAX_TOKENS.
 
 Still, before making any changes, I need to complete the
-reimplementation.
+reimplementation.  That's soft EOL handling now working, and by way of
+evidence that the rewrite is effective, I didn't even need to look at
+the "engine", just add the new state and make minor tweaks to
+``transition()``, ``maybe_save()``, and ``maybe_submit()`` to handle it.
+
+Next will be base64, but that will have to wait till tomorrow.
 
 2015-10-05
 ==========
