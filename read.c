@@ -11,13 +11,20 @@
 #include "util.h"
 
 /* note that hdr_cont at the moment really means hdr_rel_cont */
-enum state { hdr, hdr_rel, hdr_cont, bdy, end };
+enum state { hdr, hdr_rel, hdr_cont, bdy, bdy_soft_eol, end };
 
 enum state transition(enum state s, struct line *l) {
     if (line_empty(l))
         return end;
     switch (s) {
         case bdy:
+            if (line_ends(l, "=\n"))
+                return bdy_soft_eol;
+            break;
+
+        case bdy_soft_eol:
+            if (!line_ends(l, "=\n"))
+                return bdy;
             break;
 
         case hdr:
@@ -48,7 +55,12 @@ void maybe_save(enum state old, enum state cur,
     switch (cur) {
         case hdr_rel:
         case hdr_cont:
+        case bdy:
+        case bdy_soft_eol:
             save = 1;
+            break;
+
+        default:
             break;
     }
 
@@ -59,6 +71,11 @@ void maybe_save(enum state old, enum state cur,
     /* drop trailing \n */
     assert(t->l > 0);
     --t->l;
+
+    if (cur == bdy_soft_eol) {
+        assert(line_ends(t, "="));
+        --t->l;
+    }
 }
 
 void maybe_submit(enum state old, enum state cur, struct line *t) {
@@ -67,6 +84,15 @@ void maybe_submit(enum state old, enum state cur, struct line *t) {
     if (t->l == 0)
         return;
     switch (old) {
+        case bdy:
+            submit = 1;
+            break;
+
+        case bdy_soft_eol:
+            if (cur != bdy_soft_eol && cur != bdy)
+                submit = 1;
+            break;
+
         case hdr_rel:
         case hdr_cont:
             if (cur != hdr_cont) {
@@ -74,6 +100,10 @@ void maybe_submit(enum state old, enum state cur, struct line *t) {
                 cook_header(t);
             }
             break;
+            
+        default:
+            break;
+
     }
     if (!submit)
         return;

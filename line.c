@@ -49,6 +49,12 @@ _Bool line_starts(struct line *l, const char *m) {
     return l->l >= len && strncasecmp(l->x, m, len) == 0;
 }
 
+_Bool line_ends(struct line *l, const char *m) {
+    size_t len = strlen(m);
+
+    return l->l >= len && strncasecmp(l->x + l->l - len, m, len) == 0;
+}
+
 _Bool line_hdr_cont(struct line *l) {
     return line_starts(l, " ") || line_starts(l, "\t");
 }

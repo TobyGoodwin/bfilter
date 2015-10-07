@@ -43,5 +43,6 @@ _Bool line_blank(struct line *);
 _Bool line_empty(struct line *);
 _Bool line_hdr_cont(struct line *);
 _Bool line_starts(struct line *, const char *);
+_Bool line_ends(struct line *, const char *);
 
 #endif
