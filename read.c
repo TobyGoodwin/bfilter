@@ -3,6 +3,7 @@
 #include <string.h>
 #include <strings.h>
 
+#include "b64.h"
 #include "bfilter.h"
 #include "cook.h"
 #include "line.h"
@@ -11,15 +12,36 @@
 #include "util.h"
 
 /* note that hdr_cont at the moment really means hdr_rel_cont */
-enum state { hdr, hdr_rel, hdr_cont, bdy, bdy_soft_eol, end };
+enum state { hdr, hdr_rel, hdr_cont, hdr_mine,
+             blank,
+             bdy, bdy_b64, bdy_soft_eol,
+             end };
 
-enum state transition(enum state s, struct line *l) {
+enum state transition(_Bool fromline, enum state s, struct line *l) {
     if (line_empty(l))
         return end;
+    assert(l->x[l->l - 1] == '\n');
+    if (l->l == 1)
+        return blank;
     switch (s) {
+        case blank:
+            if (fromline && line_starts(l, "From "))
+                return end;
+            if (line_is_b64(l))
+                return bdy_b64;
+            if (line_ends(l, "=\n"))
+                return bdy_soft_eol;
+            return bdy;
+
         case bdy:
             if (line_ends(l, "=\n"))
                 return bdy_soft_eol;
+            break;
+
+        /* can't transition from b64 to soft_eol or vice versa */
+        case bdy_b64:
+            if (!line_is_b64(l))
+                return bdy;
             break;
 
         case bdy_soft_eol:
@@ -27,45 +49,45 @@ enum state transition(enum state s, struct line *l) {
                 return bdy;
             break;
 
-        case hdr:
-            if (line_blank(l))
-                return bdy;
-            if (line_starts(l, "subject:"))
-                return hdr_rel;
-            break;
-
+        case hdr_mine:
         case hdr_rel:
         case hdr_cont:
-            if (line_blank(l))
-                return bdy;
             if (line_hdr_cont(l))
-                return hdr_cont;
-            break;
+                return s == hdr_mine ? s : hdr_cont;
+
+            /* fall through */
+
+        case hdr:
+            if (
+                    line_starts_ci(l, "from:") ||
+                    line_starts_ci(l, "return-path:") ||
+                    line_starts_ci(l, "subject:") ||
+                    line_starts_ci(l, "to:") ||
+                    line_starts_ci(l, "x-spam-status:")
+                ) return hdr_rel;
+            if (line_starts_ci(l, "x-spam-probability:"))
+                return hdr_mine;
+            return hdr;
 
         case end:
             break;
     }
+
     return s;
 }
 
 void maybe_save(enum state old, enum state cur,
         struct line *t, struct line *x) {
-    _Bool save = 0;
 
     switch (cur) {
-        case hdr_rel:
-        case hdr_cont:
-        case bdy:
-        case bdy_soft_eol:
-            save = 1;
-            break;
+        case hdr:
+        case hdr_mine:
+        case blank:
+            return;
 
         default:
             break;
     }
-
-    if (!save)
-        return;
 
     line_cat(t, x);
     /* drop trailing \n */
@@ -91,6 +113,13 @@ void maybe_submit(enum state old, enum state cur, struct line *t) {
         case bdy_soft_eol:
             if (cur != bdy_soft_eol && cur != bdy)
                 submit = 1;
+            break;
+
+        case bdy_b64:
+            if (cur != bdy_b64) {
+                submit = 1;
+                cook_b64(t);
+            }
             break;
 
         case hdr_rel:
@@ -132,14 +161,20 @@ _Bool read_email(const _Bool fromline, FILE *in, FILE **tmp) {
     while (1) {
         line_read(in, &x);
         nbytesrd += x.l;
-        s_cur = transition(s_old, &x);
+        s_cur = transition(fromline, s_old, &x);
         maybe_submit(s_old, s_cur, &t);
         if (s_cur == end) break;
         maybe_save(s_old, s_cur, &t, &x);
-        if (tmp && !line_write(stdout, &x))
-            goto abort;
+        if (tmp && s_cur != hdr_mine)
+           if (!line_write(stdout, &x))
+               goto abort;
         s_old = s_cur;
     }
+    /* Ugh. If we're in Berkeley mbox mode, we've already read the "From " at
+     * the top of the next message, so write it out if in passthrough mode. */
+    if (tmp && fromline && x.l > 0)
+        if (!line_write(stdout, &x))
+            goto abort;
     return 1;
 
 abort:

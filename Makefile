@@ -18,8 +18,8 @@ LDLIBS += -ltdb -lcrypto -lm #-lefence
 VERSION = 0.4
 
 TXTS = README COPYING bfilter.1 CHANGES tokeniser-states.dot migrate-0.2-to-0.3
-SRCS = bayes.c compose.c cook.c fdump.c line.c main.c pool.c read.c skiplist.c \
-       submit.c token.c train.c util.c db.c
+SRCS = bayes.c compose.c cook.c fdump.c line.c main.c pool.c read.c \
+       skiplist.c submit.c token.c train.c util.c db.c
 HDRS = cook.h fdump.h line.h pool.h read.h skiplist.h util.h db.h
 OBJS = $(SRCS:.c=.o)
 

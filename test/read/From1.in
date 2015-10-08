@@ -1,0 +1,17 @@
+From fakefrom
+Dull: header
+Subject: foo
+
+We want to check that we can start a line with the word
+from or even a blank line followed by
+
+from me to you, and all is well.
+
+>From of course is escaped like so
+
+And that's all!
+
+From fakefrom2
+Dull: heade
+
+dXNmY2EuZWR1PiB3cm90ZToKPiBIaS4gSnVzdCBjdXJpb3VzLiBIYXMgYW55b25lIGZpZ3VyZWQg

@@ -6,7 +6,8 @@ line.o: line.c line.h util.h
 main.o: main.c bayes.h skiplist.h bfilter.h db.h fdump.h read.h \
  settings.h submit.h train.h
 pool.o: pool.c pool.h util.h
-read.o: read.c bfilter.h skiplist.h cook.h line.h read.h token.h util.h
+read.o: read.c b64.h line.h bfilter.h skiplist.h cook.h read.h token.h \
+ util.h
 skiplist.o: skiplist.c pool.h skiplist.h util.h
 submit.o: submit.c settings.h submit.h skiplist.h
 token.o: token.c compose.h skiplist.h settings.h submit.h util.h

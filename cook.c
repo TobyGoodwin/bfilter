@@ -22,10 +22,45 @@
 
 */
 
+#include <stdint.h>
 #include <string.h>
 
 #include "cook.h"
 #include "line.h"
+
+/* unbase64 CHAR
+ * Decode a single base64 CHAR. */
+static uint_least32_t unbase64(char c) {
+    static const char *s = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+    if (c == '=')
+        return 0;
+    else
+        return (uint_least32_t)(strchr(s, c) - s);
+}
+
+/* decode_base64 BUFFER LENGTH
+ * Decode LENGTH characters of base64 data starting at BUFFER in place,
+ * returning the number of bytes of real data produced, and padding the
+ * end of the original extent with whitespace. */
+size_t decode_base64(char *buf, size_t len) {
+    char *rd, *wr;
+
+    for (rd = buf, wr = buf; rd < buf + len; rd += 4, wr += 3) {
+        uint_least32_t X;
+        X = unbase64(rd[3]) | (unbase64(rd[2]) << 6) | (unbase64(rd[1]) << 12) | (unbase64(rd[0]) << 18);
+        wr[2] = X & 0xff;
+        wr[1] = (X >> 8) & 0xff;
+        wr[0] = (X >> 16) & 0xff;
+    }
+
+    memset(wr, ' ', len - (wr - buf));
+
+    return wr - buf;
+}
+
+void cook_b64(struct line *t) {
+    t->l = decode_base64(t->x, t->l);
+}
 
 void cook_header(struct line *t) {
     char *p;

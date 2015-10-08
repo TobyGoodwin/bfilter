@@ -1,3 +1,24 @@
+2015-10-08
+==========
+
+The rewritten ``read.c`` now handles base64 too. The code is cleaner,
+more comprehensible, and more concise than the first version (I'll work
+out some numbers in a minute for how much more concise). Not only that,
+but Oggie's bas64 decoder worked a line at a time, so split words. Mine
+avoids this flaw.
+
+(But introduces a new one, which we may have to do something about: we
+will actually construct any and all attachments, and feed them to the
+tokenizer. While this shouldn't cause any problems (almost everything
+will be discarded as too long), it's a lot of work that accomplishes
+nothing.)
+
+Now, there are still a few things that Oggie's state machine does and
+mine doesn't. One is to discard any incoming ``X-Spam-Probability:``
+header, which I will need to do. Another is to handle Berkeley mbox
+``From_`` separators, which I suppose I need to do. Evil little corner
+cases, the lot of 'em (especially Berkeley mbox).
+
 2015-10-07
 ==========
 

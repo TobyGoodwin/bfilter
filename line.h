@@ -41,8 +41,10 @@ void line_copy(struct line *, struct line *);
 
 _Bool line_blank(struct line *);
 _Bool line_empty(struct line *);
-_Bool line_hdr_cont(struct line *);
-_Bool line_starts(struct line *, const char *);
 _Bool line_ends(struct line *, const char *);
+_Bool line_hdr_cont(struct line *);
+_Bool line_is_b64(struct line *);
+_Bool line_starts(struct line *, const char *);
+_Bool line_starts_ci(struct line *, const char *);
 
 #endif

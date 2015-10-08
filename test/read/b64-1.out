@@ -1,0 +1,20 @@
+{ =?UTF-8?Q?S=C3=A9rgio_Medeiros?= <sqmedeiros@gmail.com>}
+{ Terence Parr <parrt@cs.usfca.edu>}
+{ Re: [PEG] error handling in PEGs}
+{On Mon, May 26, 2014 at 12:30 PM, Terence Parr <parrt@cs.usfca.edu> wrote:
+> Hi. Just curious. Has anyone figured out how to get good error reporting and recovery in PEGs? I.e., competitive with deterministic parsers?
+
+There is this paper about error reporting in PEGs:
+http://www.inf.puc-rio.br/~roberto/docs/sblp2013-1.pdf
+
+An extended version of this paper was submitted
+to a journal. I will put this extended version on
+arXiv this week and will send the link when available.
+
+Sérgio
+
+_______________________________________________
+PEG mailing list
+PEG@lists.csail.mit.edu
+https://lists.csail.mit.edu/mailman/listinfo/peg
+}

@@ -23,6 +23,8 @@ int main(int argc, char **argv) {
 
     in = fopen(argv[1], "r");
     from = strchr(argv[1], 'F') != 0;
-    read_email(from, in, 0);
+    do {
+        read_email(from, in, 0);
+    } while (from && !feof(in));
     fclose(in);
 }

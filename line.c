@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <stdio.h>
 #include <string.h>
 #include <strings.h>
@@ -43,7 +44,36 @@ _Bool line_empty(struct line *l) {
     return l->l == 0;
 }
 
+/* Is this line composed only of base64 characters? */
+_Bool line_is_b64(struct line *l) {
+    const char *p;
+    size_t len = l->l;
+
+    /* backup over terminating \n */
+    assert(len > 0 && l->x[len - 1] == '\n');
+    --len;
+
+    /* back up past terminating =s */
+    while (len > 0 && l->x[len - 1] == '=')
+        --len;
+
+    for (p = l->x; p < l->x + len; ++p)
+        if (!((*p >= 'A' && *p <= 'Z')
+               || (*p >= 'a' && *p <= 'z')
+               || (*p >= '0' && *p <= '9')
+               || *p == '+' || *p == '/'))
+            return 0;
+
+    return 1;
+}
+
 _Bool line_starts(struct line *l, const char *m) {
+    size_t len = strlen(m);
+
+    return l->l >= len && strncmp(l->x, m, len) == 0;
+}
+
+_Bool line_starts_ci(struct line *l, const char *m) {
     size_t len = strlen(m);
 
     return l->l >= len && strncasecmp(l->x, m, len) == 0;
