@@ -142,8 +142,7 @@ int run(enum mode mode) {
             max_tokens = MAX_TRAIN_TOKENS;
             /* Read a single email. */
             errno = 0;
-            if (!read_email(0, mode == annotate, stdin, 
-                        mode == annotate ? &tempfile : 0)) {
+            if (!read_email(0, stdin, mode == annotate ? &tempfile : 0)) {
                 fprintf(stderr, "bfilter: failed to read email (%s)\n",
                         errno ? strerror(errno) : "no system error");
                 return 1;

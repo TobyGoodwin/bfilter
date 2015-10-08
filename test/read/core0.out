@@ -1,0 +1,25 @@
+{ "Vasili I. Galchin" <vigalchin@gmail.com>}
+{ "haskell-cafe@haskell.org" <haskell-cafe@haskell.org>}
+{ [Haskell-cafe] POSIX capabilities support}
+{--===============3009291554375989426=Content-Type: multipart/alternative; boundary=089e0158c9fe9eec8404fcc597a7}
+{--089e0158c9fe9eec8404fcc597a7}
+{Content-Type: text/plain; charset=UTF-8}
+{Hello Haskellers,}
+{       I have looked through the various POSIX hack age modules to see if}
+{there is capabilities support. ???}
+{Regards,}
+{Vasya}
+{--089e0158c9fe9eec8404fcc597a7}
+{Content-Type: text/html; charset=UTF-8}
+{Content-Transfer-Encoding: quoted-printable}
+{Hello Haskellers,<div><br></div><div>=C2=A0 =C2=A0 =C2=A0 =C2=A0I have looked through the various POSIX hack age modules to see if there is capabilities support. ???</div><div><br></div><div>Regards,</div><div><br></div><div>Vasya</div>}
+{--089e0158c9fe9eec8404fcc597a7--}
+{--===============3009291554375989426=Content-Type: text/plain; charset="us-ascii"}
+{MIME-Version: 1.0}
+{Content-Transfer-Encoding: 7bit}
+{Content-Disposition: inline}
+{_______________________________________________}
+{Haskell-Cafe mailing list}
+{Haskell-Cafe@haskell.org}
+{http://www.haskell.org/mailman/listinfo/haskell-cafe}
+{--===============3009291554375989426==--}

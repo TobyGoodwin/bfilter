@@ -3,7 +3,6 @@
 #include <string.h>
 #include <strings.h>
 
-#include "b64.h"
 #include "bfilter.h"
 #include "cook.h"
 #include "line.h"

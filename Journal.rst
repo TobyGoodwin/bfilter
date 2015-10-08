@@ -19,6 +19,45 @@ header, which I will need to do. Another is to handle Berkeley mbox
 ``From_`` separators, which I suppose I need to do. Evil little corner
 cases, the lot of 'em (especially Berkeley mbox).
 
+Hmph. Actually, counting semicolons, the old ``read.c`` was 102 LoC, and
+the new ``read.c`` + ``line.c`` + ``cook.c`` is 107 LoC. I'm struck by
+how close those 2 numbers are. Still, I believe the new code to be
+cleaner and clearer. (Hell, it's not full of "functions" inlined with
+``#define`` and carefully placed so that all the variables they need are
+in scope. (I'll optimize later. (If I need to.))) Oh, plus I handle
+softeol.
+
+So, it's time to see if soft eol, and also not breaking b64 words
+randomly, actually helps to detect spams or not.
+
+OK, so we have some seg faults. First thing is that the base64 decoder
+assumes that it's being given a sensible number (== 0 modulo 4) of input
+bytes. Second thing is that we do actually want to check that we have a
+sensible number of bytes. If not, it presumably wasn't b64 after all.
+
+In the particular case I looked at, the string "Vasya" occurred on a
+line on its own.
+
+So the last stats I had were::
+
+    ham: 93.80% correct, spam: 85.30% correct
+    -rw-------. 1 toby toby 2162688 Oct  3 09:19 /tmp/tmp.lV1plPO3pI
+    67.21user 9.44system 1:16.65elapsed 100%CPU (6164maxresident)k
+
+And now I'm seeing::
+
+    ham: 91.40% correct, spam: 85.50% correct
+    -rw-------. 1 toby toby 2162688 Oct  8 23:17 /tmp/tmp.3fTd5FQkZ6
+    46.02user 8.26system 0:56.66elapsed 95%CPU (7124maxresident)k
+
+Well, the first thing of note is that all that hard work trying to make
+things quicker by contorting the syntax with ``#define`` was apparently
+entirely wasted! My cleaner code, despite making a lot more function
+calls, appears to be significantly faster.
+
+Unfortunately, we're producing worse results faster. Must be A/B time...
+
+
 2015-10-07
 ==========
 

@@ -49,6 +49,10 @@ _Bool line_is_b64(struct line *l) {
     const char *p;
     size_t len = l->l;
 
+    /* must be at least 4 encoded characters + \n */
+    if (len < 5)
+        return 0;
+
     /* backup over terminating \n */
     assert(len > 0 && l->x[len - 1] == '\n');
     --len;

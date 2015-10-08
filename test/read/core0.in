@@ -1,0 +1,81 @@
+Received: from haskell.org [88.198.224.243] by mx.flare.email
+    with SMTP; 26 Jun 2014 23:31:35 -0000
+Received: from haskell.org (unknown [IPv6:::1])
+	by haskell.org (Postfix) with ESMTP id B449A104C3;
+	Thu, 26 Jun 2014 23:31:30 +0000 (UTC)
+Received: from mail-la0-f54.google.com (mail-la0-f54.google.com
+ [209.85.215.54]) by haskell.org (Postfix) with ESMTPS id 7940310452
+ for <haskell-cafe@haskell.org>; Thu, 26 Jun 2014 23:31:28 +0000 (UTC)
+Received: by mail-la0-f54.google.com with SMTP id mc6so2359269lab.41
+ for <haskell-cafe@haskell.org>; Thu, 26 Jun 2014 16:31:29 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=gmail.com; s=20120113;
+ h=mime-version:date:message-id:subject:from:to:content-type;
+ bh=pIxsPMqeH9rVDFRXHZC+3qlcGjxFinw5pf5A3GZfUcg=;
+ b=W8P6ayUrOFGUckl1Ren/jmJf/lwTzISOFRy0r2y+MEnRXUJj1A9YxPwZGCXWi60cQA
+ YBgfLa97QZLHT0IO+Js3XBVxn6YntQ/Nsa3gHueKdk2FQIwzPZWDIlxysCR6pUEh7EhI
+ OnpkWBVnk49EzLuzkGJWERx6hY20pOpsOeEkHLlNjIjw/mf6I4MBRNH7zUG2hbXKVIni
+ 1biF3Anq5421u91xHJRqI+OA1e/6u7IZu+94x5WkODfi+EyJJm4TUcMg9jY5u25UhWjg
+ R+WGO+srhEBBIJ3HT9d0F+jOeDHLwQQ+edu+Uz3B1XL42fbqoOd3V0HSEjgcXWunyTUL
+ srdw==
+MIME-Version: 1.0
+X-Received: by 10.152.26.231 with SMTP id o7mr13887414lag.41.1403825489372;
+ Thu, 26 Jun 2014 16:31:29 -0700 (PDT)
+Received: by 10.114.195.65 with HTTP; Thu, 26 Jun 2014 16:31:29 -0700 (PDT)
+Date: Thu, 26 Jun 2014 18:31:29 -0500
+Message-ID: <CA+0XtC-ZEp=Dqc02Xoir6Tpv08=Uth5iFF5ZB6NOdzVRcJ=UDA@mail.gmail.com>
+From: "Vasili I. Galchin" <vigalchin@gmail.com>
+To: "haskell-cafe@haskell.org" <haskell-cafe@haskell.org>
+Subject: [Haskell-cafe] POSIX capabilities support
+X-BeenThere: haskell-cafe@haskell.org
+X-Mailman-Version: 2.1.15
+Precedence: list
+List-Id: The Haskell Cafe <haskell-cafe.haskell.org>
+List-Unsubscribe: <http://www.haskell.org/mailman/options/haskell-cafe>,
+ <mailto:haskell-cafe-request@haskell.org?subject=unsubscribe>
+List-Archive: <http://www.haskell.org/pipermail/haskell-cafe/>
+List-Post: <mailto:haskell-cafe@haskell.org>
+List-Help: <mailto:haskell-cafe-request@haskell.org?subject=help>
+List-Subscribe: <http://www.haskell.org/mailman/listinfo/haskell-cafe>,
+ <mailto:haskell-cafe-request@haskell.org?subject=subscribe>
+Content-Type: multipart/mixed; boundary="===============3009291554375989426=="
+Errors-To: haskell-cafe-bounces@haskell.org
+Sender: "Haskell-Cafe" <haskell-cafe-bounces@haskell.org>
+
+--===============3009291554375989426==
+Content-Type: multipart/alternative; boundary=089e0158c9fe9eec8404fcc597a7
+
+--089e0158c9fe9eec8404fcc597a7
+Content-Type: text/plain; charset=UTF-8
+
+Hello Haskellers,
+
+       I have looked through the various POSIX hack age modules to see if
+there is capabilities support. ???
+
+Regards,
+
+Vasya
+
+--089e0158c9fe9eec8404fcc597a7
+Content-Type: text/html; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
+
+Hello Haskellers,<div><br></div><div>=C2=A0 =C2=A0 =C2=A0 =C2=A0I have look=
+ed through the various POSIX hack age modules to see if there is capabiliti=
+es support. ???</div><div><br></div><div>Regards,</div><div><br></div><div>=
+Vasya</div>
+
+--089e0158c9fe9eec8404fcc597a7--
+
+--===============3009291554375989426==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+Haskell-Cafe mailing list
+Haskell-Cafe@haskell.org
+http://www.haskell.org/mailman/listinfo/haskell-cafe
+
+--===============3009291554375989426==--

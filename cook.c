@@ -45,7 +45,7 @@ static uint_least32_t unbase64(char c) {
 size_t decode_base64(char *buf, size_t len) {
     char *rd, *wr;
 
-    for (rd = buf, wr = buf; rd < buf + len; rd += 4, wr += 3) {
+    for (rd = buf, wr = buf; rd + 3 < buf + len; rd += 4, wr += 3) {
         uint_least32_t X;
         X = unbase64(rd[3]) | (unbase64(rd[2]) << 6) | (unbase64(rd[1]) << 12) | (unbase64(rd[0]) << 18);
         wr[2] = X & 0xff;
@@ -59,6 +59,10 @@ size_t decode_base64(char *buf, size_t len) {
 }
 
 void cook_b64(struct line *t) {
+    /* if we do not have a multiple of 4 bytes, this probably wasn't
+     * base64 after all */
+    if (t->l % 4 != 0)
+        return;
     t->l = decode_base64(t->x, t->l);
 }
 
