@@ -44,7 +44,9 @@ static uint_least32_t unbase64(char c) {
  * end of the original extent with whitespace. */
 size_t decode_base64(char *buf, size_t len) {
     char *rd, *wr;
+    int nuls = 0;
 
+    nuls = (buf[len - 1] == '=') + (buf[len - 2] == '=');
     for (rd = buf, wr = buf; rd + 3 < buf + len; rd += 4, wr += 3) {
         uint_least32_t X;
         X = unbase64(rd[3]) | (unbase64(rd[2]) << 6) | (unbase64(rd[1]) << 12) | (unbase64(rd[0]) << 18);
@@ -55,7 +57,7 @@ size_t decode_base64(char *buf, size_t len) {
 
     memset(wr, ' ', len - (wr - buf));
 
-    return wr - buf;
+    return wr - buf - nuls;
 }
 
 void cook_b64(struct line *t) {

@@ -57,6 +57,39 @@ calls, appears to be significantly faster.
 
 Unfortunately, we're producing worse results faster. Must be A/B time...
 
+OK. So the first 3 or 4 "most differing" results are emails from Quidco,
+which are pretty close to spam. I looked closely at the "least spammy"
+of the top 10 (it was actually a "new login from device blah" email from
+Google). As far as I can tell, it's pure chance that we scored this as a
+ham initially. Here are the 5 most significant terms::
+
+    margin-top => 0.010000, 0.080000 => 0.983260
+    sans-serif%font-size%10px => 0.990000, 0.030000 => 0.980459
+    ght => 0.010000, 0.050000 => 0.981275
+    tex%t-decoration%none => 0.010000, 0.010000 => 0.980051
+    t-decoration%none => 0.010000, 0.010000 => 0.980051
+
+Note that 3 of these involve word fragments. And they are all chunks of
+CSS, which I'm not convinced is a terribly reliable indicator of spam.
+In the new regime, we seem to be doing much better at choosing actual
+words::
+
+    ff => 0.990000, 0.050000 => 0.981275
+    image/jpeg%name => 0.990000, 0.010000 => 0.980051
+    in%your%account => 0.990000, 0.010000 => 0.980051
+    and%determined => 0.990000, 0.010000 => 0.980051
+    the%first%time => 0.990000, 0.010000 => 0.980051
+
+It's just unfortunate that they seem to be very spammy ones. What is
+``ff``? Well, this message contains 3 images. As predicted, they don't
+seem to cause any serious trouble, but the only occurrence of ``ff``
+occurs in a ``.png`` image. I think having decoded some b64, we need to
+look at the result and try to guess if it might actually be text or not.
+(In this case, and I suspect many others, simply checking for NUL bytes
+would do well, although I actually have a test case that includes b64
+null bytes... oh! or is that a bug? Yes, it's a bug, now fixed.) Merely
+chucking out ``ff`` isn't going to change the classification of this
+message though, sadly.
 
 2015-10-07
 ==========
