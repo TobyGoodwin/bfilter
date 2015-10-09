@@ -61,6 +61,7 @@ void usage(FILE *stream) {
 }
 
 _Bool flagb = 0;
+char *flagD = 0;
 
 
 int run(enum mode mode);
@@ -86,15 +87,13 @@ int main(int argc, char *argv[]) {
         char *cp = argv[arg] + 1;
         while (*cp) {
             switch (*cp) {
-                case 'b':
-                    flagb = 1;
-                    break;
-                default:
-                    usage(stderr);
-                    return 1;
+                case 'b': flagb = 1; break;
+                case 'D': flagD = cp; goto next_arg;
+                default: usage(stderr); return 1;
             }
             ++cp;
         }
+next_arg:
         ++arg;
     }
 

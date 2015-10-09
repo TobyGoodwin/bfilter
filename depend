@@ -1,4 +1,4 @@
-bayes.o: bayes.c bayes.h skiplist.h db.h settings.h submit.h
+bayes.o: bayes.c bayes.h skiplist.h bfilter.h db.h settings.h submit.h
 compose.o: compose.c compose.h skiplist.h settings.h submit.h
 cook.o: cook.c cook.h line.h
 fdump.o: fdump.c fdump.h

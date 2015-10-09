@@ -4,6 +4,7 @@
 #include <string.h>
 
 #include "bayes.h"
+#include "bfilter.h"
 #include "db.h"
 #include "settings.h"
 /* for struct wordcount: */
@@ -115,7 +116,7 @@ double bayes(skiplist tokens) {
         skiplist_insert(problist, &t, sizeof t, NULL); /* shouldn't fail */
     }
 
-//problist_dump(problist);
+    if (flagD && strchr(flagD, 'p')) problist_dump(problist);
     nterms = skiplist_size(problist);
     if (nsig > nterms) nsig = nterms;
 
