@@ -42,7 +42,8 @@ static uint_least32_t unbase64(char c) {
  * Decode LENGTH characters of base64 data starting at BUFFER in place,
  * returning the number of bytes of real data produced, and padding the
  * end of the original extent with whitespace. */
-size_t decode_base64(char *buf, size_t len) {
+/* XXX what is the point of the whitespace padding? */
+static size_t decode_base64(char *buf, size_t len) {
     char *rd, *wr;
     int nuls = 0;
 
@@ -77,4 +78,26 @@ void cook_header(struct line *t) {
         memmove(t->x, p, t->x + t->l - p);
         t->l -= p - t->x;
     }
+}
+
+#define is_qp_digit(x) ((x>='0' && x<='9') || (x>='A' && x<='F'))
+#define qp_digit_val(x) (x>'9' ? x+10-'A' : x-'0')
+#define qp_digits_val(p) (16*qp_digit_val(*(p)) + qp_digit_val(*((p)+1)))
+
+static size_t decode_qp(char *buf, size_t len) {
+    char *rd, *wr;
+
+    for (rd = buf, wr = buf; rd < buf + len; ++wr) {
+        if (rd[0] == '=' && rd + 2 < buf + len &&
+            is_qp_digit(rd[1]) && is_qp_digit(rd[2])) {
+            *wr = qp_digits_val(rd + 1);
+            rd += 3;
+        } else
+            *wr = *rd++;
+    }
+    return wr - buf;
+}
+
+void cook_qp(struct line *t) {
+    t->l = decode_qp(t->x, t->l);
 }

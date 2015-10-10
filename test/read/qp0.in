@@ -1,0 +1,107 @@
+Received: from haskell.org [23.253.242.70] by mx.flare.email
+    with SMTP; 07 Jul 2015 17:40:12 -0000
+Received: from www.haskell.org (localhost [IPv6:::1])
+	by haskell.org (Postfix) with ESMTP id 417E2BD390;
+	Tue,  7 Jul 2015 17:38:04 +0000 (UTC)
+Received: from mail-wg0-x230.google.com (mail-wg0-x230.google.com
+ [IPv6:2a00:1450:400c:c00::230])
+ by haskell.org (Postfix) with ESMTPS id A07F7BD37B
+ for <haskell-cafe@haskell.org>; Tue,  7 Jul 2015 17:38:01 +0000 (UTC)
+Received: by wgjx7 with SMTP id x7so174367483wgj.2
+ for <haskell-cafe@haskell.org>; Tue, 07 Jul 2015 10:40:05 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=gmail.com; s=20120113;
+ h=mime-version:in-reply-to:references:date:message-id:subject:from:to
+ :cc:content-type;
+ bh=JjEh+fIj7IDWWqTjvBQ3bf9yRA+hPgJS26YrDSbAt6c=;
+ b=tkXenOZf185fEDFouJ4SfP6HnO8TPDV53hhvF3QYSywA2IRGxUHnsJl4FMAOfwBlVw
+ arf7yvG4dASEcgCLA6HN28rRlfzNh9XxlWj19eVouK/fsPw/jO3o3jZDGcRMirPJsmvb
+ 9KmKO2F/GHLl00oNYJvgvOi02efW6OWcjpEE9lHb5nUFvlMCaVrlhcB1Gv+C4cwr+jFx
+ woQ8T5yhN+XSQZgUiC9qHj7eTb/oqmSzfyPajLLkfH/0gqQ63AZ62vlTrMGKMgKxGhZQ
+ XxsqzVNCyZFBclSku/qY/4/LvVmrQKL5u1EjaW5jzrKZeV8FUDBeesdqAMj/DsLxiBeP
+ vEMg==
+MIME-Version: 1.0
+X-Received: by 10.180.78.73 with SMTP id z9mr7487379wiw.15.1436290805593; Tue,
+ 07 Jul 2015 10:40:05 -0700 (PDT)
+Received: by 10.27.213.130 with HTTP; Tue, 7 Jul 2015 10:40:05 -0700 (PDT)
+In-Reply-To: <CAC2-jLFJWFY71nNy9tNJauw7n04_UjzLBtgZGkRhj=youp3XBw@mail.gmail.com>
+References: <CAC2-jLFJWFY71nNy9tNJauw7n04_UjzLBtgZGkRhj=youp3XBw@mail.gmail.com>
+Date: Tue, 7 Jul 2015 13:40:05 -0400
+Message-ID: <CAKFCL4W0GFJ=tF232-TtXCC4rAuL3BhqhSwyxgMWwip-7=GH0w@mail.gmail.com>
+From: Brandon Allbery <allbery.b@gmail.com>
+To: Stefan Reich <stefan.reich.maker.of.eye@googlemail.com>
+Cc: Haskell-Cafe <haskell-cafe@haskell.org>
+Subject: Re: [Haskell-cafe] You know, I am tired of it.
+X-BeenThere: haskell-cafe@haskell.org
+X-Mailman-Version: 2.1.15
+Precedence: list
+List-Id: The Haskell Cafe <haskell-cafe.haskell.org>
+List-Unsubscribe: <http://mail.haskell.org/cgi-bin/mailman/options/haskell-cafe>, 
+ <mailto:haskell-cafe-request@haskell.org?subject=unsubscribe>
+List-Archive: <http://mail.haskell.org/pipermail/haskell-cafe/>
+List-Post: <mailto:haskell-cafe@haskell.org>
+List-Help: <mailto:haskell-cafe-request@haskell.org?subject=help>
+List-Subscribe: <http://mail.haskell.org/cgi-bin/mailman/listinfo/haskell-cafe>, 
+ <mailto:haskell-cafe-request@haskell.org?subject=subscribe>
+Content-Type: multipart/mixed; boundary="===============6399108990683202000=="
+Errors-To: haskell-cafe-bounces@haskell.org
+Sender: "Haskell-Cafe" <haskell-cafe-bounces@haskell.org>
+
+--===============6399108990683202000==
+Content-Type: multipart/alternative; boundary=f46d0438903b42fcdf051a4c8396
+
+--f46d0438903b42fcdf051a4c8396
+Content-Type: text/plain; charset=UTF-8
+
+On Tue, Jul 7, 2015 at 1:39 PM, Stefan Reich <
+stefan.reich.maker.of.eye@googlemail.com> wrote:
+
+> Whatever "community" I go, they all pretend like their old shit is SO
+> important.
+>
+
+I assume you've never had to support anyone but yourself, then.
+
+-- 
+brandon s allbery kf8nh                               sine nomine associates
+allbery.b@gmail.com                                  ballbery@sinenomine.net
+unix, openafs, kerberos, infrastructure, xmonad        http://sinenomine.net
+
+--f46d0438903b42fcdf051a4c8396
+Content-Type: text/html; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
+
+<div dir=3D"ltr"><div class=3D"gmail_extra"><div class=3D"gmail_quote">On T=
+ue, Jul 7, 2015 at 1:39 PM, Stefan Reich <span dir=3D"ltr">&lt;<a href=3D"m=
+ailto:stefan.reich.maker.of.eye@googlemail.com" target=3D"_blank">stefan.re=
+ich.maker.of.eye@googlemail.com</a>&gt;</span> wrote:<br><blockquote class=
+=3D"gmail_quote" style=3D"margin:0 0 0 .8ex;border-left:1px #ccc solid;padd=
+ing-left:1ex"><div dir=3D"ltr">Whatever &quot;community&quot; I go, they al=
+l pretend like their old shit is SO important.<br></div>
+</blockquote></div><div class=3D"gmail_extra"><br></div>I assume you&#39;ve=
+ never had to support anyone but yourself, then.<br clear=3D"all"><div><br>=
+</div>-- <br><div class=3D"gmail_signature"><div dir=3D"ltr"><div>brandon s=
+ allbery kf8nh =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
+=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 sine nomine associates</div><=
+div><a href=3D"mailto:allbery.b@gmail.com" target=3D"_blank">allbery.b@gmai=
+l.com</a> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =
+=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0<a href=3D"mailto:ba=
+llbery@sinenomine.net" target=3D"_blank">ballbery@sinenomine.net</a></div><=
+div>unix, openafs, kerberos, infrastructure, xmonad =C2=A0 =C2=A0 =C2=A0 =
+=C2=A0<a href=3D"http://sinenomine.net" target=3D"_blank">http://sinenomine=
+.net</a></div></div></div>
+</div></div>
+
+--f46d0438903b42fcdf051a4c8396--
+
+--===============6399108990683202000==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+Haskell-Cafe mailing list
+Haskell-Cafe@haskell.org
+http://mail.haskell.org/cgi-bin/mailman/listinfo/haskell-cafe
+
+--===============6399108990683202000==--

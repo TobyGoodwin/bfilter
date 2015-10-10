@@ -107,11 +107,14 @@ void maybe_submit(enum state old, enum state cur, struct line *t) {
     switch (old) {
         case bdy:
             submit = 1;
+            cook_qp(t);
             break;
 
         case bdy_soft_eol:
-            if (cur != bdy_soft_eol && cur != bdy)
+            if (cur != bdy_soft_eol && cur != bdy) {
                 submit = 1;
+                cook_qp(t);
+            }
             break;
 
         case bdy_b64:

@@ -1,3 +1,18 @@
+2015-10-10
+==========
+
+Added the -Dp flag, which makes ab-prob that much more useful. And now
+add -Dt too. (I really ought to refactor bayes.c some more.)
+
+I think I'll look at quoted-printable next. Should be easy. If we have a
+``bdy`` line (but *not* ``bdy_b64``), then call ``cookqp()``, which
+simply looks for ``=`` followed by 2 hex digits and replaces them
+inplace. Done, and almost no movement (ham rate is up from 91.4%)::
+
+    ham: 91.70% correct, spam: 85.20% correct
+    -rw-------. 1 toby toby 2162688 Oct 10 22:52 /tmp/tmp.bOvqJuymUR
+    46.74user 8.37system 0:54.62elapsed 100%CPU (7148maxresident)k
+
 2015-10-08
 ==========
 

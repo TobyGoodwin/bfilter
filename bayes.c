@@ -87,7 +87,7 @@ double bayes(skiplist tokens) {
     size_t nterms, n, nsig = SIGNIFICANT_TERMS;
     double a = 1., b = 1.;
 
-//token_list_dump(tokens);
+    if (flagD && strchr(flagD, 't')) token_list_dump(tokens);
     
     problist = skiplist_new(termprob_compare);
     db_get_pair("__emails__", &inspamtotal, &inrealtotal);
