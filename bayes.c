@@ -37,20 +37,6 @@ static void problist_dump(skiplist s) {
     }
 }
 
-static void token_list_dump(skiplist s) {
-    skiplist_iterator x;
-
-    for (x = skiplist_itr_first(s); x; x =skiplist_itr_next(s, x)) {
-        char *k;
-        struct wordcount *pw;
-        size_t l;
-
-        k = (char *)skiplist_itr_key(s, x, &l);
-        pw = skiplist_itr_value(s, x);
-        printf("%.*s => (%d, %d)\n", (int)l, k, pw->nemail, pw->n);
-    }
-}
-
 static int termprob_compare(const void *k1, const size_t k1len,
         const void *k2, const size_t k2len) {
     struct termprob *t1, *t2;
@@ -87,8 +73,6 @@ double bayes(skiplist tokens) {
     size_t nterms, n, nsig = SIGNIFICANT_TERMS;
     double a = 1., b = 1.;
 
-    if (flagD && strchr(flagD, 't')) token_list_dump(tokens);
-    
     problist = skiplist_new(termprob_compare);
     db_get_pair("__emails__", &inspamtotal, &inrealtotal);
     if (inspamtotal == 0 || inrealtotal == 0)

@@ -120,6 +120,20 @@ next_arg:
     return run(mode);
 }
 
+static void token_list_dump(skiplist s) {
+    skiplist_iterator x;
+
+    for (x = skiplist_itr_first(s); x; x =skiplist_itr_next(s, x)) {
+        char *k;
+        struct wordcount *pw;
+        size_t l;
+
+        k = (char *)skiplist_itr_key(s, x, &l);
+        pw = skiplist_itr_value(s, x);
+        printf("%.*s => (%d, %d)\n", (int)l, k, pw->nemail, pw->n);
+    }
+}
+
 int run(enum mode mode) {
     int retval = 0;
     FILE *tempfile;
@@ -131,14 +145,14 @@ int run(enum mode mode) {
     switch (mode) {
         case isspam:
         case isreal:
-            max_tokens = MAX_TEST_TOKENS;
+            max_tokens = MAX_TRAIN_TOKENS;
             if (!train_read())
                 return 1;
             break;
 
         case test:
         case annotate:
-            max_tokens = MAX_TRAIN_TOKENS;
+            max_tokens = MAX_TEST_TOKENS;
             /* Read a single email. */
             errno = 0;
             if (!read_email(0, stdin, mode == annotate ? &tempfile : 0)) {
@@ -155,6 +169,8 @@ int run(enum mode mode) {
 
     if (!db_open())
         return 1;
+    
+    if (flagD && strchr(flagD, 't')) token_list_dump(token_list);
     
     switch (mode) {
         case isspam:

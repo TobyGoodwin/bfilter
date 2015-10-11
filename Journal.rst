@@ -14,7 +14,40 @@ inplace. Done, and almost no movement (ham rate is up from 91.4%)::
     46.74user 8.37system 0:54.62elapsed 100%CPU (7148maxresident)k
 
 In fact, 6 messages have (incorrectly) changed from ham to spam, and at
-least 10 the other way round.
+least 10 the other way round. Tweaked ``ab-diff`` (was ``ab-prob``) to
+look more closely at this. Aaaand, it turns out that the first ham
+message I'm looking at is in fact spam, or at least borderline. It's
+great that bfilter is finding these things, but also a bit annoying, as
+replacing them is tedious (and makes previous statistics slightly
+wrong).
+
+Looking further, we're definitely picking out better tokens now:
+nonsense terms like ``quoted-printable%3D`` and ``circular%economy%E2``
+are gone. Ham->spam #2 just seems to be unfortunate.
+
+In ham->spam #3, we have this, which I don't like::
+
+    +wish%to%receive => 0.990000, 0.030000 => 0.980459
+    +longer%wish%to => 0.990000, 0.030000 => 0.980459
+    +no%longer%wish => 0.990000, 0.030000 => 0.980459
+    +you%no%longer => 0.990000, 0.030000 => 0.980459
+    +receive%this => 0.990000, 0.030000 => 0.980459
+
+It just seems wrong that the single phrase "if you no longer wish to
+receive this ..." contributes so much to the spam score. And now here's
+something worrying. I trained that message, and (as expected) bfilter
+now reports that it's real *but* the probability on ``wish%to%receive``
+is still clamped at 0.99. How can that be?
+
+Aha! I had TEST and TRAIN the wrong way round! That should put the cat
+amongst the pigeons::
+
+    ham: 91.00% correct, spam: 88.20% correct
+    -rw-------. 1 toby toby 5283840 Oct 11 22:52 /tmp/tmp.g2qZkHjBeT
+    82.73user 8.53system 1:38.67elapsed 92%CPU (9188maxresident)k
+
+It's a fair bit slower, and slightly better at picking out spams. Um,
+let's rewind to before qp::
 
 2015-10-08
 ==========
