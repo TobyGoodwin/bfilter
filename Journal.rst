@@ -13,6 +13,9 @@ inplace. Done, and almost no movement (ham rate is up from 91.4%)::
     -rw-------. 1 toby toby 2162688 Oct 10 22:52 /tmp/tmp.bOvqJuymUR
     46.74user 8.37system 0:54.62elapsed 100%CPU (7148maxresident)k
 
+In fact, 6 messages have (incorrectly) changed from ham to spam, and at
+least 10 the other way round.
+
 2015-10-08
 ==========
 

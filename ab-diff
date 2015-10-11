@@ -1,0 +1,16 @@
+#! /bin/sh
+
+if [ $# -ne 2 ]; then
+    echo "Usage: $0 ( p | t ) MESSAGE" >&2
+    exit 1
+fi
+
+a=$(mktemp)
+b=$(mktemp)
+
+BFILTER_DB=/tmp/a-db /home/toby/hck/bfilter/bfilter-a -D$1 test < $2 > $a
+BFILTER_DB=/tmp/b-db /home/toby/hck/bfilter/bfilter-b -D$1 test < $2 > $b
+
+diff -u $a $b | less
+
+rm $a $b

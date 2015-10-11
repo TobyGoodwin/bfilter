@@ -1,6 +1,0 @@
-#! /bin/sh
-
-BFILTER_DB=/tmp/a-db /home/toby/hck/bfilter/bfilter-a -Dp test < $1 > /tmp/pa
-BFILTER_DB=/tmp/b-db /home/toby/hck/bfilter/bfilter-b -Dp test < $1 > /tmp/pb
-
-diff -u /tmp/p[ab] | less
