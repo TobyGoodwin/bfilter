@@ -49,6 +49,36 @@ amongst the pigeons::
 It's a fair bit slower, and slightly better at picking out spams. Um,
 let's rewind to before qp::
 
+    ham: 92.30% correct, spam: 88.80% correct
+    -rw-------. 1 toby toby 5283840 Oct 11 22:59 /tmp/tmp.UFUqa7FiXf
+    82.74user 7.94system 1:30.34elapsed 100%CPU (9260maxresident)k
+
+Changes mainly seem to be noise, although it has picked out another
+borderline message. I wonder if I'm just not training enough messages?
+Suppose we train 250 each messages (25% of the test corpus)::
+
+    ham: 98.40% correct, spam: 92.70% correct
+    -rw-------. 1 toby toby 20185088 Oct 11 23:17 /tmp/tmp.9DITAEF7Xs
+    495.74user 15.58system 8:32.36elapsed 99%CPU (23372maxresident)k
+
+The extreme slowdown there is a touch disappointing. Obviously it's good
+news that we're up to 98.4%, although that seems a bit low under the
+circumstances. Actually, no, it's pretty good: of the 17 ham messages
+marked as spam, 1 really is. About half are from the White House, not
+quite sure why these are coming up as spam. About a quarter are from
+Oxfam, purely due to their use of MessageFocusMailer (or some such). And
+there's a tiny sprinkling of random ones (one Haskell cafe message
+includes a long disclaimer with several spam key words).
+
+I dunno. I guess I should press on with better tokenization:
+
+* HTML entities;
+* reject base64 that doesn't look like text;
+* latin-1 => utf-8.
+
+See where that gets me to. Then it will be a case of trying, once again,
+to get my head round the probability stuff.
+
 2015-10-08
 ==========
 
