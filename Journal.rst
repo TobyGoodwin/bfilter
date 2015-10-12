@@ -1,3 +1,10 @@
+2015-10-12
+==========
+
+Binary detection implemented. Makes no difference to the spam score. It
+does remove ``ff`` from the words found in that Google email (but we
+still judge it to be spam).
+
 2015-10-10
 ==========
 

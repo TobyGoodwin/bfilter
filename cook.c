@@ -69,6 +69,18 @@ void cook_b64(struct line *t) {
     t->l = decode_base64(t->x, t->l);
 }
 
+/* heuristic check for text: is the first 1k of the string free from NULs? */
+_Bool is_text(struct line *t) {
+    char *p;
+    size_t l = 1024;
+    
+    if (l > t->l) l = t->l;
+    for (p = t->x; p < t->x + l; ++p)
+        if (*p == '\0')
+            return 0;
+    return 1;
+}
+
 void cook_header(struct line *t) {
     char *p;
 

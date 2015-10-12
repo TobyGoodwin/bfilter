@@ -119,8 +119,11 @@ void maybe_submit(enum state old, enum state cur, struct line *t) {
 
         case bdy_b64:
             if (cur != bdy_b64) {
-                submit = 1;
                 cook_b64(t);
+                if (is_text(t))
+                    submit = 1;
+                else
+                    t->l = 0;
             }
             break;
 
