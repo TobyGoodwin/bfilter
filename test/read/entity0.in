@@ -1,29 +1,7 @@
-Return-Path: <jnoaooyou@bsnl.in>
-Received: from bsnl.in [117.244.179.125] by mx.flare.email
-    with SMTP; 04 Oct 2015 03:20:38 -0000
-Return-Path: jnoaooyou@bsnl.in
-From: Mrs. Helen-elizabeth Gutoski <jnoaooyou@bsnl.in>
-To: <info@paccrat.org>
-Subject: Gorgeous ladies don't notice you?
-Date: Sun, 4 Oct 2015 08:50:38 +0530
-MIME-Version: 1.0
-Content-Type: text/html; charset="Windows-1252"
-Content-Transfer-Encoding: quoted-printable
-Message-ID: <1443928838.85382.lithium.flare.email@hydrogen.mpv6.com>
+Dull: header
 
-<div><font size=3D"4"  face=3D"Tahoma">&#69;xc&#117;s&#864;e =
-&#109;&#832;&#101;  p&#117;&#115;&#115;y f#c&#1467;k&#101;&#114; =
-:{}<br/>&#105; ne&#101;d a &#104;o&#116; s&#116;u&#817;&#100; to =
-f&#810;&#126;&#99;&#776;&#107; &#109;&#101; so &#104;@&#114;&#100; i =
-ca&#1624;&#110;&#39;t wal&#107; !&#33; &#105;'m &#50;9&#47;&#102; =
-wi&#116;h &#104;&#117;ge t&#772;%&#116;&#115;. &#108;e&#116;'s =
-&#109;a&#779;k&#834;&#101;&#111;&#795;u&#1627;&#116;..<br/>My =
-&#115;&#99;&#114;e&#101;nn&#97;me is =
-<b>&#72;&#101;&#1614;&#108;&#101;&#110;&#45;eliza&#98;&#1440;&#101;th&#57=
-;3</b> :{}<br/>My &#112;&#114;&#769;of&#105;le &#105;&#1612;s =
-h&#101;&#870;&#114;&#1621;&#101;&#837;: <a =
-href=3D"&#104;ttp&#58;&#47;/H&#101;len-&#101;&#108;iza&#98;et&#104;&#103;=
-i&#99;.N&#101;wAffair&#82;e&#113;ues&#116;&#46;ru">h&#116;&#116;p&#58;&#4=
-7;/&#72;&#101;&#108;en-el&#105;&#122;a&#98;e&#116;&#104;gic.&#78;ew&#65;&=
-#102;fai&#114;&#82;e&#113;u&#101;st.r&#117;</a><br/> =
-&#87;&#101;lcom&#101;&#1626;&#33;</font></div>
+here is a &#100;ecimal entity
+and some &#x6A;azzy &#x68;ex e&#x6e;tities
+but this &#is not an entity
+nor is &#123 this &#xabc nor this &#1234567; nor this &#abc;
+and this &#x110000; would be, but is 1 too big to be a unicode char

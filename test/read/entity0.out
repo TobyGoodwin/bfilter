@@ -1,0 +1,5 @@
+{here is a decimal entity}
+{and some jazzy hex entities}
+{but this &#is not an entity}
+{nor is &#123 this &#xabc nor this &#1234567; nor this &#abc;}
+{and this &#x110000; would be, but is 1 too big to be a unicode char}

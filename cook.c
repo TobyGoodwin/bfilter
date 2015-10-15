@@ -22,6 +22,7 @@
 
 */
 
+#include <ctype.h>
 #include <stdint.h>
 #include <string.h>
 
@@ -67,6 +68,70 @@ void cook_b64(struct line *t) {
     if (t->l % 4 != 0)
         return;
     t->l = decode_base64(t->x, t->l);
+}
+
+#define hex_digit_val(x) (x>'9' ? x + 10 - (x>'F' ? 'a' : 'A') : x - '0')
+static _Bool decode_entity(char *s, size_t len, int *result, int *size) {
+    _Bool hex = *s == 'x';
+    char *p;
+    int a = 0;
+
+    for (p = s + hex; (hex ? isxdigit(*p) : isdigit(*p))
+            && p < s + len && a < 0x110000; ++p)
+        a = a * (hex ? 16 : 10) + (hex ? hex_digit_val(*p) : *p - '0');
+    if (p == s + len || *p != ';' || a > 0x10ffff)
+        return 0;
+
+    *result = a;
+    *size = p - s;
+    return 1;
+}
+
+/* write the utf-8 encoding of c to s, and return its length. s is assumed to
+ * have enough space (assumption must be valid for the case of decoding decimal
+ * / hex html entities, since they encode at most 4 bits per byte with an
+ * overhead of at least 2 bytes, whereas utf-8 encodes 6 bits per byte with an
+ * overhead of 1 byte */
+int utf8_encode(char *s, int c) {
+    if (c < 0x80) {
+        s[0] = (char)c;
+        return 1;
+    }
+    if (c < 0x800) {
+        s[0] = 0xc0 + (c >> 6);
+        s[1] = 0x80 + (c & 0x3f);
+        return 2;
+    }
+    if (c < 0x1000) {
+        s[0] = 0xe0 + (c >> 12);
+        s[1] = 0x80 + (c >> 6 & 0x3f);
+        s[1] = 0x80 + (c & 0x3f);
+        return 3;
+    }
+    /* XXX and 3 more cases... when i have test cases for them */
+
+    assert(0);
+}
+
+static size_t decode_entities(char *buf, size_t len) {
+    char *rd, *wr;
+
+    for (rd = buf, wr = buf; rd < buf + len; ++rd, ++wr) {
+        if (rd + 4 < buf + len && rd[0] == '&' && rd[1] == '#') {
+            int c, sz;
+            if (decode_entity(rd + 2, len - (rd - buf), &c, &sz)) {
+                wr += utf8_encode(wr, c) - 1;
+                rd += sz + 2; /* 2 for "&#" */
+            }
+        } else
+            *wr = *rd;
+    }
+
+    return wr - buf;
+}
+
+void cook_entities(struct line *t) {
+    t->l = decode_entities(t->x, t->l);
 }
 
 /* heuristic check for text: is the first 1k of the string free from NULs? */

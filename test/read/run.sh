@@ -6,10 +6,7 @@ $command $target > $act
 if diff -q $act $exp; then
 	pass $target
 else
-	echo expected:
-	cat $exp
-	echo actual:
-	cat $act
+        diff -u $exp $act
 	fail $target
 fi
 rm $act
