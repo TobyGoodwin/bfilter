@@ -28,6 +28,7 @@
 
 #include "cook.h"
 #include "line.h"
+#include "utf8.h"
 
 /* unbase64 CHAR
  * Decode a single base64 CHAR. */
@@ -87,32 +88,10 @@ static _Bool decode_entity(char *s, size_t len, int *result, int *size) {
     return 1;
 }
 
-/* write the utf-8 encoding of c to s, and return its length. s is assumed to
- * have enough space (assumption must be valid for the case of decoding decimal
- * / hex html entities, since they encode at most 4 bits per byte with an
- * overhead of at least 2 bytes, whereas utf-8 encodes 6 bits per byte with an
- * overhead of 1 byte */
-int utf8_encode(char *s, int c) {
-    if (c < 0x80) {
-        s[0] = (char)c;
-        return 1;
-    }
-    if (c < 0x800) {
-        s[0] = 0xc0 + (c >> 6);
-        s[1] = 0x80 + (c & 0x3f);
-        return 2;
-    }
-    if (c < 0x1000) {
-        s[0] = 0xe0 + (c >> 12);
-        s[1] = 0x80 + (c >> 6 & 0x3f);
-        s[1] = 0x80 + (c & 0x3f);
-        return 3;
-    }
-    /* XXX and 3 more cases... when i have test cases for them */
-
-    assert(0);
-}
-
+/* decode numeric html entities into utf-8. the utf-8 representation must be
+ * shorter than the entity, since entities encode at most 4 bits per byte with
+ * an overhead of 3 or 4 bytes, whereas utf-8 encodes 6 bits per byte with
+ * an overhead of 1 byte */
 static size_t decode_entities(char *buf, size_t len) {
     char *rd, *wr;
 

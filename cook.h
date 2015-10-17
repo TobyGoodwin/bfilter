@@ -5,3 +5,5 @@ void cook_entities(struct line *);
 void cook_header(struct line *);
 void cook_qp(struct line *);
 _Bool is_text(struct line *);
+
+int _test_utf8_encode(char *, int);

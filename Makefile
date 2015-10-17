@@ -28,6 +28,9 @@ CFLAGS += -DBFILTER_VERSION=\"$(VERSION)\"
 bfilter: $(OBJS) depend
 	$(CC) $(LDFLAGS) -o $@ $(OBJS) $(LDLIBS)
 
+test/icook: test/cook/cook.o cook.o line.o
+	$(CC) $(LDFLAGS) -o $@ $^ $(LDLIBS)
+
 test/ipass: test/pass/pass.o cook.o fdump.o line.o read.o util.o
 	$(CC) $(LDFLAGS) -o $@ $^ $(LDLIBS)
 
@@ -47,6 +50,9 @@ test/uskiplist: test/unit/skiplist.o pool.o skiplist.o util.o
 	$(CC) $(LDFLAGS) -o $@ $^ $(LDLIBS)
 
 test/utoken: test/unit/token.o token.o util.o
+	$(CC) $(LDFLAGS) -o $@ $^ $(LDLIBS)
+
+test/uutf8: test/unit/utf8.o utf8.o
 	$(CC) $(LDFLAGS) -o $@ $^ $(LDLIBS)
 
 check:
