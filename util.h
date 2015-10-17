@@ -25,6 +25,7 @@
 #ifndef __UTIL_H_
 #define __UTIL_H_
 
+#include <stdint.h>
 #include <unistd.h>
 
 /* alloc_struct TAG P
@@ -53,7 +54,7 @@ void *xrealloc(void *w, size_t n);
 char *xstrdup(const char *s);
 void xfree(void *v);
 ssize_t xread(int fd, void *buf, size_t count);
-const char *memstr(const char *haystack, const size_t hlen,
-	const char *needle, const size_t nlen);
+const uint8_t *memstr(const uint8_t *haystack, const size_t hlen,
+	const uint8_t *needle, const size_t nlen);
 
 #endif /* __UTIL_H_ */

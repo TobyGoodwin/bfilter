@@ -78,21 +78,22 @@ ssize_t xread(int fd, void *buf, size_t count) {
  * Locate NEEDLE, of length NLEN, in HAYSTACK, of length HLEN, returning NULL
  * if it is not found. Uses the Boyer-Moore search algorithm. Cf.
  *  http://www-igm.univ-mlv.fr/~lecroq/string/node14.html */
-const char *memstr(const char *haystack, const size_t hlen,
-	     const char *needle, const size_t nlen) {
+const uint8_t *memstr(const uint8_t *haystack, const size_t hlen,
+	     const uint8_t *needle, const size_t nlen) {
     int skip[256], k;
 
-    if (nlen == 0) return (char*)haystack;
+    if (nlen == 0) return haystack;
 
     /* Set up the finite state machine we use. */
     for (k = 0; k < 256; ++k) skip[k] = nlen;
     for (k = 0; k < nlen - 1; ++k)
-        skip[(unsigned char)needle[k]] = nlen - k - 1;
+        skip[needle[k]] = nlen - k - 1;
 
     /* Do the search. */
-    for (k = nlen - 1; k < hlen; k += skip[(unsigned char)haystack[k]]) {
+    for (k = nlen - 1; k < hlen; k += skip[haystack[k]]) {
         int i, j;
-        for (j = nlen - 1, i = k; j >= 0 && haystack[i] == needle[j]; j--) i--;
+        for (j = nlen - 1, i = k; j >= 0 && haystack[i] == needle[j]; j--)
+            i--;
         if (j == -1) return haystack + i + 1;
     }
 

@@ -25,10 +25,11 @@
 #ifndef LINE_H
 #define LINE_H 1
 
+#include <stdint.h>
 #include <stdio.h>
 
 struct line {
-    char *x;  /* contents */
+    uint8_t *x;  /* contents */
     size_t l; /* length */
     size_t a; /* allocated */
 };

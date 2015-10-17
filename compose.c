@@ -1,6 +1,7 @@
 // only for debugging
 #include <stdio.h>
 
+#include <stdint.h>
 #include <string.h>
 #include <unistd.h>
 
@@ -46,7 +47,7 @@ void record_tokens(void) {
 
 /* submit_token TERM LENGTH
  * Submit an individual LENGTH-character TERM to the list of known tokens. */
-void compose(char *term, size_t len) {
+void compose(uint8_t *term, size_t len) {
     /* Update history. */
     memcpy(token_history[history_index].term, term, len);
     token_history[history_index].len = len;

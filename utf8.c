@@ -23,14 +23,15 @@
 */
 
 #include <assert.h>
+#include <stdint.h>
 
 #include "utf8.h"
 
 /* write the utf-8 encoding of c to s, and return its length. s is assumed to
  * have enough space */
-int utf8_encode(unsigned char *s, unsigned int c) {
+int utf8_encode(uint8_t *s, unsigned int c) {
     if (c < 0x80) {
-        s[0] = (unsigned char)c;
+        s[0] = c;
         return 1;
     }
     if (c < 0x800) {

@@ -1,3 +1,4 @@
+#include <stdint.h>
 #include <unistd.h>
 
-void tokenize(char *, size_t, const _Bool);
+void tokenize(uint8_t *, size_t, const _Bool);

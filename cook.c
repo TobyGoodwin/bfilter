@@ -45,14 +45,15 @@ static uint_least32_t unbase64(char c) {
  * returning the number of bytes of real data produced, and padding the
  * end of the original extent with whitespace. */
 /* XXX what is the point of the whitespace padding? */
-static size_t decode_base64(char *buf, size_t len) {
-    char *rd, *wr;
+static size_t decode_base64(uint8_t *buf, size_t len) {
+    uint8_t *rd, *wr;
     int nuls = 0;
 
     nuls = (buf[len - 1] == '=') + (buf[len - 2] == '=');
     for (rd = buf, wr = buf; rd + 3 < buf + len; rd += 4, wr += 3) {
         uint_least32_t X;
-        X = unbase64(rd[3]) | (unbase64(rd[2]) << 6) | (unbase64(rd[1]) << 12) | (unbase64(rd[0]) << 18);
+        X = unbase64(rd[3]) | (unbase64(rd[2]) << 6) |
+            (unbase64(rd[1]) << 12) | (unbase64(rd[0]) << 18);
         wr[2] = X & 0xff;
         wr[1] = (X >> 8) & 0xff;
         wr[0] = (X >> 16) & 0xff;
@@ -72,9 +73,9 @@ void cook_b64(struct line *t) {
 }
 
 #define hex_digit_val(x) (x>'9' ? x + 10 - (x>'F' ? 'a' : 'A') : x - '0')
-static _Bool decode_entity(char *s, size_t len, int *result, int *size) {
+static _Bool decode_entity(uint8_t *s, size_t len, int *result, int *size) {
     _Bool hex = *s == 'x';
-    char *p;
+    uint8_t *p;
     int a = 0;
 
     for (p = s + hex; (hex ? isxdigit(*p) : isdigit(*p))
@@ -92,8 +93,8 @@ static _Bool decode_entity(char *s, size_t len, int *result, int *size) {
  * shorter than the entity, since entities encode at most 4 bits per byte with
  * an overhead of 3 or 4 bytes, whereas utf-8 encodes 6 bits per byte with
  * an overhead of 1 byte */
-static size_t decode_entities(char *buf, size_t len) {
-    char *rd, *wr;
+static size_t decode_entities(uint8_t *buf, size_t len) {
+    uint8_t *rd, *wr;
 
     for (rd = buf, wr = buf; rd < buf + len; ++rd, ++wr) {
         if (rd + 4 < buf + len && rd[0] == '&' && rd[1] == '#') {
@@ -115,7 +116,7 @@ void cook_entities(struct line *t) {
 
 /* heuristic check for text: is the first 1k of the string free from NULs? */
 _Bool is_text(struct line *t) {
-    char *p;
+    uint8_t *p;
     size_t l = 1024;
     
     if (l > t->l) l = t->l;
@@ -126,7 +127,7 @@ _Bool is_text(struct line *t) {
 }
 
 void cook_header(struct line *t) {
-    char *p;
+    uint8_t *p;
 
     /* move past field name */
     if ((p = memchr(t->x, ':', t->l))) {
@@ -140,8 +141,8 @@ void cook_header(struct line *t) {
 #define qp_digit_val(x) (x>'9' ? x+10-'A' : x-'0')
 #define qp_digits_val(p) (16*qp_digit_val(*(p)) + qp_digit_val(*((p)+1)))
 
-static size_t decode_qp(char *buf, size_t len) {
-    char *rd, *wr;
+static size_t decode_qp(uint8_t *buf, size_t len) {
+    uint8_t *rd, *wr;
 
     for (rd = buf, wr = buf; rd < buf + len; ++wr) {
         if (rd[0] == '=' && rd + 2 < buf + len &&

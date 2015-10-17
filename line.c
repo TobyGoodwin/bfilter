@@ -46,7 +46,7 @@ _Bool line_empty(struct line *l) {
 
 /* Is this line composed only of base64 characters? */
 _Bool line_is_b64(struct line *l) {
-    const char *p;
+    const uint8_t *p;
     size_t len = l->l;
 
     /* must be at least 4 encoded characters + \n */
@@ -74,19 +74,19 @@ _Bool line_is_b64(struct line *l) {
 _Bool line_starts(struct line *l, const char *m) {
     size_t len = strlen(m);
 
-    return l->l >= len && strncmp(l->x, m, len) == 0;
+    return l->l >= len && strncmp((char *)l->x, m, len) == 0;
 }
 
 _Bool line_starts_ci(struct line *l, const char *m) {
     size_t len = strlen(m);
 
-    return l->l >= len && strncasecmp(l->x, m, len) == 0;
+    return l->l >= len && strncasecmp((char *)l->x, m, len) == 0;
 }
 
 _Bool line_ends(struct line *l, const char *m) {
     size_t len = strlen(m);
 
-    return l->l >= len && strncasecmp(l->x + l->l - len, m, len) == 0;
+    return l->l >= len && strncasecmp((char *)l->x + l->l - len, m, len) == 0;
 }
 
 _Bool line_hdr_cont(struct line *l) {

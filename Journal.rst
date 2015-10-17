@@ -1,3 +1,33 @@
+2015-10-17
+==========
+
+Numeric entity decoding implemented. *However*, I think I've run into a
+problem with ``char`` versus ``unsigned char``. Hmm. Yes, it does appear
+that plain ``char`` is signed. That means that all the stripping out of
+``unsigned`` that I did a long time ago was totally mistaken. Bother.
+Wonder if I can use ``<stdint.h>`` to make this less painful?
+Specifically ``uint8_t``. Let's try it.
+
+Hmm. Well, that compiles without warnings, but there are still some uses
+of ``char`` that should be fixed. Aha! So ``token.c`` doesn't include
+``token.h``. That's naughty. OK, I can believe the ``uint8_t`` changes
+have percolated through the code now.
+
+My current baseline, I think, is this::
+
+    ham: 91.00% correct, spam: 88.20% correct
+    -rw-------. 1 toby toby 5283840 Oct 11 22:52 /tmp/tmp.g2qZkHjBeT
+    82.73user 8.53system 1:38.67elapsed 92%CPU (9188maxresident)k
+
+And now we decode numeric entities::
+
+    ham: 91.50% correct, spam: 87.60% correct
+    -rw-------. 1 toby toby 5283840 Oct 17 22:06 /tmp/tmp.i7GrcOTORV
+    62.77user 8.02system 1:19.14elapsed 89%CPU (8144maxresident)k
+
+I have no idea why it's quicker. (Oh, well, maybe all the unsignedness
+is good.) Lets look at A/B changes.
+
 2015-10-12
 ==========
 
