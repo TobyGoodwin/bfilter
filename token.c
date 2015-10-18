@@ -16,8 +16,9 @@ void token_submit(uint8_t *t, size_t l) {
 
     /* XXX probably want to move this test higher, as there's no point
      * continuing to tokenize if we've reached the limit. */
-    if (ntokens_submitted > max_tokens)
+    if (ntokens_submitted > max_tokens) {
         return;
+    }
     if (l < 2)
         return;
     if (l > 16 && strncmp((const char *)t, "--", 2) == 0)

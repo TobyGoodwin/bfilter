@@ -1,3 +1,10 @@
+2015-10-18
+==========
+
+Right. I think the last decoding I need to implement is MIME headers.
+I'm not planning to handle arbitrary character sets, just utf-8 and
+iso-8859-1.
+
 2015-10-17
 ==========
 
@@ -74,6 +81,21 @@ think it's a whole new class of integration tests.
 rather ASCII orented, but teaching it about Unicode (and utf-8) would be
 too much. What about going the other way, and making only the obvious
 white space characters separate tokens?)
+
+Right, got there in the end. It turns out that ``max_tokens`` is really
+``max_terms``: the 3 tokens ``To view the`` turn into the 7 terms
+``To``, ``view``, ``view``, ``To%view``, ``the``, ``view%the``,
+``To%view%the``. Now that we decode HTML entities, we're generating more
+tokens (such as, in this example, ``✓`` and ``£55``). These turn into
+even more terms, which pushes some of the terms that were indicating
+this message as a spam past the 500 limit.
+
+If we increase ``MAX_TEST_TERMS`` to 1000, then, happy to say, that is
+an all round improvement (except for speed)::
+
+    ham: 95.20% correct, spam: 87.00% correct
+    -rw-------. 1 toby toby 5283840 Oct 18 12:02 /tmp/tmp.T98cxfCiwz
+    91.37user 8.37system 1:39.43elapsed 100%CPU (8228maxresident)k
 
 2015-10-12
 ==========

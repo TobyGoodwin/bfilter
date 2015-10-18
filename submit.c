@@ -25,6 +25,7 @@ void submit(char *t, size_t l) {
         w.n = 1;
         skiplist_insert_copy(token_list, t, l, &w, sizeof w);
         term_length += l;
+//fprintf(stderr, "submit #%d, %.*s\n", ntokens_submitted, (int)l, t);
         ++ntokens_submitted;
     }
 }

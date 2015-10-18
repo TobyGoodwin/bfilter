@@ -22,13 +22,16 @@
 
 */
 
+#include <assert.h>
 #include <ctype.h>
 #include <stdint.h>
 #include <string.h>
+#include <strings.h>
 
 #include "cook.h"
 #include "line.h"
 #include "utf8.h"
+#include "util.h"
 
 /* unbase64 CHAR
  * Decode a single base64 CHAR. */
@@ -126,17 +129,6 @@ _Bool is_text(struct line *t) {
     return 1;
 }
 
-void cook_header(struct line *t) {
-    uint8_t *p;
-
-    /* move past field name */
-    if ((p = memchr(t->x, ':', t->l))) {
-        ++p;
-        memmove(t->x, p, t->x + t->l - p);
-        t->l -= p - t->x;
-    }
-}
-
 #define is_qp_digit(x) ((x>='0' && x<='9') || (x>='A' && x<='F'))
 #define qp_digit_val(x) (x>'9' ? x+10-'A' : x-'0')
 #define qp_digits_val(p) (16*qp_digit_val(*(p)) + qp_digit_val(*((p)+1)))
@@ -153,6 +145,78 @@ static size_t decode_qp(uint8_t *buf, size_t len) {
             *wr = *rd++;
     }
     return wr - buf;
+}
+
+void cook_header(struct line *t) {
+    uint8_t *p, *q, *u, *v;
+    enum { other, utf8, iso8859_1 } cs = other;
+    enum { b64, qp } enc;
+    size_t l;
+
+    /* move past field name */
+    if ((p = memchr(t->x, ':', t->l))) {
+        ++p;
+        memmove(t->x, p, t->x + t->l - p);
+        t->l -= p - t->x;
+    }
+
+    for (p = t->x;
+            (p = (uint8_t *)memstr(p, t->l - (p-t->x), (uint8_t *)"=?", 2)) &&
+            (q = (uint8_t *)memstr(p, t->l - (p-t->x), (uint8_t *)"?=", 2));
+            p = u + l) {
+        u = p;
+        /* if we don't decode anything here, move on past =? */
+        l = 2;
+        p += 2;
+        if (p + 6 < t->x + t->l &&
+                strncasecmp((char *)p, "utf-8?", 6) == 0) {
+            p += 6;
+            cs = utf8;
+        } else if (p + 11 < t->x + t->l &&
+                strncasecmp((char *)p, "iso-8859-1?", 11) == 0) {
+            p += 11;
+            cs= iso8859_1;
+        }
+        if (cs == other) continue;
+        if (*p == 'q' || *p == 'Q') enc = qp;
+        else if (*p == 'b' || *p == 'B') enc = b64;
+        else continue;
+
+        if (*++p != '?') continue;
+        ++p;
+        v = q + 2;
+        assert(p <= q);
+
+fprintf(stderr, "enc %d, %.*s\n", enc, (int)(q - p), p);
+
+        /* we now have a piece of encoded data in [p, q) with the whole
+         * encoded-word running as [u, v). start by decoding in place */
+        switch (enc) {
+            uint8_t *x;
+
+            case qp:
+                for (x = p; x < q; ++x)
+                    if (*x == '_') *x = ' ';
+                l = decode_qp(p, q - p);
+                break;
+            case b64:
+                break;
+            default:
+                assert(0);
+                break;
+        }
+
+        /* move decoded text down */
+        memmove(u, p, l);
+
+        /* move remainder down */
+        memmove(u + l, v, t->x + t->l - v);
+
+        /* adjust length */
+        t->l -= (v - u) - l;
+
+fprintf(stderr, "new: %.*s\n", (int)t->l, t->x);
+    }
 }
 
 void cook_qp(struct line *t) {
