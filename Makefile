@@ -28,6 +28,7 @@ CFLAGS += -DBFILTER_VERSION=\"$(VERSION)\"
 bfilter: $(OBJS) depend
 	$(CC) $(LDFLAGS) -o $@ $(OBJS) $(LDLIBS)
 
+# integration tests
 test/icook: test/cook/cook.o cook.o line.o
 	$(CC) $(LDFLAGS) -o $@ $^ $(LDLIBS)
 
@@ -37,6 +38,10 @@ test/ipass: test/pass/pass.o cook.o fdump.o line.o read.o util.o
 test/iread: test/read/read.o cook.o line.o read.o utf8.o util.o
 	$(CC) $(LDFLAGS) -o $@ $^ $(LDLIBS)
 
+test/itoken: test/token/main.o cook.o line.o read.o token.o utf8.o util.o
+	$(CC) $(LDFLAGS) -o $@ $^ $(LDLIBS)
+
+# unit tests
 test/ubayes: test/unit/bayes.o bayes.o pool.o skiplist.o submit.o util.o
 	$(CC) $(LDFLAGS) -o $@ $^ $(LDLIBS)
 

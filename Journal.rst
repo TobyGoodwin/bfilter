@@ -28,6 +28,53 @@ And now we decode numeric entities::
 I have no idea why it's quicker. (Oh, well, maybe all the unsignedness
 is good.) Lets look at A/B changes.
 
+Hmm. So the tokenizer is still living in a Latin-1 world, and
+considering any byte >= 0xa0 to be a valid token character. Since we're
+still encoded as UTF-8 at this point, the only sane thing is to allow
+any byte >= 0x80, so all UTF-8 encoded characters may be included. This
+change actualy helps, ever so slightly::
+
+    ham: 92.00% correct, spam: 87.30% correct
+    -rw-------. 1 toby toby 5283840 Oct 17 22:24 /tmp/tmp.kaVGdZKOFE
+    62.47user 7.56system 1:09.62elapsed 100%CPU (8196maxresident)k
+
+Now, look at this, from the probabilities diff (not that these tokens
+have actually changed between A and B)::
+
+    MIME-Version%Content-Transfer-Encoding%quoted-printable => 0.990000, 0.010000 => 0.980051
+    utf-8%MIME-Version%Content-Transfer-Encoding => 0.010000, 0.020000 => 0.980204
+
+But first, why are they coming out in this order, when they're supposed
+to be ordered by the radius descending? Oh, ok, because they're within
+epsilon of each other. Bang epsilon down a bit. No, dammit, that makes
+things worse!?!
+
+And is it *really* the case that the first token has only appeared in a
+single training message? (That happened to be a spam.) And the radius
+stuff really ought to ensure that terms that have only appeared in a
+single message are not significant. Let's double p_present (this kind of
+makes sense, as we take ``p_spam * 2 - 1``, rather than ``p_spam -
+0.5``). Now, if I also drop the threshold to 0.8, I get this::
+
+    ham: 95.30% correct, spam: 67.60% correct
+    -rw-------. 1 toby toby 5283840 Oct 17 22:40 /tmp/tmp.7AuXGObRbo
+    63.38user 7.67system 1:10.64elapsed 100%CPU (8384maxresident)k
+
+But that's disappointing too. Doubling p_present doesn't seem to be an
+improvement. It occurs to me that perhaps I ought to consider the
+threshold fixed at 0.5 for the time being, and tweak this at the very
+end. Not that I think it matters a lot for now.
+
+Now, OK, I think I've broken something here. For some reason, an input
+that included ``#outlook`` would previously generate the token
+``outlook``, but it no longer seems to. I'm a bit baffled by this. I
+think it's a whole new class of integration tests.
+
+(I'm also wondering about the future of tokenizing. It's still currently
+rather ASCII orented, but teaching it about Unicode (and utf-8) would be
+too much. What about going the other way, and making only the obvious
+white space characters separate tokens?)
+
 2015-10-12
 ==========
 

@@ -63,7 +63,7 @@ script_from() {
 # try to find malloc bugs:
 export MALLOC_PERTURB_=1
 
-ts=${*:-pass/*.in read/*.in unit/*.c}
+ts=${*:-unit/*.c pass/*.in read/*.in token/*.in}
 
 for t in $ts; do
     target=$t

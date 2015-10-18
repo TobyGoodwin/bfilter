@@ -61,7 +61,7 @@ void tokenize(uint8_t *text, size_t len, const _Bool header) {
 
     /* 
      * Now we tokenise the email. Tokens are made up of any of the characters
-     * [0-9], [A-Z], [a-z], [\xa0-\xff], and ['.@/-] if they have a token
+     * [0-9], [A-Z], [a-z], [\x80-\xff], and ['.@/-] if they have a token
      * character on both sides.
      */
     for (p = text, tok_start = NULL, state = not_tok; p < text + len; ++p) {
@@ -71,7 +71,7 @@ void tokenize(uint8_t *text, size_t len, const _Bool header) {
                     || (*p >= 'A' && *p <= 'Z')
                     || (*p >= 'a' && *p <= 'z')
 		    || *p == '-'
-                    || *p >= 0xa0);
+                    || *p >= 0x80);
 
         bra = !header && *p == '<';
         ket = !header && *p == '>';
