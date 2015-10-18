@@ -2,8 +2,9 @@ bfilter
 *.o
 test/ipass
 test/iread
+test/itoken
 test/ubayes
 test/ucompose
 test/uline
 test/uskiplist
-test/utoken
+test/uutf8

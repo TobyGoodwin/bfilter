@@ -25,6 +25,7 @@
 #include <assert.h>
 #include <ctype.h>
 #include <stdint.h>
+#include <stdlib.h>
 #include <string.h>
 #include <strings.h>
 
@@ -187,8 +188,6 @@ void cook_header(struct line *t) {
         v = q + 2;
         assert(p <= q);
 
-fprintf(stderr, "enc %d, %.*s\n", enc, (int)(q - p), p);
-
         /* we now have a piece of encoded data in [p, q) with the whole
          * encoded-word running as [u, v). start by decoding in place */
         switch (enc) {
@@ -200,22 +199,49 @@ fprintf(stderr, "enc %d, %.*s\n", enc, (int)(q - p), p);
                 l = decode_qp(p, q - p);
                 break;
             case b64:
+                l = decode_base64(p, q - p);
                 break;
+        }
+
+        switch (cs) {
+            case utf8: /* simples! */
+                /* move decoded text down */
+                memmove(u, p, l);
+                /* move remainder down */
+                memmove(u + l, v, t->x + t->l - v);
+                /* adjust length */
+                t->l -= (v - u) - l;
+                break;
+
+            case iso8859_1: /* yeuch! */
+                {
+                    struct line n;
+                    uint8_t *x;
+
+                    n.a = 2 * t->l;
+                    n.x = xmalloc(n.a);
+                    /* initial segment */
+                    n.l = u - t->x;
+                    u = n.x + n.l;
+                    memcpy(n.x, t->x, n.l);
+                    /* encode iso-8859-1 to utf-8 */
+                    for (x = p; x < p + l; ++x)
+                        n.l += utf8_encode(n.x + n.l, *x);
+                    /* trailing segment */
+                    memcpy(n.x + n.l, v, t->x + t->l - v);
+                    n.l += t->x + t->l - v;
+                    /* switch */
+                    free(t->x);
+                    t->x = n.x;
+                    t->l = n.l;
+                    t->a = n.a;
+                    break;
+                }
+
             default:
                 assert(0);
                 break;
         }
-
-        /* move decoded text down */
-        memmove(u, p, l);
-
-        /* move remainder down */
-        memmove(u + l, v, t->x + t->l - v);
-
-        /* adjust length */
-        t->l -= (v - u) - l;
-
-fprintf(stderr, "new: %.*s\n", (int)t->l, t->x);
     }
 }
 

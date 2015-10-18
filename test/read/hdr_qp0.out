@@ -1,0 +1,7 @@
+{ yes Just £5! this is valid}
+{ no =?utf-8?q?Just_=A35!? not this}
+{ nope =?utf-9?q?Just_=A35!?= nor this}
+{ nada =?utf-8?z?Just_=A35!?= here either}
+{ empty }
+{ two separate pieces of qp}
+{this is the body}
