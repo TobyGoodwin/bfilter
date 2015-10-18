@@ -9,7 +9,7 @@
  * training... */
 #define MAX_TRAIN_TOKENS 5000
 /* ...and when testing. */
-#define MAX_TEST_TOKENS 1000
+#define MAX_TEST_TOKENS 500
 unsigned int max_tokens;
 
 /* MAX_TERM_LEN

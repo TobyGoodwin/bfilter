@@ -7,4 +7,5 @@ test/ubayes
 test/ucompose
 test/uline
 test/uskiplist
+test/utoken
 test/uutf8

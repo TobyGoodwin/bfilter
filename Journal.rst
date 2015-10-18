@@ -3,7 +3,11 @@
 
 Right. I think the last decoding I need to implement is MIME headers.
 I'm not planning to handle arbitrary character sets, just utf-8 and
-iso-8859-1.
+iso-8859-1. The latter is the only case we've had so far where a coding
+produces a longer output than input, and is pretty horrid.
+
+Also, we have to identify all the elements of ``=?...?...?...?=``,
+because otherwise we go wrong if the qp data starts with ``=``.
 
 2015-10-17
 ==========

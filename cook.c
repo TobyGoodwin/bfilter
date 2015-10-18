@@ -149,7 +149,7 @@ static size_t decode_qp(uint8_t *buf, size_t len) {
 }
 
 void cook_header(struct line *t) {
-    uint8_t *p, *q, *u, *v;
+    uint8_t *p, *q, *r, *s, *u, *v;
     enum { other, utf8, iso8859_1 } cs = other;
     enum { b64, qp } enc;
     size_t l;
@@ -163,7 +163,9 @@ void cook_header(struct line *t) {
 
     for (p = t->x;
             (p = (uint8_t *)memstr(p, t->l - (p-t->x), (uint8_t *)"=?", 2)) &&
-            (q = (uint8_t *)memstr(p, t->l - (p-t->x), (uint8_t *)"?=", 2));
+            (q = (uint8_t *)memstr(p+2, t->l - (p-t->x), (uint8_t *)"?", 1)) &&
+            (r = (uint8_t *)memstr(q+1, t->l - (p-t->x), (uint8_t *)"?", 1)) &&
+            (s = (uint8_t *)memstr(r+1, t->l - (p-t->x), (uint8_t *)"?=", 2));
             p = u + l) {
         u = p;
         /* if we don't decode anything here, move on past =? */
@@ -185,21 +187,21 @@ void cook_header(struct line *t) {
 
         if (*++p != '?') continue;
         ++p;
-        v = q + 2;
-        assert(p <= q);
+        v = s + 2;
+        assert(p <= s);
 
-        /* we now have a piece of encoded data in [p, q) with the whole
+        /* we now have a piece of encoded data in [p, s) with the whole
          * encoded-word running as [u, v). start by decoding in place */
         switch (enc) {
             uint8_t *x;
 
             case qp:
-                for (x = p; x < q; ++x)
+                for (x = p; x < s; ++x)
                     if (*x == '_') *x = ' ';
-                l = decode_qp(p, q - p);
+                l = decode_qp(p, s - p);
                 break;
             case b64:
-                l = decode_base64(p, q - p);
+                l = decode_base64(p, s - p);
                 break;
         }
 
