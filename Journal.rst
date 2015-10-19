@@ -1,3 +1,73 @@
+2015-10-19
+==========
+
+I was thinking about the idea of recoding text. It goes like this.
+1. Examine the text and decide if it is utf-8 encoded or not (this can
+   be done with considerable confidence).
+2. If not, then encode each 8-bit character to utf-8; effectively this
+   assumes the encoding is iso-8859-1.
+
+Suppose we don't do this? Then somebody such as myself, who sees a lot
+of utf-8, some latin-1, and almost no other encodings, will suffer
+slightly because a trigger word will have two possible encodings. So
+recoding will help me, a bit, as it will bring together such words.
+
+But for another user, let's say one who sees a mixture of utf-8 and
+latin-5, recoding fails to bring together the same word encoded both
+ways. On the other hand, it doesn't actually make things any *worse* -
+there are still two possible encodings for each word, plain ol' utf-8,
+and this new, bizarre thing. The bizarre thing wouldn't be at all
+readable by humans, but it will still end up with the same set of bits
+for the same word, which is all we care about.
+
+So, I suppose from the above we should recode. But to be honest I'm a
+bit bored of bit twiddling at the moment, and I'm sceptical it will make
+much difference.
+
+Back to A/B tests. As usual, some messages we earlier identified as spam
+we now claim are ham. The first one on this list, there's *one single*
+change in the 23 significant terms: we have added ``language%in`` with a
+probability of 0.01. (Yes, this term does appear in the 2047-encoded
+subject line.) And because we have a fine balance of 0.99 and 0.01
+terms, this one change completely reverses the decision on this
+message.)
+
+Not much other change, actually. Anyway, I think I'm now at the point
+where I'm interpreting the message as much as I want to, in other words
+``read.c`` is just about done. I may tweak the
+tokenization, composition etc.
+
+And, more than any of those, ``bayes.c``. I'm still very unhappy with
+the way this is working, particularly with regard to clamping. I've
+found a `useful link`_ that I will need to study.
+
+.. _useful link: http://nlp.stanford.edu/IR-book/html/htmledition/naive-bayes-text-classification-1.html
+
+Note that I invented "Laplace smoothing" independently. :-) I turned it
+off again, because it didn't seem to help, but let me try it again just
+now::
+
+    ham: 95.70% correct, spam: 68.80% correct
+    -rw-------. 1 toby toby 5283840 Oct 19 22:11 /tmp/tmp.caBNccYYW9
+    62.15user 7.39system 1:09.20elapsed 100%CPU (8296maxresident)k
+
+Now, that's a fair bit better at hams... much worse at spams! But is
+that because the threshold is too high? (Are we actually generating some
+sane probabilities?) Now I have the A/B test to be able to tell easily.
+
+No, it's not as simple as that. We still get polarized probabilities.
+But the selection of significant terms is coming up *completely*
+different. A few very common words, "of", "to", make it to the top
+because they occur so frequently, even though they are close to neutral.
+
+Maybe we just need to look at more terms? With SIGNIFICANT_TERMS 53::
+
+    ham: 92.80% correct, spam: 76.30% correct
+    -rw-------. 1 toby toby 5283840 Oct 19 22:32 /tmp/tmp.Xu2Bdtx3Kb
+    62.25user 7.30system 1:09.10elapsed 100%CPU (8240maxresident)k
+
+No. Time to go read that link carefully, I think.
+
 2015-10-18
 ==========
 
