@@ -9,6 +9,13 @@ produces a longer output than input, and is pretty horrid.
 Also, we have to identify all the elements of ``=?...?...?...?=``,
 because otherwise we go wrong if the qp data starts with ``=``.
 
+Well, we have the most modest of improvements::
+
+    ham: 92.00% correct, spam: 87.30% correct
+    -rw-------. 1 toby toby 5283840 Oct 18 22:36 /tmp/tmp.1KDXFUQWtK
+    64.26user 7.62system 1:11.50elapsed 100%CPU (8240maxresident)k
+
+
 2015-10-17
 ==========
 
