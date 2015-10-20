@@ -9,6 +9,26 @@ just a few tweaks to the actual filter that I was going to make anyway.
 
 Then, we can make flare zing!
 
+OK, so what's the new interface look like? I think we just replace
+``isreal`` and ``isspam`` with ``train CLASS``. For ``test``, we simply
+report the class. For ``annotate``, we will generate a header something
+like this::
+
+  X-Bfilter-Class: spam (confidence 95%)
+
+As far as the database goes, we'll need a key ``__classes__``. This will
+consist of a pair of integers, followed by the nul-terminated class
+name. The first integer is the count of documents in this class. The
+second is the code of the class.
+
+No. ``__classes__`` can just be a list of the class names. Then for each
+class there's a key ``__class_NAME__`` holding the code and the count.
+Then under each (hashed) term, we need to store a list of pairs: (code,
+count) for each class where we've seen the token. Hmm... that's a nasty
+lot of structure to put in the database.
+
+Still, let's start writing some test cases.
+
 2015-10-19
 ==========
 

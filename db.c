@@ -26,6 +26,7 @@ static const char rcsid[] = "$Id: db.c,v 1.7 2005/06/07 16:42:04 chris Exp $";
 #include <sys/fcntl.h>
 #include <sys/stat.h>
 
+#include "class.h"
 #include "util.h"
 
 static TDB_CONTEXT *filterdb;
@@ -147,6 +148,47 @@ int db_get_pair(const char *name, unsigned int *a, unsigned int *b) {
         
         return 1;
     }
+}
+
+#define CLASSES_KEY "__classes__"
+
+struct class *db_get_classes(void) {
+    TDB_DATA k, v;
+    uint8_t key[HASHLEN];
+    struct class *cs;
+    int csa = 0, csn = 0;
+
+    make_hash(CLASSES_KEY, sizeof(CLASSES_KEY) - 1, key);
+    k.dptr = key;
+    k.dsize = HASHLEN;
+
+    v = tdb_fetch(filterdb, k);
+    if (!v.dptr)
+        return 0;
+
+    while (0) {
+        ++csn;
+        if (csn > csa)
+            cs = xrealloc(cs, csa = csa * 2 + 1);
+    }
+    return 0;
+}
+
+void db_set_classes(struct class *cs) {
+    TDB_DATA k, v;
+    struct class *p;
+    uint8_t key[HASHLEN];
+
+    make_hash(CLASSES_KEY, sizeof(CLASSES_KEY) - 1, key);
+    k.dptr = key;
+    k.dsize = HASHLEN;
+
+    for (p = cs; p->code; ++p) {
+        fprintf(stderr, "%s\n", p->name);
+
+}
+
+
 }
 
 struct cleanparam {
