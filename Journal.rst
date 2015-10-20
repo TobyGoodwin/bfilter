@@ -1,3 +1,14 @@
+2015-10-20
+==========
+
+Oh! I've just had the most wonderful idea! Let's make bfilter a
+*generic* classifier. Not just *real* or *spam*, but any classification
+you care to train. This would require some changes to the database
+format (but I don't care about backwards compatibility), and otherwise
+just a few tweaks to the actual filter that I was going to make anyway.
+
+Then, we can make flare zing!
+
 2015-10-19
 ==========
 
