@@ -151,6 +151,38 @@ int db_get_pair(const char *name, unsigned int *a, unsigned int *b) {
     }
 }
 
+void db_set_intlist(const char *name, uint32_t *x, unsigned int n) {
+    TDB_DATA k, d;
+    uint32_t u;
+    unsigned char key[HASHLEN];
+
+    make_hash(name, strlen(name), key);
+    k.dptr = key;
+    k.dsize = HASHLEN;
+
+    d.dptr = (void *)x;
+    d.dsize = 4 * n;
+
+    tdb_store(filterdb, k, d, 0);
+}
+
+uint32_t *db_get_intlist(const char *name, unsigned int *n) {
+    TDB_DATA k, d;
+    uint32_t u;
+    unsigned char key[HASHLEN];
+
+    make_hash(name, strlen(name), key);
+    k.dptr = key;
+    k.dsize = HASHLEN;
+
+    d = tdb_fetch(filterdb, k);
+    if (!d.dptr || d.dsize % 4 != 0)
+        return 0;
+    *n = d.dsize / 4;
+    return d.dptr;
+}
+
+
 #define CLASSES_KEY "__classes__"
 
 struct class *db_get_classes(void) {

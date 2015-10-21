@@ -5,6 +5,8 @@ test/iread
 test/itoken
 test/ubayes
 test/ucompose
+test/udb_class
+test/udb_intlist
 test/uline
 test/uskiplist
 test/utoken

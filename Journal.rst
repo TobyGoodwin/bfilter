@@ -1,3 +1,24 @@
+2015-10-21
+==========
+
+As predicted, it's a tedious lot of bit twiddling to get these more
+complicated data structures into the database, but I've done the
+trickier one.
+
+*Both* my earlier ideas are wrong. Under ``__classes__``, we store the
+names and codes. Then under every other key, we store a list of pairs:
+code, and count. There's a special key ``__emails__`` that holds the
+number of emails in each class, using the same list of pairs.
+
+To get actual probabilities, I also need somewhere to store the total
+number of terms (the vocabulary), and the total number of terms in each
+class. Hmm.
+
+In fact, let's not store a list of pairs, but simply a list of
+``uint32_t``\s.  That makes for very simple code (currently I'm not
+storing Oggie's timestamps either). It also means that we can use the
+same store and fetch routines for the vocabulary total.
+
 2015-10-20
 ==========
 

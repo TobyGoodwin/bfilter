@@ -51,6 +51,9 @@ test/ucompose: test/unit/compose.o compose.o
 test/udb_class: test/unit/db_class.o db.o line.o util.o
 	$(CC) $(LDFLAGS) -o $@ $^ $(LDLIBS)
 
+test/udb_intlist: test/unit/db_intlist.o db.o line.o util.o
+	$(CC) $(LDFLAGS) -o $@ $^ $(LDLIBS)
+
 test/uline: test/unit/line.o line.o util.o
 	$(CC) $(LDFLAGS) -o $@ $^ $(LDLIBS)
 
