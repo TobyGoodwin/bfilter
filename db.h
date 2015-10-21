@@ -31,6 +31,7 @@
 int db_open(void);
 void db_close(void);
 int db_class(const char *);
+struct class *db_get_classes(void);
 void db_set_classes(struct class *);
 void db_set_pair(const char *name, int a, int b);
 int db_get_pair(const char *name, int *a, int *b);

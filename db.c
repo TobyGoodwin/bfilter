@@ -27,6 +27,7 @@ static const char rcsid[] = "$Id: db.c,v 1.7 2005/06/07 16:42:04 chris Exp $";
 #include <sys/stat.h>
 
 #include "class.h"
+#include "line.h"
 #include "util.h"
 
 static TDB_CONTEXT *filterdb;
@@ -154,8 +155,8 @@ int db_get_pair(const char *name, unsigned int *a, unsigned int *b) {
 
 struct class *db_get_classes(void) {
     TDB_DATA k, v;
-    uint8_t key[HASHLEN];
-    struct class *cs;
+    uint8_t key[HASHLEN], *p;
+    struct class *cs = 0;
     int csa = 0, csn = 0;
 
     make_hash(CLASSES_KEY, sizeof(CLASSES_KEY) - 1, key);
@@ -166,17 +167,34 @@ struct class *db_get_classes(void) {
     if (!v.dptr)
         return 0;
 
-    while (0) {
-        ++csn;
-        if (csn > csa)
-            cs = xrealloc(cs, csa = csa * 2 + 1);
+    /* note that the cs array we build contains pointers into the data v
+     * returned from the database; tdb specifies that the caller is responsible
+     * for freeing this data, so obviously in this case we don't */
+    for (p = v.dptr; p < v.dptr + v.dsize; ++csn) {
+        uint32_t nc;
+        if (csn == csa)
+            cs = xrealloc(cs, (csa = csa * 2 + 1) * sizeof *cs);
+        cs[csn].name = p;
+        while (*p++)
+            ;
+        memcpy(&nc, p, 4);
+        p += 4;
+        cs[csn].code = ntohl(nc);
     }
-    return 0;
+
+    /* add a sentinel */
+    if (csn == csa)
+        cs = xrealloc(cs, (csa = csa * 2 + 1) * sizeof *cs);
+    cs[csn].name = 0;
+    cs[csn].code = 0;
+
+    return cs;
 }
 
 void db_set_classes(struct class *cs) {
     TDB_DATA k, v;
     struct class *p;
+    struct line csl = { 0 };
     uint8_t key[HASHLEN];
 
     make_hash(CLASSES_KEY, sizeof(CLASSES_KEY) - 1, key);
@@ -184,11 +202,19 @@ void db_set_classes(struct class *cs) {
     k.dsize = HASHLEN;
 
     for (p = cs; p->code; ++p) {
-        fprintf(stderr, "%s\n", p->name);
+        struct line c = { 0 };
+        uint32_t nc;
 
-}
-
-
+        c.x = p->name;
+        c.l = strlen((char *)p->name) + 1; /* including \0 */
+        line_cat(&csl, &c);
+        nc = htonl(p->code);
+        c.x = (uint8_t *)&nc;
+        c.l = 4;
+        line_cat(&csl, &c);
+    }
+    v.dptr = csl.x; v.dsize = csl.l;
+    tdb_store(filterdb, k, v, 0); /* XXX return value? */
 }
 
 struct cleanparam {
