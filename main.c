@@ -80,7 +80,7 @@ unsigned int max_tokens;
  *          stats       Print some statistics about the database.
  */
 int main(int argc, char *argv[]) {
-    enum mode mode;
+    enum mode mode = error;
     int arg = 1;
 
     while (argv[arg] && *argv[arg] == '-') {
@@ -97,24 +97,34 @@ next_arg:
         ++arg;
     }
 
-    if (argc - arg != 1) {
-        usage(stderr);
-        return 1;
-    } else if (strcmp(argv[arg], "isspam") == 0)
-        mode = isspam;
-    else if (strcmp(argv[arg], "isreal") == 0)
-        mode = isreal;
-    else if (strcmp(argv[arg], "test") == 0)
-        mode = test;
-    else if (strcmp(argv[arg], "annotate") == 0)
-        mode = annotate;
-    else if (strcmp(argv[arg], "cleandb") == 0)
-        mode = cleandb;
-    else if (strcmp(argv[arg], "stats") == 0)
-        mode = stats;
-    else {
-        usage(stderr);
-        return 1;
+    switch (argc - arg) {
+        case 1:
+            if (strcmp(argv[arg], "isspam") == 0) {
+                mode = train;
+                tclass = "spam"; tclass_c = 1;
+            } else if (strcmp(argv[arg], "isreal") == 0) {
+                mode = train;
+                tclass = "real"; tclass_c = 2;
+            } else if (strcmp(argv[arg], "test") == 0)
+                mode = test;
+            else if (strcmp(argv[arg], "annotate") == 0)
+                mode = annotate;
+            else if (strcmp(argv[arg], "cleandb") == 0)
+                mode = cleandb;
+            else if (strcmp(argv[arg], "stats") == 0)
+                mode = stats;
+            break;
+
+        case 2:
+            if (strcmp(argv[arg], "train") == 0) {
+                mode = train;
+                tclass = argv[arg + 1];
+            }
+            break;
+
+        default:
+            mode = error;
+            break;
     }
 
     return run(mode);
@@ -125,12 +135,12 @@ static void token_list_dump(skiplist s) {
 
     for (x = skiplist_itr_first(s); x; x =skiplist_itr_next(s, x)) {
         char *k;
-        struct wordcount *pw;
+        int n;
         size_t l;
 
         k = (char *)skiplist_itr_key(s, x, &l);
-        pw = skiplist_itr_value(s, x);
-        printf("%.*s => (%d, %d)\n", (int)l, k, pw->nemail, pw->n);
+        n = skiplist_itr_value(s, x);
+        printf("%.*s => (%d, %d)\n", (int)l, k, n);
     }
 }
 
@@ -143,8 +153,12 @@ int run(enum mode mode) {
     token_list = skiplist_new(NULL);
 
     switch (mode) {
-        case isspam:
-        case isreal:
+        case error:
+            usage(stderr);
+            return 1;
+            break;
+
+        case train:
             max_tokens = MAX_TRAIN_TOKENS;
             if (!train_read())
                 return 1;
@@ -173,8 +187,9 @@ int run(enum mode mode) {
     if (flagD && strchr(flagD, 't')) token_list_dump(token_list);
     
     switch (mode) {
-        case isspam:
-        case isreal:
+        case train:
+            tclass_c = class_lookup(tclass);
+fprintf(stderr, "class %s => code %d\n", tclass, tclass_c);
             train_update(mode);
             break;
 

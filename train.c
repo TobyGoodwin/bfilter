@@ -29,6 +29,7 @@
 #include <unistd.h>
 
 #include "bfilter.h"
+#include "count.h"
 #include "db.h"
 #include "read.h"
 #include "skiplist.h"
@@ -62,10 +63,10 @@ void train_update(enum mode mode) {
     /* Update total number of emails and the data for each word. */
     int nspam, nreal;
     char *term = NULL;
-    size_t termlen = 1;
     skiplist_iterator si;
     unsigned int nterms, ntermswr, ntermsnew;
 
+    /*
     if (!db_get_pair("__emails__", &nspam, &nreal))
         nspam = nreal = 0;
     if (mode == isspam)
@@ -73,39 +74,38 @@ void train_update(enum mode mode) {
     else
         nreal += nemails;
     db_set_pair("__emails__", nspam, nreal);
+    */
 
     if (isatty(1))
         fprintf(stderr, "Writing: corpus now contains %8u spam / %8u nonspam emails\n", nspam, nreal);
 
     nterms = skiplist_size(token_list);
 
-    for (si = skiplist_itr_first(token_list), ntermswr = 0, ntermsnew = 0; si; si = skiplist_itr_next(token_list, si), ++ntermswr) {
-        char *k;
+    for (si = skiplist_itr_first(token_list), ntermswr = 0, ntermsnew = 0; si;
+            si = skiplist_itr_next(token_list, si), ++ntermswr) {
+        uint8_t *k;
+        int *p;
         size_t kl;
-        struct wordcount *pw;
 
         k = skiplist_itr_key(token_list, si, &kl);
+        p = skiplist_itr_value(token_list, si);
+        count_add(k, kl, tclass_c, *p);
 
-        /* NUL-terminate */
-        if (!term || kl + 1 > termlen)
-            term = xrealloc(term, termlen = 2 * (kl + 1));
-        term[kl] = 0;
-        memcpy(term, k, kl);
-
-        pw = skiplist_itr_value(token_list, si);
-//fprintf(stderr, "%d %s \n", pw->n, term);
-
+        /*
         if (!db_get_pair(term, &nspam, &nreal)) {
             nspam = nreal = 0;
             ++ntermsnew;
         }
+        */
 
+        /*
         if (mode == isspam)
             nspam += pw->n;
         else
             nreal += pw->n;
 
         db_set_pair(term, nspam, nreal);
+        */
 
         if (isatty(1) && (ntermswr % 500) == 0)
             fprintf(stderr, "Writing: %8u / %8u terms (%8u new)\r", ntermswr, nterms, ntermsnew);
