@@ -35,8 +35,8 @@ struct class *db_get_classes(void);
 void db_set_classes(struct class *);
 void db_set_pair(const char *name, int a, int b);
 int db_get_pair(const char *name, int *a, int *b);
-void db_set_intlist(const char *, uint32_t *, int);
-uint32_t *db_get_intlist(const char *, int *);
+void db_set_intlist(const uint8_t *, size_t, uint32_t *, int);
+uint32_t *db_get_intlist(const uint8_t *, size_t, int *);
 unsigned int db_clean(int ndays);
 void db_print_stats(void);
 

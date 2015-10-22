@@ -48,6 +48,9 @@ test/ubayes: test/unit/bayes.o bayes.o pool.o skiplist.o submit.o util.o
 test/ucompose: test/unit/compose.o compose.o
 	$(CC) $(LDFLAGS) -o $@ $^ $(LDLIBS)
 
+test/ucount: test/unit/count.o count.o db.o line.o util.o
+	$(CC) $(LDFLAGS) -o $@ $^ $(LDLIBS)
+
 test/udb_class: test/unit/db_class.o db.o line.o util.o
 	$(CC) $(LDFLAGS) -o $@ $^ $(LDLIBS)
 

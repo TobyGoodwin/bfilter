@@ -1,5 +1,6 @@
 /*
 depends test/udb_intlist
+export BFILTER_DB=$(mktemp)
 mcheck '1,1,2,4,3,9,4,16,' a b c d
 */
 
@@ -20,9 +21,9 @@ int main(int argc, char **argv) {
     }
 
     if (!db_open()) return 1;
-    db_set_intlist("foo", x, (argc - 1) * 2);
+    db_set_intlist((uint8_t *)"foo", 3, x, (argc - 1) * 2);
 
-    r = db_get_intlist("foo", &n);
+    r = db_get_intlist((uint8_t *)"foo", 3, &n);
     for (i = 0; i < n; ++i)
         printf("%d,", r[i]);
     printf("\n");

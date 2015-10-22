@@ -151,37 +151,36 @@ int db_get_pair(const char *name, unsigned int *a, unsigned int *b) {
     }
 }
 
-void db_set_intlist(const char *name, uint32_t *x, unsigned int n) {
-    TDB_DATA k, d;
-    uint32_t u;
-    unsigned char key[HASHLEN];
+/* store an integer list x of size n under key k of size k_sz */
+void db_set_intlist(uint8_t *k, size_t k_sz, uint32_t *x, unsigned int n) {
+    TDB_DATA key, d;
+    unsigned char h[HASHLEN];
 
-    make_hash(name, strlen(name), key);
-    k.dptr = key;
-    k.dsize = HASHLEN;
+    make_hash(k, k_sz, h);
+    key.dptr = h;
+    key.dsize = HASHLEN;
 
     d.dptr = (void *)x;
     d.dsize = 4 * n;
 
-    tdb_store(filterdb, k, d, 0);
+    tdb_store(filterdb, key, d, 0);
 }
 
-uint32_t *db_get_intlist(const char *name, unsigned int *n) {
-    TDB_DATA k, d;
-    uint32_t u;
-    unsigned char key[HASHLEN];
+/* retrieve an integer list of size n from key k of size k_sz */
+uint32_t *db_get_intlist(uint8_t *k, size_t k_sz, unsigned int *n) {
+    TDB_DATA key, d;
+    unsigned char h[HASHLEN];
 
-    make_hash(name, strlen(name), key);
-    k.dptr = key;
-    k.dsize = HASHLEN;
+    make_hash(k, k_sz, h);
+    key.dptr = h;
+    key.dsize = HASHLEN;
 
-    d = tdb_fetch(filterdb, k);
-    if (!d.dptr || d.dsize % 4 != 0)
+    d = tdb_fetch(filterdb, key);
+    if (!d.dptr || d.dsize % sizeof(uint32_t) != 0)
         return 0;
-    *n = d.dsize / 4;
-    return d.dptr;
+    *n = d.dsize / sizeof(uint32_t);
+    return (uint32_t *)d.dptr;
 }
-
 
 #define CLASSES_KEY "__classes__"
 
