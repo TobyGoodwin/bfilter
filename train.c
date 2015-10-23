@@ -59,25 +59,25 @@ _Bool train_read(void) {
     return 1;
 }
 
+#define EMAILS_KEY ((uint8_t *)"__emails__")
+
 void train_update(enum mode mode) {
     /* Update total number of emails and the data for each word. */
-    int nspam, nreal;
-    char *term = NULL;
+    uint32_t nemails, *pnemails;
+    int mustbe1;
     skiplist_iterator si;
     unsigned int nterms, ntermswr, ntermsnew;
 
-    /*
-    if (!db_get_pair("__emails__", &nspam, &nreal))
-        nspam = nreal = 0;
-    if (mode == isspam)
-        nspam += nemails;
+    pnemails = db_get_intlist(EMAILS_KEY, sizeof EMAILS_KEY - 1, &mustbe1);
+    if (pnemails && mustbe1 == 1)
+        nemails = *pnemails;
     else
-        nreal += nemails;
-    db_set_pair("__emails__", nspam, nreal);
-    */
+        nemails = 0;
+    ++nemails;
+    db_set_intlist(EMAILS_KEY, sizeof EMAILS_KEY - 1, &nemails, 1);
 
     if (isatty(1))
-        fprintf(stderr, "Writing: corpus now contains %8u spam / %8u nonspam emails\n", nspam, nreal);
+        fprintf(stderr, "Writing: corpus now contains %u emails\n", nemails);
 
     nterms = skiplist_size(token_list);
 
@@ -114,5 +114,4 @@ void train_update(enum mode mode) {
     if (isatty(1))
         fprintf(stderr, "Writing: %8u / %8u terms (%8u new)\n", ntermswr, nterms, ntermsnew);
 
-    free(term);
 }

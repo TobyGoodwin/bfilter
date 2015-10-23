@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <string.h>
 
 #include "class.h"
@@ -9,20 +10,22 @@ int class_lookup(char *c) {
     struct class *cp, *cs = db_get_classes();
 
     m = 0;
-    if (!cs) n = 2;
-    else for (n = 0, cp = cs; cp->code; ++n, ++cp) {
+    assert(cs); /* get_classes must abort if it fails to read */
+    for (n = 0, cp = cs; cp->code; ++n, ++cp) {
         if (strcmp(c, (char *)cp->name) == 0)
             return cp->code;
         if (cp->code > m) m = cp->code;
     }
 
-    cp = xmalloc(n * sizeof *cp);
-    if (cs) memcpy(cp, cs, (n - 1) * sizeof *cp);
-    cp[n - 2].name = (uint8_t *)c;
-    cp[n - 2].code = m + 1;
-    cp[n - 1].name = 0;
-    cp[n - 1].code = 0; /* sentinel */
+    cp = xmalloc((n + 2) * sizeof *cp);
+    memcpy(cp, cs, n * sizeof *cp);
+    ++m;
+    cp[n].name = (uint8_t *)c;
+    cp[n].code = m;
+    ++n;
+    cp[n].name = 0;
+    cp[n].code = 0; /* sentinel */
 
     db_set_classes(cp);
-    return m + 1;
+    return m;
 }

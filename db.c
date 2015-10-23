@@ -40,9 +40,9 @@ static size_t dbsize;
 
 /* make_hash TERM LENGTH HASH
  * Save in HASH the hash of the LENGTH-byte TERM. */
-static void make_hash(const char *term, const size_t len, unsigned char hash[8]) {
-    unsigned char md5[16];
-    MD5((const unsigned char *)term, len, md5);
+static void make_hash(const uint8_t *term, const size_t len, uint8_t hash[8]) {
+    uint8_t md5[16];
+    MD5(term, len, md5);
     memcpy(hash, md5, HASHLEN);
 }
 
@@ -182,7 +182,7 @@ uint32_t *db_get_intlist(uint8_t *k, size_t k_sz, unsigned int *n) {
     return (uint32_t *)d.dptr;
 }
 
-#define CLASSES_KEY "__classes__"
+#define CLASSES_KEY ((uint8_t *)"__classes__")
 
 struct class *db_get_classes(void) {
     TDB_DATA k, v;
@@ -195,24 +195,25 @@ struct class *db_get_classes(void) {
     k.dsize = HASHLEN;
 
     v = tdb_fetch(filterdb, k);
-    if (!v.dptr)
-        return 0;
-
-    /* note that the cs array we build contains pointers into the data v
-     * returned from the database; tdb specifies that the caller is responsible
-     * for freeing this data, so obviously in this case we don't */
-    for (p = v.dptr; p < v.dptr + v.dsize; ++csn) {
-        uint32_t nc;
-        if (csn == csa)
-            cs = xrealloc(cs, (csa = csa * 2 + 1) * sizeof *cs);
-        cs[csn].name = p;
-        while (*p++)
-            ;
-        memcpy(&nc, p, 4);
-        p += 4;
-        cs[csn].code = ntohl(nc);
-    }
-
+    if (v.dptr) {
+        /* note that the cs array we build here contains pointers into the data
+         * v returned from the database; tdb specifies that the caller is
+         * responsible for freeing this data, so obviously in this case we
+         * don't */
+        for (p = v.dptr; p < v.dptr + v.dsize; ++csn) {
+            uint32_t nc;
+            if (csn == csa)
+                cs = xrealloc(cs, (csa = csa * 2 + 1) * sizeof *cs);
+            cs[csn].name = p;
+            while (*p++)
+                ;
+            memcpy(&nc, p, sizeof nc);
+            p += sizeof nc;
+            cs[csn].code = ntohl(nc);
+        }
+    } else
+        csa = csn = 0;
+        
     /* add a sentinel */
     if (csn == csa)
         cs = xrealloc(cs, (csa = csa * 2 + 1) * sizeof *cs);
