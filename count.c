@@ -1,10 +1,36 @@
+/*
+
+    Copyright (c) 2015 Toby Goodwin.
+    toby@paccrat.org
+    https://github.com/TobyGoodwin/bfilter
+
+    This file is part of bfilter.
+
+    Bfilter is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Bfilter is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with bfilter.  If not, see <http://www.gnu.org/licenses/>.
+
+*/
+
 #include <stdint.h>
+#include <string.h>
 
 #include "count.h"
 #include "db.h"
+#include "util.h"
 
-/* add n to the count for token t of size t_sz and class (code) c */
-void count_add(uint8_t *t, size_t t_sz, int c, int n) {
+/* add n to the count for token t of size t_sz and class (code) c, return true
+ * if this was a new term */
+_Bool count_add(uint8_t *t, size_t t_sz, int c, int n) {
     _Bool gotit = 0;
     int i, n_is;
     uint32_t *is, *x;
@@ -15,7 +41,7 @@ void count_add(uint8_t *t, size_t t_sz, int c, int n) {
         x[0] = c;
         x[1] = n;
         db_set_intlist(t, t_sz, x, 2);
-        return;
+        return 1;
     }
     for (i = 0; !gotit && i < n_is; i += 2) {
         if (is[i] == c) {
@@ -34,4 +60,5 @@ void count_add(uint8_t *t, size_t t_sz, int c, int n) {
         n_is = new;
     }
     db_set_intlist(t, t_sz, x, n_is);
+    return 0;
 }

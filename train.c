@@ -89,7 +89,8 @@ void train_update(enum mode mode) {
 
         k = skiplist_itr_key(token_list, si, &kl);
         p = skiplist_itr_value(token_list, si);
-        count_add(k, kl, tclass_c, *p);
+        if (count_add(k, kl, tclass_c, *p))
+            ++ntermsnew;
 
         /*
         if (!db_get_pair(term, &nspam, &nreal)) {
@@ -108,10 +109,12 @@ void train_update(enum mode mode) {
         */
 
         if (isatty(1) && (ntermswr % 500) == 0)
-            fprintf(stderr, "Writing: %8u / %8u terms (%8u new)\r", ntermswr, nterms, ntermsnew);
+            fprintf(stderr, "Writing: %u / %u terms (%u new)\r",
+                    ntermswr, nterms, ntermsnew);
     }
 
     if (isatty(1))
-        fprintf(stderr, "Writing: %8u / %8u terms (%8u new)\n", ntermswr, nterms, ntermsnew);
+        fprintf(stderr, "Writing: %u / %u terms (%u new)\n",
+                ntermswr, nterms, ntermsnew);
 
 }
