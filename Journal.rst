@@ -9,6 +9,12 @@ removing a key doesn't do what you'd expect.
 However, it's just occurred to me that I can cheat. I can just increment
 the data that is stored in the skiplist.
 
+Yay! I'm now getting the right numbers.
+
+The message spam/1399905162.7935.hydrogen.mv6.co.uk in my corpus
+produces a lot of bogus tokens. It contains a base64 encoded PDF, which
+apparently isn't discarded by the istext test.
+
 2015-10-21
 ==========
 

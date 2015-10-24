@@ -118,11 +118,12 @@ fprintf(stderr, "term %.*s occurs %d times\n", t.tlen, t.term, occurs);
 
             cnts = db_get_intlist(t.term, t.tlen, &ncnts);
             Tct = 0;
-            for (i = 0; i < ncnts; i += 2)
-                if (cnts[i] == class->code) {
-                    Tct = cnts[i + 1];
-                    break;
-                }
+            if (cnts)
+                for (i = 0; i < ncnts; i += 2)
+                    if (cnts[i] == class->code) {
+                        Tct = cnts[i + 1];
+                        break;
+                    }
 fprintf(stderr, "Tct = %f, t_class = %d, t_total = %d\n", Tct, t_class, t_total);
 fprintf(stderr, "denominator = (%d + %d)\n", t_class, t_total);
 fprintf(stderr, "condprob[%s][%.*s] = %g\n", class->name, t.tlen, t.term, (Tct + 1.) / (t_class + t_total));
