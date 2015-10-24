@@ -431,4 +431,3 @@ skiplist_iterator skiplist_itr_prev(skiplist S, skiplist_iterator itr) {
     else
         return itr->less;
 }
-

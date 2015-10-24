@@ -1,5 +1,6 @@
 #include <assert.h>
 #include <errno.h>
+#include <float.h>
 #include <math.h>
 #include <stdio.h>
 #include <string.h>
@@ -66,6 +67,8 @@ double bayes(skiplist tokens) {
     uint32_t *epc, *tpc;
     int i, nc, nt, n_class, n_total, t_class, t_total;
     double score[20]; /* XXX */
+    double minlogprob = -DBL_MAX;
+    char *minclass;
    
     classes = db_get_classes();
     /* XXX */
@@ -107,8 +110,12 @@ double bayes(skiplist tokens) {
             struct termprob t = { 0 };
             uint32_t *cnts;
             int ncnts, Tct;
+            int occurs; /* number of occurences of this term in test text */
 
             t.term = (char*)skiplist_itr_key(tokens, si, &t.tlen);
+            occurs = *(int *)skiplist_itr_value(tokens, si);
+fprintf(stderr, "term %.*s occurs %d times\n", t.tlen, t.term, occurs);
+
             cnts = db_get_intlist(t.term, t.tlen, &ncnts);
             Tct = 0;
             for (i = 0; i < ncnts; i += 2)
@@ -119,13 +126,20 @@ double bayes(skiplist tokens) {
 fprintf(stderr, "Tct = %f, t_class = %d, t_total = %d\n", Tct, t_class, t_total);
 fprintf(stderr, "denominator = (%d + %d)\n", t_class, t_total);
 fprintf(stderr, "condprob[%s][%.*s] = %g\n", class->name, t.tlen, t.term, (Tct + 1.) / (t_class + t_total));
-            score[class->code] += log((Tct + 1.) / (t_class + t_total));
+            score[class->code] += occurs * log((Tct + 1.) / (t_class + t_total));
         }
 
     }
+
+
     for (class = classes; class->code; ++class) {
         fprintf(stderr, "score(%s): %f\n", class->name, score[class->code]);
+        if (score[class->code] > minlogprob) {
+            minlogprob = score[class->code];
+            minclass = class->name;
+        }
     }
+    fprintf(stderr, "judgement: %s\n", minclass);
 
     return 0.;
 }

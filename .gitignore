@@ -9,6 +9,7 @@ test/ucount
 test/udb_class
 test/udb_intlist
 test/uline
-test/uskiplist
+test/uskiplist0
+test/uskiplist1
 test/utoken
 test/uutf8

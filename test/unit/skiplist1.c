@@ -2,8 +2,12 @@
 depends test/uskiplist1
 export BFILTER_DB=$(mktemp)
 mcheck 'one=>1,three=>1,two=>1,' one two three
-mcheck 'five=>1,four=>1,one=>2,three=>1' three one four one five
+mcheck 'five=>1,four=>1,one=>2,three=>1,' three one four one five
 */
+
+/* mimics the code used to update counts, the main point of this is that
+ * "insert" doesn't replace an existing key: you have to explicitly remove it
+ * first. */
 
 #include <stdio.h>
 #include <string.h>
@@ -26,15 +30,14 @@ int main(int argc, char **argv) {
     skiplist_iterator x;
 
     for (i = 1; i < argc; ++i) {
-        int n, *pn;
+        int n = 1, *pn;
         char *k = argv[i];
 
         pn = skiplist_find(s, k, strlen(k) + 1);
-        if (pn) n = *pn;
-        else n = 0;
-
-        ++n;
-        skiplist_insert_copy(s, k, strlen(k) + 1, &n, sizeof n);
+        if (pn)
+            ++*pn;
+        else
+            skiplist_insert_copy(s, k, strlen(k) + 1, &n, sizeof n);
     }
 
     for (x = skiplist_itr_first(s); x; x =skiplist_itr_next(s, x))

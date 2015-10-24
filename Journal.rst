@@ -1,3 +1,14 @@
+2015-10-24
+==========
+
+Right, well I've more or less got the MNBC implemented. It's pretty
+grody, but I can clean it up once it works. At present, it doesn't work,
+and it's starting to look like I've found a skiplist bug: it looks like
+removing a key doesn't do what you'd expect.
+
+However, it's just occurred to me that I can cheat. I can just increment
+the data that is stored in the skiplist.
+
 2015-10-21
 ==========
 
