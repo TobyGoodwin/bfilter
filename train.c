@@ -59,27 +59,31 @@ _Bool train_read(void) {
     return 1;
 }
 
-#define EMAILS_KEY ((uint8_t *)"__emails__")
-
 void train_update(enum mode mode) {
     /* Update total number of emails and the data for each word. */
-    uint32_t nemails, *pnemails;
+    uint32_t Ndb, *pNdb;
+    uint32_t nvocab, *pnvocab;
     int mustbe1;
     skiplist_iterator si;
-    unsigned int nterms, ntermswr, ntermsnew;
+    unsigned int nterms, ntermswr, ntermsnew, ntermsall;
 
-    pnemails = db_get_intlist(EMAILS_KEY, sizeof EMAILS_KEY - 1, &mustbe1);
-    if (pnemails && mustbe1 == 1)
-        nemails = *pnemails;
+    pNdb = db_get_intlist((uint8_t *)EMAILS_KEY,
+            sizeof EMAILS_KEY - 1, &mustbe1);
+    if (pNdb && mustbe1 == 1)
+        Ndb = *pNdb;
     else
-        nemails = 0;
-    ++nemails;
-    db_set_intlist(EMAILS_KEY, sizeof EMAILS_KEY - 1, &nemails, 1);
+        Ndb = 0;
+    Ndb += nemails;
+    db_set_intlist((uint8_t *)EMAILS_KEY, sizeof EMAILS_KEY - 1, &Ndb, 1);
+
+    count_add((uint8_t *)EMAILS_CLASS_KEY, sizeof EMAILS_CLASS_KEY - 1,
+            tclass_c, nemails);
 
     if (isatty(1))
-        fprintf(stderr, "Writing: corpus now contains %u emails\n", nemails);
+        fprintf(stderr, "Writing: corpus now contains %u emails\n", Ndb);
 
-    nterms = skiplist_size(token_list);
+    nterms = skiplist_size(token_list); /* distinct terms */
+    ntermsall = 0; /* terms including dups */
 
     for (si = skiplist_itr_first(token_list), ntermswr = 0, ntermsnew = 0; si;
             si = skiplist_itr_next(token_list, si), ++ntermswr) {
@@ -89,24 +93,10 @@ void train_update(enum mode mode) {
 
         k = skiplist_itr_key(token_list, si, &kl);
         p = skiplist_itr_value(token_list, si);
+fprintf(stderr, "term %.*s: %d\n", kl, k, *p);
         if (count_add(k, kl, tclass_c, *p))
             ++ntermsnew;
-
-        /*
-        if (!db_get_pair(term, &nspam, &nreal)) {
-            nspam = nreal = 0;
-            ++ntermsnew;
-        }
-        */
-
-        /*
-        if (mode == isspam)
-            nspam += pw->n;
-        else
-            nreal += pw->n;
-
-        db_set_pair(term, nspam, nreal);
-        */
+        ntermsall += *p;
 
         if (isatty(1) && (ntermswr % 500) == 0)
             fprintf(stderr, "Writing: %u / %u terms (%u new)\r",
@@ -116,5 +106,17 @@ void train_update(enum mode mode) {
     if (isatty(1))
         fprintf(stderr, "Writing: %u / %u terms (%u new)\n",
                 ntermswr, nterms, ntermsnew);
+    
+    pnvocab = db_get_intlist((uint8_t *)VOCAB_KEY,
+            sizeof VOCAB_KEY - 1, &mustbe1);
+    if (pnvocab && mustbe1 == 1)
+        nvocab = *pnvocab;
+    else
+        nvocab = 0;
+    nvocab += ntermsnew;
+    db_set_intlist((uint8_t *)VOCAB_KEY, sizeof VOCAB_KEY - 1, &nvocab, 1);
+
+    count_add((uint8_t *)TERMS_CLASS_KEY, sizeof TERMS_CLASS_KEY - 1,
+            tclass_c, ntermsall);
 
 }

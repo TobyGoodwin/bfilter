@@ -156,9 +156,13 @@ void db_set_intlist(uint8_t *k, size_t k_sz, uint32_t *x, unsigned int n) {
     TDB_DATA key, d;
     unsigned char h[HASHLEN];
 
+#if 0
     make_hash(k, k_sz, h);
     key.dptr = h;
     key.dsize = HASHLEN;
+#endif
+    key.dptr = k;
+    key.dsize = k_sz;
 
     d.dptr = (void *)x;
     d.dsize = 4 * n;
@@ -171,9 +175,13 @@ uint32_t *db_get_intlist(uint8_t *k, size_t k_sz, unsigned int *n) {
     TDB_DATA key, d;
     unsigned char h[HASHLEN];
 
+#if 0
     make_hash(k, k_sz, h);
     key.dptr = h;
     key.dsize = HASHLEN;
+#endif
+    key.dptr = k;
+    key.dsize = k_sz;
 
     d = tdb_fetch(filterdb, key);
     if (!d.dptr || d.dsize % sizeof(uint32_t) != 0)

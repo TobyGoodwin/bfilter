@@ -61,6 +61,12 @@ test/udb_intlist: test/unit/db_intlist.o db.o line.o util.o
 test/uline: test/unit/line.o line.o util.o
 	$(CC) $(LDFLAGS) -o $@ $^ $(LDLIBS)
 
+test/uskiplist0: test/unit/skiplist0.o pool.o skiplist.o util.o
+	$(CC) $(LDFLAGS) -o $@ $^ $(LDLIBS)
+
+test/uskiplist1: test/unit/skiplist1.o pool.o skiplist.o util.o
+	$(CC) $(LDFLAGS) -o $@ $^ $(LDLIBS)
+
 test/uskiplist: test/unit/skiplist.o pool.o skiplist.o util.o
 	$(CC) $(LDFLAGS) -o $@ $^ $(LDLIBS)
 

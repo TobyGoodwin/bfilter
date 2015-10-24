@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <errno.h>
 #include <math.h>
 #include <stdio.h>
@@ -5,10 +6,9 @@
 
 #include "bayes.h"
 #include "bfilter.h"
+#include "count.h"
 #include "db.h"
 #include "settings.h"
-/* for struct wordcount: */
-#include "submit.h"
 
 struct termprob {
     double p_spam;
@@ -61,8 +61,77 @@ static int termprob_compare(const void *k1, const size_t k1len,
     return memcmp(t1->term, t2->term, t1->tlen);
 }
 
-/* Calculate an overall spam probability for a token list */
 double bayes(skiplist tokens) {
+    struct class *class, *classes;
+    uint32_t *epc, *tpc;
+    int i, nc, nt, n_class, n_total, t_class, t_total;
+    double score[20]; /* XXX */
+   
+    classes = db_get_classes();
+    /* XXX */
+    n_total = *db_get_intlist((uint8_t *)EMAILS_KEY, sizeof EMAILS_KEY - 1, &nc);
+    t_total = *db_get_intlist((uint8_t *)VOCAB_KEY, sizeof VOCAB_KEY - 1, &nc);
+    fprintf(stderr, "total terms: %d\n", t_total);
+    epc = db_get_intlist((uint8_t *)EMAILS_CLASS_KEY, sizeof EMAILS_CLASS_KEY - 1, &nc);
+
+    tpc = db_get_intlist((uint8_t *)TERMS_CLASS_KEY, sizeof TERMS_CLASS_KEY - 1, &nt);
+
+    for (class = classes; class->code; ++class) {
+        skiplist_iterator si;
+
+        fprintf(stderr, "class %s (%d)\n", class->name, class->code);
+        for (i = 0; i < nc; i += 2)
+            if (epc[i] == class->code) {
+                n_class = epc[i + 1];
+                break;
+            }
+        /* what happens if this class isn't in emails per class? redesign so it
+         * can't happen */
+        assert(i < nc);
+        fprintf(stderr, "emails in class %s: %d\n", class->name, n_class);
+        fprintf(stderr, "prior(%s): %f\n", class->name, (double)n_class / n_total);
+        score[class->code] = log((double)n_class / n_total);
+
+        for (i = 0; i < nt; i += 2) {
+            if (tpc[i] == class->code) {
+                t_class = tpc[i + 1];
+                break;
+            }
+        }
+        /* what happens if this class isn't in terms per class? redesign so it
+         * can't happen */
+        assert(i < nt);
+        fprintf(stderr, "terms in class %s: %d\n", class->name, t_class);
+        for (si = skiplist_itr_first(tokens); si;
+                si = skiplist_itr_next(tokens, si)) {
+            struct termprob t = { 0 };
+            uint32_t *cnts;
+            int ncnts, Tct;
+
+            t.term = (char*)skiplist_itr_key(tokens, si, &t.tlen);
+            cnts = db_get_intlist(t.term, t.tlen, &ncnts);
+            Tct = 0;
+            for (i = 0; i < ncnts; i += 2)
+                if (cnts[i] == class->code) {
+                    Tct = cnts[i + 1];
+                    break;
+                }
+fprintf(stderr, "Tct = %f, t_class = %d, t_total = %d\n", Tct, t_class, t_total);
+fprintf(stderr, "denominator = (%d + %d)\n", t_class, t_total);
+fprintf(stderr, "condprob[%s][%.*s] = %g\n", class->name, t.tlen, t.term, (Tct + 1.) / (t_class + t_total));
+            score[class->code] += log((Tct + 1.) / (t_class + t_total));
+        }
+
+    }
+    for (class = classes; class->code; ++class) {
+        fprintf(stderr, "score(%s): %f\n", class->name, score[class->code]);
+    }
+
+    return 0.;
+}
+
+
+double bayes_old(skiplist tokens) {
     int inspamtotal, inrealtotal;
     double nspamtotal, nrealtotal;
     /* XXX use a heap for this - although asymptotically it may be the same

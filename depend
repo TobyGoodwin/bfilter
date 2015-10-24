@@ -1,5 +1,5 @@
-bayes.o: bayes.c bayes.h skiplist.h bfilter.h db.h class.h settings.h \
- submit.h
+bayes.o: bayes.c bayes.h skiplist.h bfilter.h count.h db.h class.h \
+ settings.h
 class.o: class.c class.h db.h util.h
 compose.o: compose.c compose.h settings.h skiplist.h submit.h
 cook.o: cook.c cook.h line.h utf8.h util.h

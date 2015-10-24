@@ -1,6 +1,8 @@
 /*
-depends test/uskiplist
+depends test/uskiplist0
+export BFILTER_DB=$(mktemp)
 mcheck 'one=>1,three=>3,two=>2,' one 1 two 2 three 3
+mcheck 'one=>9,three=>8,two=>7,' one 9 two 7 three 8
 */
 
 #include <stdio.h>
