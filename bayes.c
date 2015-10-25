@@ -11,6 +11,8 @@
 #include "db.h"
 #include "settings.h"
 
+#define TRACE if (0)
+
 struct termprob {
     double p_spam;
     double p_present;
@@ -62,7 +64,7 @@ static int termprob_compare(const void *k1, const size_t k1len,
     return memcmp(t1->term, t2->term, t1->tlen);
 }
 
-double bayes(skiplist tokens) {
+char *bayes(skiplist tokens) {
     struct class *class, *classes;
     uint32_t *epc, *tpc;
     int i, nc, nt, n_class, n_total, t_class, t_total;
@@ -74,7 +76,7 @@ double bayes(skiplist tokens) {
     /* XXX */
     n_total = *db_get_intlist((uint8_t *)EMAILS_KEY, sizeof EMAILS_KEY - 1, &nc);
     t_total = *db_get_intlist((uint8_t *)VOCAB_KEY, sizeof VOCAB_KEY - 1, &nc);
-    fprintf(stderr, "total terms: %d\n", t_total);
+    TRACE fprintf(stderr, "total terms: %d\n", t_total);
     epc = db_get_intlist((uint8_t *)EMAILS_CLASS_KEY, sizeof EMAILS_CLASS_KEY - 1, &nc);
 
     tpc = db_get_intlist((uint8_t *)TERMS_CLASS_KEY, sizeof TERMS_CLASS_KEY - 1, &nt);
@@ -82,7 +84,7 @@ double bayes(skiplist tokens) {
     for (class = classes; class->code; ++class) {
         skiplist_iterator si;
 
-        fprintf(stderr, "class %s (%d)\n", class->name, class->code);
+        TRACE fprintf(stderr, "class %s (%d)\n", class->name, class->code);
         for (i = 0; i < nc; i += 2)
             if (epc[i] == class->code) {
                 n_class = epc[i + 1];
@@ -91,8 +93,8 @@ double bayes(skiplist tokens) {
         /* what happens if this class isn't in emails per class? redesign so it
          * can't happen */
         assert(i < nc);
-        fprintf(stderr, "emails in class %s: %d\n", class->name, n_class);
-        fprintf(stderr, "prior(%s): %f\n", class->name, (double)n_class / n_total);
+        TRACE fprintf(stderr, "emails in class %s: %d\n", class->name, n_class);
+        TRACE fprintf(stderr, "prior(%s): %f\n", class->name, (double)n_class / n_total);
         score[class->code] = log((double)n_class / n_total);
 
         for (i = 0; i < nt; i += 2) {
@@ -101,10 +103,12 @@ double bayes(skiplist tokens) {
                 break;
             }
         }
+        fprintf(stderr, "t_%s = %d, t_total = %d\n", class->name, t_class, t_total);
+        // t_class = t_total; /* just to see */
         /* what happens if this class isn't in terms per class? redesign so it
          * can't happen */
         assert(i < nt);
-        fprintf(stderr, "terms in class %s: %d\n", class->name, t_class);
+        TRACE fprintf(stderr, "terms in class %s: %d\n", class->name, t_class);
         for (si = skiplist_itr_first(tokens); si;
                 si = skiplist_itr_next(tokens, si)) {
             struct termprob t = { 0 };
@@ -114,19 +118,18 @@ double bayes(skiplist tokens) {
 
             t.term = (char*)skiplist_itr_key(tokens, si, &t.tlen);
             occurs = *(int *)skiplist_itr_value(tokens, si);
-fprintf(stderr, "term %.*s occurs %d times\n", t.tlen, t.term, occurs);
+TRACE fprintf(stderr, "term %.*s occurs %d times\n", t.tlen, t.term, occurs);
 
             cnts = db_get_intlist(t.term, t.tlen, &ncnts);
+            if (!cnts) continue; /* not in training vocabulary */
             Tct = 0;
-            if (cnts)
-                for (i = 0; i < ncnts; i += 2)
-                    if (cnts[i] == class->code) {
-                        Tct = cnts[i + 1];
-                        break;
-                    }
-fprintf(stderr, "Tct = %f, t_class = %d, t_total = %d\n", Tct, t_class, t_total);
-fprintf(stderr, "denominator = (%d + %d)\n", t_class, t_total);
-fprintf(stderr, "condprob[%s][%.*s] = %g\n", class->name, t.tlen, t.term, (Tct + 1.) / (t_class + t_total));
+            for (i = 0; i < ncnts; i += 2)
+                if (cnts[i] == class->code) {
+                    Tct = cnts[i + 1];
+                    break;
+                }
+            TRACE fprintf(stderr, "Tct = %f\n");
+            TRACE fprintf(stderr, "condprob[%s][%.*s] = %g\n", class->name, t.tlen, t.term, (Tct + 1.) / (t_class + t_total));
             score[class->code] += occurs * log((Tct + 1.) / (t_class + t_total));
         }
 
@@ -134,15 +137,14 @@ fprintf(stderr, "condprob[%s][%.*s] = %g\n", class->name, t.tlen, t.term, (Tct +
 
 
     for (class = classes; class->code; ++class) {
-        fprintf(stderr, "score(%s): %f\n", class->name, score[class->code]);
+        TRACE fprintf(stderr, "score(%s): %f\n", class->name, score[class->code]);
         if (score[class->code] > minlogprob) {
             minlogprob = score[class->code];
             minclass = class->name;
         }
     }
-    fprintf(stderr, "judgement: %s\n", minclass);
 
-    return 0.;
+    return minclass;
 }
 
 

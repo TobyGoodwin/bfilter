@@ -139,8 +139,8 @@ static void token_list_dump(skiplist s) {
         size_t l;
 
         k = (char *)skiplist_itr_key(s, x, &l);
-        n = skiplist_itr_value(s, x);
-        printf("%.*s => (%d, %d)\n", (int)l, k, n);
+        n = *(int *)skiplist_itr_value(s, x);
+        printf("%.*s => %d\n", (int)l, k, n);
     }
 }
 
@@ -189,25 +189,19 @@ int run(enum mode mode) {
     switch (mode) {
         case train:
             tclass_c = class_lookup(tclass);
-fprintf(stderr, "class %s => code %d\n", tclass, tclass_c);
             train_update(mode);
             break;
 
         case test:
-            printf("%f\n", bayes(token_list));
+            printf("%s\n", bayes(token_list));
             break;
 
         case annotate:
-            {
-                double score;
-                /* Headers of the email have already been written, and
-                 * remainder saved in tempfile. Compute p(spam), write
-                 * our header, then dump the rest of the email. */
-                score = bayes(token_list);
-                printf("X-Spam-Probability: %s (p=%f)\n",
-                        score > SPAM_THRESHOLD ? "YES" : "NO", score);
-                if (!fdump(tempfile)) retval = 1;
-            }
+            /* Headers of the email have already been written, and remainder
+             * saved in tempfile. Compute p(spam), write our header, then dump
+             * the rest of the email. */
+            printf("X-Bfilter-Class: %s\n", bayes(token_list));
+            if (!fdump(tempfile)) retval = 1;
             break;
 
         case cleandb:

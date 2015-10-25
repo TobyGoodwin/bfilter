@@ -16,9 +16,11 @@ void token_submit(uint8_t *t, size_t l) {
 
     /* XXX probably want to move this test higher, as there's no point
      * continuing to tokenize if we've reached the limit. */
+#if 0
     if (ntokens_submitted > max_tokens) {
         return;
     }
+#endif
     if (l < 2)
         return;
     if (l > 16 && strncmp((const char *)t, "--", 2) == 0)
@@ -26,7 +28,8 @@ void token_submit(uint8_t *t, size_t l) {
 
     /* Truncate long terms */
     if (l > MAX_TERM_LEN)
-        l = MAX_TERM_LEN;
+        return;
+        //l = MAX_TERM_LEN;
 
     /* Fold to lower case, check for letters. */
     for (i = 0; i < l; ++i) {
@@ -81,6 +84,7 @@ void tokenize(uint8_t *text, size_t len, const _Bool header) {
                || *p == '@'
                || *p == '\''
                || *p == '/'
+               || *p == '+'
                || (header && *p == '_'));
 
         switch (state) {

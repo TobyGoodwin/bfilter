@@ -93,7 +93,7 @@ void train_update(enum mode mode) {
 
         k = skiplist_itr_key(token_list, si, &kl);
         p = skiplist_itr_value(token_list, si);
-fprintf(stderr, "term %.*s: %d\n", kl, k, *p);
+if (0) fprintf(stderr, "term %.*s: %d\n", (int)kl, k, *p);
         if (count_add(k, kl, tclass_c, *p))
             ++ntermsnew;
         ntermsall += *p;

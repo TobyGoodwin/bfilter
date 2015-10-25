@@ -1,3 +1,68 @@
+2015-10-25
+==========
+
+OK, so currently I'm seeing a "ham bias" in my classifier. I can think
+of two possibilities. First, I have implemented the wrong algorithm (or
+implemented the right algorithm wrongly). Secondly, the data are somehow
+messing things up.
+
+For the first point, I need to find another description of the NB
+algorithm and compare with what I'm doing. For the second, I suspect
+that the problem I noticed yesterday with some binaries being
+"tokenized" may be significant. After all, the data suggest that spams
+are about 50% larger than spams, which seem improbable.
+
+Well now, the odd thing here is that I'm *not* seeing loadsa binary keys
+in the database (hashing is turned off at the moment). What I *am*
+seeing is lots of snippets of base64::
+
+    LjJQNbbvylmaiu
+    HFauLmrtygBWh/L3yAFF4coSw3NU2W0x
+    DNdfIARrFSeAoN5
+
+and it does appear that these are largely in spam messages. Easy enough
+to find a test case, and yes, hunks of b64 are failing to be decoded.
+
+I'll investigate that in a second, but there's a quick hack that should
+almost completely mitigate the damage caused by that problem. Just to
+recap where we are now (this is with HISTORY = 1, which I'm going to
+stick to for the time being)::
+
+    ham: 99.70% correct, spam: 51.00% correct
+    -rw-------. 1 toby toby 704512 Oct 25 15:40 /tmp/tmp.UVcwCupTHh
+    10.00user 5.37system 0:15.27elapsed 100%CPU (4572maxresident)k
+
+    t_spam = 34178, t_total = 11508
+    t_real = 22294, t_total = 11508
+
+Hmm, quick hack didn't help as much as I would have liked, although it
+did help::
+
+    ham: 99.50% correct, spam: 53.10% correct
+    -rw-------. 1 toby toby 704512 Oct 25 15:50 /tmp/tmp.WKBUK1PF4k
+    9.78user 5.30system 0:14.98elapsed 100%CPU (4592maxresident)k
+
+    t_spam = 33277, t_total = 10617
+    t_real = 22290, t_total = 10617
+
+I'd thought by adding ``+`` to token "dot" characters, lines of b64
+would turn into single tokens which would then be rejected because
+they're too long. But, no, the code *truncates* overlong terms, instead
+of rejecting them. If we do reject::
+
+    ham: 99.50% correct, spam: 54.10% correct
+    -rw-------. 1 toby toby 561152 Oct 25 15:57 /tmp/tmp.Xa6ORCKmaC
+    9.56user 5.20system 0:14.64elapsed 100%CPU (4588maxresident)k
+
+    t_spam = 32272, t_total = 9538
+    t_real = 22004, t_total = 9538
+
+So. Meh. Why are we not spotting these hunks of b64?
+
+
+
+
+
 2015-10-24
 ==========
 
@@ -9,11 +74,64 @@ removing a key doesn't do what you'd expect.
 However, it's just occurred to me that I can cheat. I can just increment
 the data that is stored in the skiplist.
 
-Yay! I'm now getting the right numbers.
+Yay! I'm now getting the right numbers for the worked example.
 
 The message spam/1399905162.7935.hydrogen.mv6.co.uk in my corpus
 produces a lot of bogus tokens. It contains a base64 encoded PDF, which
 apparently isn't discarded by the istext test.
+
+Anyway. Here are the very first results::
+
+    ham: 99.90% correct, spam: 36.10% correct
+    -rw-------. 1 toby toby 704512 Oct 24 22:20 /tmp/tmp.S9R5XLO90t
+    11.55user 5.49system 0:16.90elapsed 100%CPU (4484maxresident)k
+
+Obviously we're finding way way way too many hams, I don't know why.
+Also, it seems to be embarrassingly quick. I was worried that it would
+be too slow, but if it's actually doing as much work is it's supposed to
+it's unbelievably faster. Hmm.
+
+That was with HISTORY_LEN of 1. Let's put that back to 3 and see what
+happens::
+
+    ham: 99.90% correct, spam: 29.30% correct
+    -rw-------. 1 toby toby 5283840 Oct 24 22:45 /tmp/tmp.ePtFvOxvoj
+    80.20user 7.61system 1:27.81elapsed 100%CPU (8148maxresident)k
+
+OK, well, that's more reasonable for time.
+
+Now, I sort of see what's happening. For terms that aren't in the
+training vocabulary (the vast majority of course), we get::
+
+    condprob[spam][16n] = 6.09333e-06
+    condprob[real][16n] = 7.09829e-06
+
+Why's that? Oh, we shouldn't be counting these terms at all. OK. So that
+helps::
+
+    ham: 98.40% correct, spam: 64.00% correct
+    -rw-------. 1 toby toby 5685248 Oct 24 23:28 /tmp/tmp.o1y61wcK5Y
+    82.68user 7.77system 1:30.52elapsed 99%CPU (7932maxresident)k
+
+Hmm... why has the database changed size suddenly? Oh, well, no actually
+the surprising thing is that it seemed to be exactly the same size
+before. We're storing rather different data now. Meh.
+
+Anyway, I still don't understand why we seem to have a bias for hams. (I
+changed the order in which we train, and - as expected - that made no
+difference.) Is it something to do with termsperclass?
+
+Yes, I think so, inasmuch as if we equalize that, we get this::
+
+    ham: 91.50% correct, spam: 82.90% correct
+    -rw-------. 1 toby toby 5685248 Oct 24 23:39 /tmp/tmp.TxEaldLSgO
+    78.59user 7.67system 1:26.29elapsed 99%CPU (8120maxresident)k
+
+Which looks like the bias is gone. But surely the algorithm should work
+without that? Is it because we're not actually considering all the
+tokens? No, that doesn't help. Bother, this is the point where it
+becomes clear (yet again) that I don't really understand this
+probability stuff.
 
 2015-10-21
 ==========

@@ -18,15 +18,6 @@ fi
 
 export BFILTER_DB=$(mktemp)
 
-cd $corpus/ham
-nham=$(ls | wc -l)
-mham=$(echo $nham / $ntrain | bc)
-
-for m in $(ls | awk "NR % $mham == 0 { print }"); do
-    echo $m
-    $bf isreal < $m
-done
-
 cd $corpus/spam
 nspam=$(ls | wc -l)
 mspam=$(echo $nspam / $ntrain | bc)
@@ -37,23 +28,36 @@ for m in $(ls | awk "NR % $mspam == 0 { print }"); do
 done
 
 cd $corpus/ham
-out=$(mktemp)
-for m in $(ls); do
-    $bf annotate < $m 2>/dev/null
-done | grep '^X-Spam-Probability: ' > $out
-right=$(grep -c NO $out)
-wrong=$(grep -c YES $out)
-pham=$(echo "scale=2; $right * 100 / ($right + $wrong)" | bc)
-rm $out
+nham=$(ls | wc -l)
+mham=$(echo $nham / $ntrain | bc)
+
+for m in $(ls | awk "NR % $mham == 0 { print }"); do
+    echo $m
+    $bf isreal < $m
+done
 
 cd $corpus/spam
 out=$(mktemp)
 for m in $(ls); do
-    $bf annotate < $m 2>/dev/null
-done | grep '^X-Spam-Probability: ' > $out
-right=$(grep -c YES $out)
-wrong=$(grep -c NO $out)
+    $bf test < $m # 2>/dev/null
+done > $out
+right=$(grep -c spam $out)
+echo right $right
+wrong=$(grep -c real $out)
+echo wrong $wrong
 pspam=$(echo "scale=2; $right * 100 / ($right + $wrong)" | bc)
+rm $out
+
+cd $corpus/ham
+out=$(mktemp)
+for m in $(ls); do
+    $bf test < $m # 2>/dev/null
+done > $out
+right=$(grep -c real $out)
+echo right $right
+wrong=$(grep -c spam $out)
+echo wrong $wrong
+pham=$(echo "scale=2; $right * 100 / ($right + $wrong)" | bc)
 rm $out
 
 echo
