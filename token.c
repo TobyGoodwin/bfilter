@@ -12,8 +12,6 @@
 #include "util.h"
 
 void token_submit(uint8_t *t, size_t l) {
-    int i, has_alpha = 0;
-
     /* XXX probably want to move this test higher, as there's no point
      * continuing to tokenize if we've reached the limit. */
 #if 0
@@ -23,25 +21,13 @@ void token_submit(uint8_t *t, size_t l) {
 #endif
     if (l < 2)
         return;
-    if (l > 16 && strncmp((const char *)t, "--", 2) == 0)
+
+    if (strncmp((const char *)t, "--", 2) == 0)
         return; /* probably a MIME separator */
 
-    /* Truncate long terms */
+    /* Reject long terms */
     if (l > MAX_TERM_LEN)
         return;
-        //l = MAX_TERM_LEN;
-
-    /* Fold to lower case, check for letters. */
-    for (i = 0; i < l; ++i) {
-        if (t[i] > 0xa0 || !strchr("0123456789-_.@/", t[i]))
-            has_alpha = 1;
-    }
-
-    /* Discard dates, numbers, etc. */
-    if (!has_alpha) {
-        //fprintf(stderr, "discarding %.*s\n", (int)l, term);
-        return;
-    }
 
     compose(t, l);
 }

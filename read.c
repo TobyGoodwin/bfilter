@@ -10,6 +10,8 @@
 #include "token.h"
 #include "util.h"
 
+#define TRACE if (0)
+
 /* note that hdr_cont at the moment really means hdr_rel_cont */
 enum state { hdr, hdr_rel, hdr_cont, hdr_mine,
              blank,
@@ -167,8 +169,11 @@ _Bool read_email(const _Bool fromline, FILE *in, FILE **tmp) {
      * save file. */
     while (1) {
         line_read(in, &x);
+        TRACE fprintf(stderr, "read %d (%.*s)\n", x.l,
+                x.l < 40 ? x.l - 1 : 40, x.x);
         nbytesrd += x.l;
         s_cur = transition(fromline, s_old, &x);
+        TRACE fprintf(stderr, "state %d => %d\n", s_old, s_cur);
         maybe_submit(s_old, s_cur, &t);
         if (s_cur == end) break;
         maybe_save(s_old, s_cur, &t, &x);

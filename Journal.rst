@@ -57,11 +57,33 @@ of rejecting them. If we do reject::
     t_spam = 32272, t_total = 9538
     t_real = 22004, t_total = 9538
 
-So. Meh. Why are we not spotting these hunks of b64?
+So. Meh. Why are we not spotting these hunks of b64? So as far as I can
+see they all emanate from a single message which has a b64 block not
+preceded by a blank line. (It is preceded by a line containing a single
+tab character.) So this is basically nonsense, and I think the right way
+to deal with it is to reject, not truncate, too-long tokens. (This
+occurs before compose, so it's fine if a history composition produces a
+token longer than 32 characters.)
 
+Looking at token.c, I think most of the tests here are wrong. Let's
+really simplify it::
 
+    ham: 99.50% correct, spam: 53.90% correct
+    -rw-------. 1 toby toby 561152 Oct 25 16:36 /tmp/tmp.xVXAOrhGYM
+    9.65user 5.29system 0:14.82elapsed 100%CPU (4660maxresident)k
 
+    t_spam = 33877, t_total = 10116
+    t_real = 22904, t_total = 10116
 
+OK. Well, the tokens I'm seeing in the database all look pretty
+reasonable now. So. Let's look at that maths again.
+
+I seem to have stumbled into `this problem`_.
+
+.. _this problem: http://www.cs.waikato.ac.nz/~eibe/pubs/FrankAndBouckaertPKDD06new.pdf
+
+So, next, let's see if we can implement MNB/PCN (Mulinomial Naive Bayes
+with Per-Class Normalization).
 
 2015-10-24
 ==========
