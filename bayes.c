@@ -116,7 +116,8 @@ uint8_t *bayes(skiplist tokens) {
             struct termprob t = { 0 };
             uint32_t *cnts;
             int ncnts, Tct;
-            double alpha = 10., norm;
+            int alpha;
+            double norm;
             int occurs; /* number of occurences of this term in test text */
 
             t.term = (char*)skiplist_itr_key(tokens, si, &t.tlen);
@@ -125,15 +126,18 @@ uint8_t *bayes(skiplist tokens) {
 
             cnts = db_get_intlist(t.term, t.tlen, &ncnts);
             if (!cnts) continue; /* not in training vocabulary */
-            Tct = 0; al
-            for (i = 0; i < ncnts; i += 2)
+            Tct = 0; alpha = 10000; /* XXX */
+            for (i = 0; i < ncnts; i += 2) {
                 if (cnts[i] == class->code) {
                     Tct = cnts[i + 1];
-                    break;
                 }
+                if (cnts[i] < alpha)
+                    alpha = cnts[i];
+            }
+            if (alpha == 0) alpha = 1;
             TRACE fprintf(stderr, "Tct = %d\n", Tct);
             TRACE fprintf(stderr, "old condprob[%s][%.*s] = %g\n", class->name, (int) t.tlen, t.term, (Tct + 1.) / (t_class + t_total));
-            norm = alpha * (1 + Tct) / t_class;
+            norm = alpha * (1. + Tct) / t_class;
             TRACE fprintf(stderr, "new condprob[%s][%.*s] = %g\n", class->name, (int) t.tlen, t.term, norm);
             oscore[class->code] += occurs * log((Tct + 1.) / (t_class + t_total));
             score[class->code] += occurs * log(norm);

@@ -132,6 +132,9 @@ Let's put NTRAIN back to 50, and HISTORY_LEN back to 3::
 Oh. Well. Hmm. (Note that this compares with the 99.9% / 40.5% result,
 so it *is* an improvement, but modest.)
 
+I'm failing to understand ``alpha``. Fiddling with it seems to make no
+difference at all.
+
 2015-10-24
 ==========
 
