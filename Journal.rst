@@ -83,7 +83,54 @@ I seem to have stumbled into `this problem`_.
 .. _this problem: http://www.cs.waikato.ac.nz/~eibe/pubs/FrankAndBouckaertPKDD06new.pdf
 
 So, next, let's see if we can implement MNB/PCN (Mulinomial Naive Bayes
-with Per-Class Normalization).
+with Per-Class Normalization). First results::
+
+    ham: 99.90% correct, spam: 40.50% correct
+    -rw-------. 1 toby toby 561152 Oct 25 21:49 /tmp/tmp.x3gJVLO97a
+    9.33user 4.92system 0:14.06elapsed 101%CPU (4444maxresident)k
+
+Now, that looks like we've still got ham bias, but is that actually so?
+Is it just that the training set is too small? If I train 250 messages,
+then I get::
+
+    ham: 99.80% correct, spam: 77.20% correct
+    -rw-------. 1 toby toby 1728512 Oct 25 21:50 /tmp/tmp.c1GeH8iGgv
+    16.98user 6.41system 0:23.21elapsed 100%CPU (5356maxresident)k
+
+which looks more promising.
+
+For comparison, without normalization, 50 training emails gives me
+this::
+
+    ham: 99.50% correct, spam: 54.10% correct
+    -rw-------. 1 toby toby 561152 Oct 25 21:57 /tmp/tmp.igX0o2nC4m
+    9.41user 5.18system 0:14.47elapsed 100%CPU (4596maxresident)k
+
+and 250 this::
+
+    ham: 99.80% correct, spam: 78.40% correct
+    -rw-------. 1 toby toby 1728512 Oct 25 21:58 /tmp/tmp.01asVKYnXb
+    16.77user 6.66system 0:23.31elapsed 100%CPU (5400maxresident)k
+
+Which all tends to suggest that normalization isn't helping much here.
+(But it may do when I introduce additional classes. And the "ham bias" I
+thought I was seeing is bogus - I think what's actually going on here is
+that the real email corpus is much more predictable than the spam
+corpus.)
+
+Anyway. If I'm convinced that what's going on here is *not* ham bias,
+then I'm getting damn fine results for hams. And although the spam
+results are a bit disappointing, they're not really much worse than
+anything I was getting with Graham's sums.
+
+Let's put NTRAIN back to 50, and HISTORY_LEN back to 3::
+
+    ham: 99.90% correct, spam: 44.10% correct
+    -rw-------. 1 toby toby 5283840 Oct 25 22:05 /tmp/tmp.QmA2F9eRGb
+    167.97user 9.93system 2:57.90elapsed 100%CPU (8028maxresident)k
+
+Oh. Well. Hmm. (Note that this compares with the 99.9% / 40.5% result,
+so it *is* an improvement, but modest.)
 
 2015-10-24
 ==========

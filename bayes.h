@@ -1,3 +1,4 @@
+#include <stdint.h>
 #include "skiplist.h"
 
-char *bayes(skiplist);
+uint8_t *bayes(skiplist);

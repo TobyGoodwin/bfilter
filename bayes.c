@@ -64,13 +64,15 @@ static int termprob_compare(const void *k1, const size_t k1len,
     return memcmp(t1->term, t2->term, t1->tlen);
 }
 
-char *bayes(skiplist tokens) {
+uint8_t *bayes(skiplist tokens) {
     struct class *class, *classes;
     uint32_t *epc, *tpc;
     int i, nc, nt, n_class, n_total, t_class, t_total;
-    double score[20]; /* XXX */
+    double score[20], oscore[20]; /* XXX */
     double minlogprob = -DBL_MAX;
-    char *minclass;
+    double ominlogprob = -DBL_MAX;
+    uint8_t *minclass;
+    uint8_t *ominclass;
    
     classes = db_get_classes();
     /* XXX */
@@ -103,7 +105,7 @@ char *bayes(skiplist tokens) {
                 break;
             }
         }
-        fprintf(stderr, "t_%s = %d, t_total = %d\n", class->name, t_class, t_total);
+        TRACE fprintf(stderr, "t_%s = %d, t_total = %d\n", class->name, t_class, t_total);
         // t_class = t_total; /* just to see */
         /* what happens if this class isn't in terms per class? redesign so it
          * can't happen */
@@ -114,35 +116,45 @@ char *bayes(skiplist tokens) {
             struct termprob t = { 0 };
             uint32_t *cnts;
             int ncnts, Tct;
+            double alpha = 10., norm;
             int occurs; /* number of occurences of this term in test text */
 
             t.term = (char*)skiplist_itr_key(tokens, si, &t.tlen);
             occurs = *(int *)skiplist_itr_value(tokens, si);
-TRACE fprintf(stderr, "term %.*s occurs %d times\n", t.tlen, t.term, occurs);
+            TRACE fprintf(stderr, "term %.*s occurs %d times\n", (int)t.tlen, t.term, occurs);
 
             cnts = db_get_intlist(t.term, t.tlen, &ncnts);
             if (!cnts) continue; /* not in training vocabulary */
-            Tct = 0;
+            Tct = 0; al
             for (i = 0; i < ncnts; i += 2)
                 if (cnts[i] == class->code) {
                     Tct = cnts[i + 1];
                     break;
                 }
-            TRACE fprintf(stderr, "Tct = %f\n");
-            TRACE fprintf(stderr, "condprob[%s][%.*s] = %g\n", class->name, t.tlen, t.term, (Tct + 1.) / (t_class + t_total));
-            score[class->code] += occurs * log((Tct + 1.) / (t_class + t_total));
+            TRACE fprintf(stderr, "Tct = %d\n", Tct);
+            TRACE fprintf(stderr, "old condprob[%s][%.*s] = %g\n", class->name, (int) t.tlen, t.term, (Tct + 1.) / (t_class + t_total));
+            norm = alpha * (1 + Tct) / t_class;
+            TRACE fprintf(stderr, "new condprob[%s][%.*s] = %g\n", class->name, (int) t.tlen, t.term, norm);
+            oscore[class->code] += occurs * log((Tct + 1.) / (t_class + t_total));
+            score[class->code] += occurs * log(norm);
         }
 
     }
 
 
     for (class = classes; class->code; ++class) {
+        TRACE fprintf(stderr, "oscore(%s): %f\n", class->name, oscore[class->code]);
         TRACE fprintf(stderr, "score(%s): %f\n", class->name, score[class->code]);
+        if (oscore[class->code] > ominlogprob) {
+            ominlogprob = oscore[class->code];
+            ominclass = class->name;
+        }
         if (score[class->code] > minlogprob) {
             minlogprob = score[class->code];
             minclass = class->name;
         }
     }
+    TRACE fprintf(stderr, "judgement: old %s, new %s\n", ominclass, minclass);
 
     return minclass;
 }
