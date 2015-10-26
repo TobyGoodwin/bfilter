@@ -40,7 +40,13 @@ OK, well there's this::
     -            norm = alpha * (1. + Tct) / t_total;
     +            norm = alpha * (1. + Tct / t_class);
 
-Make any difference? ()::
+Make any difference? (20dec18)::
+
+    ham: 0% correct, spam: 100.00% correct
+    -rw-------. 1 toby toby 561152 Oct 26 21:47 /tmp/tmp.6m3AK1iXXs
+    9.72user 5.25system 0:15.47elapsed 96%CPU (4392maxresident)k
+
+Um. Possibly an int / double issue. Yes, fixing that I get ()::
 
 2015-10-25
 ==========

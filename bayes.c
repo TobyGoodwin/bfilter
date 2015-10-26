@@ -134,7 +134,7 @@ uint8_t *bayes(skiplist tokens) {
                 }
             TRACE fprintf(stderr, "Tct = %d\n", Tct);
             TRACE fprintf(stderr, "old condprob[%s][%.*s] = %g\n", class->name, (int) t.tlen, t.term, (Tct + 1.) / (t_class + t_total));
-            norm = alpha * (1. + Tct / t_class);
+            norm = (1. + (double)Tct / t_class) / (t_total + 1.);
             TRACE fprintf(stderr, "new condprob[%s][%.*s] = %g\n", class->name, (int) t.tlen, t.term, norm);
             oscore[class->code] += occurs * log((Tct + 1.) / (t_class + t_total));
             score[class->code] += occurs * log(norm);
