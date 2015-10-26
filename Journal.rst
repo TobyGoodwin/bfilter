@@ -5,7 +5,9 @@ I should probably get into the habit of committing whenever I'm about to record
 some results. At one point I had 98.4 / 64.0, which is better than I've got
 now, but I'm not sure how I did that exactly.
 
-OK. Here's where we currently are.
+OK. Here's where we currently are (71dccb0cf)::
+
+
 
 2015-10-25
 ==========

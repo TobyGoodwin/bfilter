@@ -1,6 +1,6 @@
 #! /bin/sh
 
-ntrain=250
+ntrain=50
 
 corpus=$1
 
