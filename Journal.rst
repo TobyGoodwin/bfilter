@@ -46,7 +46,20 @@ Make any difference? (20dec18)::
     -rw-------. 1 toby toby 561152 Oct 26 21:47 /tmp/tmp.6m3AK1iXXs
     9.72user 5.25system 0:15.47elapsed 96%CPU (4392maxresident)k
 
-Um. Possibly an int / double issue. Yes, fixing that I get ()::
+Um. Possibly an int / double issue. Yes, fixing that I get (0eef8c2)::
+
+    ham: 98.00% correct, spam: 20.50% correct
+    -rw-------. 1 toby toby 561152 Oct 26 21:56 /tmp/tmp.5D1vSxivSz
+    9.93user 5.47system 0:15.52elapsed 99%CPU (4400maxresident)k
+
+And rearranging according to the comment "we have effectively replaced
+the standard initial word count of one by the class- specific initial
+word count ...", I get the same answers ()::
+
+    ham: 98.00% correct, spam: 20.50% correct
+    -rw-------. 1 toby toby 561152 Oct 26 22:12 /tmp/tmp.wo0Jk87cid
+    9.33user 4.94system 0:14.10elapsed 101%CPU (4324maxresident)k
+
 
 2015-10-25
 ==========
