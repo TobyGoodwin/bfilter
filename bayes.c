@@ -126,15 +126,12 @@ uint8_t *bayes(skiplist tokens) {
 
             cnts = db_get_intlist(t.term, t.tlen, &ncnts);
             if (!cnts) continue; /* not in training vocabulary */
-            Tct = 0; alpha = 10000; /* XXX */
-            for (i = 0; i < ncnts; i += 2) {
+            Tct = 0; alpha = 1;
+            for (i = 0; i < ncnts; i += 2)
                 if (cnts[i] == class->code) {
                     Tct = cnts[i + 1];
+                    break;
                 }
-                if (cnts[i] < alpha)
-                    alpha = cnts[i];
-            }
-            if (alpha == 0) alpha = 1;
             TRACE fprintf(stderr, "Tct = %d\n", Tct);
             TRACE fprintf(stderr, "old condprob[%s][%.*s] = %g\n", class->name, (int) t.tlen, t.term, (Tct + 1.) / (t_class + t_total));
             norm = alpha * (1. + Tct) / t_class;
@@ -160,7 +157,7 @@ uint8_t *bayes(skiplist tokens) {
     }
     TRACE fprintf(stderr, "judgement: old %s, new %s\n", ominclass, minclass);
 
-    return ominclass;
+    return minclass;
 }
 
 

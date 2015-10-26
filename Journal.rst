@@ -11,7 +11,13 @@ OK. Here's where we currently are (32eb323)::
     -rw-------. 1 toby toby 561152 Oct 26 21:14 /tmp/tmp.2JqhwhzfM8
     9.30user 4.99system 0:14.12elapsed 101%CPU (4384maxresident)k
 
-Getting rid of normalization, I get this ()::
+Getting rid of normalization, I get this (0dc8b73)::
+
+    ham: 99.50% correct, spam: 53.90% correct
+    -rw-------. 1 toby toby 561152 Oct 26 21:16 /tmp/tmp.Z3jZL9X044
+    9.45user 4.92system 0:14.18elapsed 101%CPU (4368maxresident)k
+
+Cleaning up alpha, and going back to normalizing ()::
 
 2015-10-25
 ==========
