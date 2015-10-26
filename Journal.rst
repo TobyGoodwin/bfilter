@@ -26,7 +26,21 @@ Cleaning up alpha, and going back to normalizing (eb8ae65)::
 So. ISTM that we had much better results when we just used a ``t_total``
 instead of ``t_class + t_total`` compared to normalization. What is it
 that normalization is doing that is different from that? Oh, it uses
-``t_class``.  Change that to ``t_total``, and I get ()::
+``t_class``.  Change that to ``t_total``, and I get (74b6bea)::
+
+    ham: 87.10% correct, spam: 88.90% correct
+    -rw-------. 1 toby toby 561152 Oct 26 21:32 /tmp/tmp.YzxAj7CD1A
+    9.93user 5.56system 0:15.66elapsed 98%CPU (4388maxresident)k
+
+Which makes me think I've completely misunderstood this normalization
+step. Let me peer at that paper *again*.
+
+OK, well there's this::
+
+    -            norm = alpha * (1. + Tct) / t_total;
+    +            norm = alpha * (1. + Tct / t_class);
+
+Make any difference? ()::
 
 2015-10-25
 ==========
