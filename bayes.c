@@ -160,7 +160,7 @@ uint8_t *bayes(skiplist tokens) {
     }
     TRACE fprintf(stderr, "judgement: old %s, new %s\n", ominclass, minclass);
 
-    return minclass;
+    return ominclass;
 }
 
 

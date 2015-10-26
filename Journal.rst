@@ -5,9 +5,13 @@ I should probably get into the habit of committing whenever I'm about to record
 some results. At one point I had 98.4 / 64.0, which is better than I've got
 now, but I'm not sure how I did that exactly.
 
-OK. Here's where we currently are (71dccb0cf)::
+OK. Here's where we currently are (32eb323)::
 
+    ham: 99.90% correct, spam: 40.50% correct
+    -rw-------. 1 toby toby 561152 Oct 26 21:14 /tmp/tmp.2JqhwhzfM8
+    9.30user 4.99system 0:14.12elapsed 101%CPU (4384maxresident)k
 
+Getting rid of normalization, I get this ()::
 
 2015-10-25
 ==========
