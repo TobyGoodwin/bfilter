@@ -17,7 +17,16 @@ Getting rid of normalization, I get this (0dc8b73)::
     -rw-------. 1 toby toby 561152 Oct 26 21:16 /tmp/tmp.Z3jZL9X044
     9.45user 4.92system 0:14.18elapsed 101%CPU (4368maxresident)k
 
-Cleaning up alpha, and going back to normalizing ()::
+Cleaning up alpha, and going back to normalizing (eb8ae65)::
+
+    ham: 99.90% correct, spam: 40.50% correct
+    -rw-------. 1 toby toby 561152 Oct 26 21:29 /tmp/tmp.etgLvgImyD
+    9.87user 5.37system 0:15.22elapsed 100%CPU (4352maxresident)k
+
+So. ISTM that we had much better results when we just used a ``t_total``
+instead of ``t_class + t_total`` compared to normalization. What is it
+that normalization is doing that is different from that? Oh, it uses
+``t_class``.  Change that to ``t_total``, and I get ()::
 
 2015-10-25
 ==========
