@@ -1,3 +1,19 @@
+2015-10-27
+==========
+
+I think my next thing should be to cleanup, and integrate with flare, so
+I can see how it goes in "real life". I was just quickly playing with
+adding a new class. Although it does look like it may take a fair bit of
+training before the filter gets it right, the Frank&B suggestion doesn't
+seem to help much.
+
+Hmm. I think I could invent my own normalization ()::
+
+    ham: 99.90% correct, spam: 40.50% correct
+    -rw-------. 1 toby toby 561152 Oct 27 22:38 /tmp/tmp.f6T7itJzZE
+    10.05user 5.56system 0:15.77elapsed 98%CPU (4564maxresident)k
+
+
 2015-10-26
 ==========
 
@@ -54,12 +70,22 @@ Um. Possibly an int / double issue. Yes, fixing that I get (0eef8c2)::
 
 And rearranging according to the comment "we have effectively replaced
 the standard initial word count of one by the class- specific initial
-word count ...", I get the same answers ()::
+word count ...", I get the same answers (0888615)::
 
     ham: 98.00% correct, spam: 20.50% correct
     -rw-------. 1 toby toby 561152 Oct 26 22:12 /tmp/tmp.wo0Jk87cid
     9.33user 4.94system 0:14.10elapsed 101%CPU (4324maxresident)k
 
+One other thing. I'm seeing "ham bias" (perhaps), but hams are the
+*smaller* class (22904 / 33877 at present). So this is the opposite
+problem to the one Frank and Bouckaert are solving.
+
+So it seems that 99.5 / 53.9 is about the best I can do. I *may* run
+into the Frank and Bouckaert problem when I start doing more general
+classification... but then again I may not. 
+
+One thing I did mean to experiment with was Graham's idea of tagging
+terms with the header line they come from (as in ``subject*free``).
 
 2015-10-25
 ==========

@@ -116,7 +116,6 @@ uint8_t *bayes(skiplist tokens) {
             struct termprob t = { 0 };
             uint32_t *cnts;
             int ncnts, Tct;
-            int alpha;
             double norm;
             int occurs; /* number of occurences of this term in test text */
 
@@ -124,9 +123,14 @@ uint8_t *bayes(skiplist tokens) {
             occurs = *(int *)skiplist_itr_value(tokens, si);
             TRACE fprintf(stderr, "term %.*s occurs %d times\n", (int)t.tlen, t.term, occurs);
 
+            for (i = 0; i < nc; i += 2)
+                if (epc[i] == class->code) {
+                    n_class = epc[i + 1];
+                    break;
+                }
             cnts = db_get_intlist(t.term, t.tlen, &ncnts);
             if (!cnts) continue; /* not in training vocabulary */
-            Tct = 0; alpha = 1;
+            Tct = 0;
             for (i = 0; i < ncnts; i += 2)
                 if (cnts[i] == class->code) {
                     Tct = cnts[i + 1];
@@ -134,14 +138,13 @@ uint8_t *bayes(skiplist tokens) {
                 }
             TRACE fprintf(stderr, "Tct = %d\n", Tct);
             TRACE fprintf(stderr, "old condprob[%s][%.*s] = %g\n", class->name, (int) t.tlen, t.term, (Tct + 1.) / (t_class + t_total));
-            norm = ((double)t_class + (double)Tct) / ((double)t_class * (1. + (double)t_total));
+            norm = (1. + (double)Tct) / (t_class + n_class);
             TRACE fprintf(stderr, "new condprob[%s][%.*s] = %g\n", class->name, (int) t.tlen, t.term, norm);
             oscore[class->code] += occurs * log((Tct + 1.) / (t_class + t_total));
             score[class->code] += occurs * log(norm);
         }
 
     }
-
 
     for (class = classes; class->code; ++class) {
         TRACE fprintf(stderr, "oscore(%s): %f\n", class->name, oscore[class->code]);
@@ -155,7 +158,7 @@ uint8_t *bayes(skiplist tokens) {
             minclass = class->name;
         }
     }
-    TRACE fprintf(stderr, "judgement: old %s, new %s\n", ominclass, minclass);
+    fprintf(stderr, "judgement: old %s, new %s\n", ominclass, minclass);
 
     return minclass;
 }
