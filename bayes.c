@@ -138,7 +138,7 @@ uint8_t *bayes(skiplist tokens) {
                 }
             TRACE fprintf(stderr, "Tct = %d\n", Tct);
             TRACE fprintf(stderr, "old condprob[%s][%.*s] = %g\n", class->name, (int) t.tlen, t.term, (Tct + 1.) / (t_class + t_total));
-            norm = (1. + (double)Tct) / (t_class + n_class);
+            norm = (1. + (double)Tct) / ((double)t_class + (double)n_class);
             TRACE fprintf(stderr, "new condprob[%s][%.*s] = %g\n", class->name, (int) t.tlen, t.term, norm);
             oscore[class->code] += occurs * log((Tct + 1.) / (t_class + t_total));
             score[class->code] += occurs * log(norm);
@@ -158,7 +158,8 @@ uint8_t *bayes(skiplist tokens) {
             minclass = class->name;
         }
     }
-    fprintf(stderr, "judgement: old %s, new %s\n", ominclass, minclass);
+    if (ominclass != minclass)
+        fprintf(stderr, "judgement: old %s, new %s\n", ominclass, minclass);
 
     return minclass;
 }

@@ -7,12 +7,13 @@ adding a new class. Although it does look like it may take a fair bit of
 training before the filter gets it right, the Frank&B suggestion doesn't
 seem to help much.
 
-Hmm. I think I could invent my own normalization ()::
+Hmm. I think I could invent my own normalization (0f604f0)::
 
     ham: 99.90% correct, spam: 40.50% correct
     -rw-------. 1 toby toby 561152 Oct 27 22:38 /tmp/tmp.f6T7itJzZE
     10.05user 5.56system 0:15.77elapsed 98%CPU (4564maxresident)k
 
+Huh. Those numbers seem familiar.
 
 2015-10-26
 ==========
