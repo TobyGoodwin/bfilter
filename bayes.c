@@ -68,11 +68,9 @@ uint8_t *bayes(skiplist tokens) {
     struct class *class, *classes;
     uint32_t *epc, *tpc;
     int i, nc, nt, n_class, n_total, t_class, t_total;
-    double score[20], oscore[20]; /* XXX */
-    double minlogprob = -DBL_MAX;
-    double ominlogprob = -DBL_MAX;
-    uint8_t *minclass;
-    uint8_t *ominclass;
+    double score[20]; /* XXX */
+    double maxprob = 0.;
+    uint8_t *maxclass;
    
     classes = db_get_classes();
     /* XXX */
@@ -113,10 +111,10 @@ uint8_t *bayes(skiplist tokens) {
         TRACE fprintf(stderr, "terms in class %s: %d\n", class->name, t_class);
         for (si = skiplist_itr_first(tokens); si;
                 si = skiplist_itr_next(tokens, si)) {
+            double p;
             struct termprob t = { 0 };
             uint32_t *cnts;
             int ncnts, Tct;
-            double norm;
             int occurs; /* number of occurences of this term in test text */
 
             t.term = (char*)skiplist_itr_key(tokens, si, &t.tlen);
@@ -137,31 +135,53 @@ uint8_t *bayes(skiplist tokens) {
                     break;
                 }
             TRACE fprintf(stderr, "Tct = %d\n", Tct);
-            TRACE fprintf(stderr, "old condprob[%s][%.*s] = %g\n", class->name, (int) t.tlen, t.term, (Tct + 1.) / (t_class + t_total));
-            norm = (1. + (double)Tct) / ((double)t_class + (double)n_class);
-            TRACE fprintf(stderr, "new condprob[%s][%.*s] = %g\n", class->name, (int) t.tlen, t.term, norm);
-            oscore[class->code] += occurs * log((Tct + 1.) / (t_class + t_total));
-            score[class->code] += occurs * log(norm);
+            p = (Tct + 1.) / (t_class + t_total);
+            TRACE fprintf(stderr, "condprob[%s][%.*s] = %g\n", class->name, (int) t.tlen, t.term, p);
+            score[class->code] += occurs * log(p);
         }
 
     }
 
-    for (class = classes; class->code; ++class) {
-        TRACE fprintf(stderr, "oscore(%s): %f\n", class->name, oscore[class->code]);
-        TRACE fprintf(stderr, "score(%s): %f\n", class->name, score[class->code]);
-        if (oscore[class->code] > ominlogprob) {
-            ominlogprob = oscore[class->code];
-            ominclass = class->name;
+    {
+        int n = 0;
+        double lmean = 0., nsum = 0.;
+
+        for (class = classes; class->code; ++class) {
+            lmean += score[class->code];
+            ++n;
         }
-        if (score[class->code] > minlogprob) {
-            minlogprob = score[class->code];
-            minclass = class->name;
+        lmean /= (double)n;
+        fprintf(stderr, "mean probability = %f\n", lmean);
+
+        /* normalize in logspace so scores multiply to 1 */
+        for (class = classes; class->code; ++class) {
+            fprintf(stderr, "lognorm: %f => ", score[class->code]);
+            score[class->code] -= lmean;
+            fprintf(stderr, "%f\n", score[class->code]);
+        }
+
+        /* convert to normal space */
+        for (class = classes; class->code; ++class) {
+            fprintf(stderr, "linnorm: %f => ", score[class->code]);
+            if (fabs(score[class->code]) > 20.)
+                score[class->code] = copysign(20., score[class->code]);
+            score[class->code] = exp(score[class->code]);
+            nsum += score[class->code];
+            fprintf(stderr, "%f\n", score[class->code]);
+        }
+
+        /* renormalize and find best*/
+        for (class = classes; class->code; ++class) {
+            score[class->code] /=  nsum;
+            fprintf(stderr, "score(%s): %f\n", class->name, score[class->code]);
+            if (score[class->code] > maxprob) {
+                maxprob = score[class->code];
+                maxclass = class->name;
+            }
         }
     }
-    if (ominclass != minclass)
-        fprintf(stderr, "judgement: old %s, new %s\n", ominclass, minclass);
 
-    return minclass;
+    return maxclass;
 }
 
 

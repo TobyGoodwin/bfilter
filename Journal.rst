@@ -13,7 +13,52 @@ Hmm. I think I could invent my own normalization (0f604f0)::
     -rw-------. 1 toby toby 561152 Oct 27 22:38 /tmp/tmp.f6T7itJzZE
     10.05user 5.56system 0:15.77elapsed 98%CPU (4564maxresident)k
 
-Huh. Those numbers seem familiar.
+Huh. Those numbers seem familiar. So basically we take ``(1 + Tct) /
+t_class``, and that gives the same results as ``(1 + Tct) / (t_class +
+n_class)``, where n_class is the number of documents in th class (so +1
+for each document). It seems strange that those produce the same
+results.
+
+Anyway, there's absolutely no point in normalizing when we're getting
+99.9% of the smaller class right, since normalizing can only pull more
+documents into the smaller class, which has already got all the docs it
+should have. Darn.
+
+Another sort of normalizing: what about normalizing so we get
+probabilities that sum to one? If do that, we need the logprobs to sum
+to 0... no, that would make the probabilities *multiply* to one. Sum to
+-1/n (where n is the number of logprobs)? I kindof plucked that out of
+the air, is it right? No, no kindof addition in log space is going to
+work.
+
+So we could make the logprobs sum to 0, by adding the arithmetic mean of the
+logs to each one. Then exponentiate, then, errm, now we want to scale
+geometrically to make the sum one. Oh yeah, multiply by 1/sum(probs).
+
+Or I could try and find out what the P(d) that F&B talk about is.
+(Suspect it's just a fudge factor like the one I'm sketching, but still.)
+
+Hmm. So the problem here is that we sometimes end up with large
+differences in the logprobs, which can lead to overflow when we convert
+back to linear space. Most of the time, the final answers are just 0.0
+and 1.0 anyway.
+
+Essentially, all the interest happens when the range of logprobs < 5 ()::
+
+    lognorm: -978.824557 => -1.734412
+    lognorm: -975.355733 => 1.734412
+    linnorm: -1.734412 => 0.176504
+    linnorm: 1.734412 => 5.665595
+    score(spam): 0.030212
+    score(real): 0.969788
+    
+    mean probability = -442.980259
+    lognorm: -443.752219 => -0.771960
+    lognorm: -442.208299 => 0.771960
+    linnorm: -0.771960 => 0.462107
+    linnorm: 0.771960 => 2.164003
+    score(spam): 0.175966
+    score(real): 0.824034
 
 2015-10-26
 ==========

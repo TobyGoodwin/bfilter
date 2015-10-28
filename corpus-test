@@ -10,6 +10,7 @@ if [ ! '(' -d $corpus/ham -a -d $corpus/spam ')' ]; then
 fi
 
 bf=$(pwd)/bfilter
+make $bf
 
 if [ ! -x $bf ]; then
     echo $bf is not executable >&2
