@@ -46,7 +46,9 @@ right=$(grep -c spam $out)
 echo right $right
 wrong=$(grep -c real $out)
 echo wrong $wrong
-pspam=$(echo "scale=2; $right * 100 / ($right + $wrong)" | bc)
+unsure=$(grep -c UNSURE $out)
+echo unsure $unsure
+pspam=$(echo "scale=2; $right * 100 / ($right + $wrong + $unsure)" | bc)
 rm $out
 
 cd $corpus/ham
@@ -58,7 +60,9 @@ right=$(grep -c real $out)
 echo right $right
 wrong=$(grep -c spam $out)
 echo wrong $wrong
-pham=$(echo "scale=2; $right * 100 / ($right + $wrong)" | bc)
+unsure=$(grep -c UNSURE $out)
+echo unsure $unsure
+pham=$(echo "scale=2; $right * 100 / ($right + $wrong + $unsure)" | bc)
 rm $out
 
 echo

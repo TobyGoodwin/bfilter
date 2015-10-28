@@ -143,7 +143,7 @@ uint8_t *bayes(skiplist tokens) {
     }
 
     for (class = classes; class->code; ++class) {
-        fprintf(stderr, "score(%s): %f\n", class->name, score[class->code]);
+        TRACE fprintf(stderr, "score(%s): %f\n", class->name, score[class->code]);
         if (score[class->code] < minprob) {
             minprob = score[class->code];
         }
@@ -152,9 +152,9 @@ uint8_t *bayes(skiplist tokens) {
             maxclass = class->name;
         }
     }
-    fprintf(stderr, "logprob range: %f\n", maxprob - minprob);
+    TRACE fprintf(stderr, "logprob range: %f\n", maxprob - minprob);
     if (maxprob - minprob < 3.)
-        fprintf(stderr, "UNSURE!\n");
+        return (uint8_t *)"UNSURE";
 
     return maxclass;
 }

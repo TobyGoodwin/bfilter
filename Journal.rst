@@ -63,7 +63,12 @@ Essentially, all the interest happens when the range of logprobs < 5
 
 So... if we look for a range of < 5, and declare that "unsure", we get
 180 unsure cases in the test corpus. With a range < 3, 122 cases. Let's
-go with that.
+go with that (97a2d76).
+
+Tidying up a bit, that looks quite promising. For spams, I get
+right / wrong / unsure of 478 / 404 / 118, and for hams 993 / 3 / 4. So
+the unsure ones are almost all the spams. Of the hams, 2 of the unsure
+ones were previously wrong ()::
 
 2015-10-26
 ==========
