@@ -43,7 +43,8 @@ differences in the logprobs, which can lead to overflow when we convert
 back to linear space. Most of the time, the final answers are just 0.0
 and 1.0 anyway.
 
-Essentially, all the interest happens when the range of logprobs < 5 ()::
+Essentially, all the interest happens when the range of logprobs < 5
+(d756ae4)::
 
     lognorm: -978.824557 => -1.734412
     lognorm: -975.355733 => 1.734412
@@ -59,6 +60,10 @@ Essentially, all the interest happens when the range of logprobs < 5 ()::
     linnorm: 0.771960 => 2.164003
     score(spam): 0.175966
     score(real): 0.824034
+
+So... if we look for a range of < 5, and declare that "unsure", we get
+180 unsure cases in the test corpus. With a range < 3, 122 cases. Let's
+go with that.
 
 2015-10-26
 ==========

@@ -69,7 +69,7 @@ uint8_t *bayes(skiplist tokens) {
     uint32_t *epc, *tpc;
     int i, nc, nt, n_class, n_total, t_class, t_total;
     double score[20]; /* XXX */
-    double maxprob = 0.;
+    double maxprob = -DBL_MAX, minprob = 0.;
     uint8_t *maxclass;
    
     classes = db_get_classes();
@@ -142,44 +142,19 @@ uint8_t *bayes(skiplist tokens) {
 
     }
 
-    {
-        int n = 0;
-        double lmean = 0., nsum = 0.;
-
-        for (class = classes; class->code; ++class) {
-            lmean += score[class->code];
-            ++n;
+    for (class = classes; class->code; ++class) {
+        fprintf(stderr, "score(%s): %f\n", class->name, score[class->code]);
+        if (score[class->code] < minprob) {
+            minprob = score[class->code];
         }
-        lmean /= (double)n;
-        fprintf(stderr, "mean probability = %f\n", lmean);
-
-        /* normalize in logspace so scores multiply to 1 */
-        for (class = classes; class->code; ++class) {
-            fprintf(stderr, "lognorm: %f => ", score[class->code]);
-            score[class->code] -= lmean;
-            fprintf(stderr, "%f\n", score[class->code]);
-        }
-
-        /* convert to normal space */
-        for (class = classes; class->code; ++class) {
-            fprintf(stderr, "linnorm: %f => ", score[class->code]);
-            if (fabs(score[class->code]) > 20.)
-                score[class->code] = copysign(20., score[class->code]);
-            score[class->code] = exp(score[class->code]);
-            nsum += score[class->code];
-            fprintf(stderr, "%f\n", score[class->code]);
-        }
-
-        /* renormalize and find best*/
-        for (class = classes; class->code; ++class) {
-            score[class->code] /=  nsum;
-            fprintf(stderr, "score(%s): %f\n", class->name, score[class->code]);
-            if (score[class->code] > maxprob) {
-                maxprob = score[class->code];
-                maxclass = class->name;
-            }
+        if (score[class->code] > maxprob) {
+            maxprob = score[class->code];
+            maxclass = class->name;
         }
     }
+    fprintf(stderr, "logprob range: %f\n", maxprob - minprob);
+    if (maxprob - minprob < 3.)
+        fprintf(stderr, "UNSURE!\n");
 
     return maxclass;
 }
