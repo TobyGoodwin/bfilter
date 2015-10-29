@@ -1,3 +1,16 @@
+2015-10-29
+==========
+
+Right. Major cleanup time.
+
+I need to revise the database formats quite a lot. I think I want to
+reintroduce the timestamp on terms, as I think it's a useful feature
+(but 28 days is *far* too short a time; maybe a year).
+
+More importantly, we need a single ``__classes__`` record that holds
+codes, counts of terms, and counts of emails. (Yes, that means it will
+need to be rewritten every time we train a new message.)
+
 2015-10-27
 ==========
 
@@ -68,7 +81,18 @@ go with that (97a2d76).
 Tidying up a bit, that looks quite promising. For spams, I get
 right / wrong / unsure of 478 / 404 / 118, and for hams 993 / 3 / 4. So
 the unsure ones are almost all the spams. Of the hams, 2 of the unsure
-ones were previously wrong ()::
+ones were previously wrong (ce5f149)::
+
+    right 478
+    wrong 404
+    unsure 118
+    right 993
+    wrong 3
+    unsure 4
+     
+    ham: 99.30% correct, spam: 47.80% correct
+    -rw-------. 1 toby toby 561152 Oct 28 22:56 /tmp/tmp.Iby3mae1is
+    9.52user 5.44system 0:15.01elapsed 99%CPU (4500maxresident)k
 
 2015-10-26
 ==========

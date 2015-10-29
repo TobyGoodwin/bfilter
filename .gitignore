@@ -4,9 +4,9 @@ test/ipass
 test/iread
 test/itoken
 test/ubayes
+test/uclass
 test/ucompose
 test/ucount
-test/udb_class
 test/udb_intlist
 test/uline
 test/uskiplist0

@@ -190,6 +190,42 @@ uint32_t *db_get_intlist(uint8_t *k, size_t k_sz, unsigned int *n) {
     return (uint32_t *)d.dptr;
 }
 
+uint8_t *db_hash_fetch(uint8_t *k, size_t k_sz, size_t *d_sz) {
+    TDB_DATA key, d;
+    unsigned char h[HASHLEN];
+
+#if 0
+    make_hash(k, k_sz, h);
+    key.dptr = h;
+    key.dsize = HASHLEN;
+#endif
+    key.dptr = k;
+    key.dsize = k_sz;
+
+    d = tdb_fetch(filterdb, key);
+    *d_sz = d.dsize;
+    return d.dptr;
+}
+
+_Bool db_hash_store(uint8_t *k, size_t k_sz, uint8_t *d, size_t d_sz) {
+    TDB_DATA key, dat;
+    unsigned char h[HASHLEN];
+
+#if 0
+    make_hash(k, k_sz, h);
+    key.dptr = h;
+    key.dsize = HASHLEN;
+#endif
+    key.dptr = k;
+    key.dsize = k_sz;
+
+    dat.dptr = d;
+    dat.dsize = d_sz;
+
+    return tdb_store(filterdb, key, dat, 0) == 0;
+}
+
+
 #define CLASSES_KEY ((uint8_t *)"__classes__")
 
 struct class *db_get_classes(void) {

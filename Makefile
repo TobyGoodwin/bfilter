@@ -46,13 +46,13 @@ test/itoken: test/token/main.o cook.o line.o read.o token.o utf8.o util.o
 test/ubayes: test/unit/bayes.o bayes.o pool.o skiplist.o submit.o util.o
 	$(CC) $(LDFLAGS) -o $@ $^ $(LDLIBS)
 
+test/uclass: test/unit/class.o class.o db.o line.o util.o
+	$(CC) $(LDFLAGS) -o $@ $^ $(LDLIBS)
+
 test/ucompose: test/unit/compose.o compose.o
 	$(CC) $(LDFLAGS) -o $@ $^ $(LDLIBS)
 
 test/ucount: test/unit/count.o count.o db.o line.o util.o
-	$(CC) $(LDFLAGS) -o $@ $^ $(LDLIBS)
-
-test/udb_class: test/unit/db_class.o db.o line.o util.o
 	$(CC) $(LDFLAGS) -o $@ $^ $(LDLIBS)
 
 test/udb_intlist: test/unit/db_intlist.o db.o line.o util.o
