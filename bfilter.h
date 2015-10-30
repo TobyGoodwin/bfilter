@@ -8,10 +8,6 @@ enum mode { error, train, test, annotate, cleandb, stats } mode;
 _Bool flagb;
 char *flagD;
 
-/* when training, the class and its code */
-char *tclass;
-int tclass_c;
-
 int nemails;
 size_t nbytesrd, termlength;
 skiplist wordlist;

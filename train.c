@@ -37,6 +37,8 @@
 #include "train.h"
 #include "util.h"
 
+#define TRACE if (1)
+
 _Bool train_read(void) {
     do {
         errno = 0;
@@ -59,14 +61,17 @@ _Bool train_read(void) {
     return 1;
 }
 
-void train_update(enum mode mode) {
+void train_update(char *cclass) {
     /* Update total number of emails and the data for each word. */
+    struct class *classes, *tclass;
     uint32_t Ndb, *pNdb;
     uint32_t nvocab, *pnvocab;
     int mustbe1;
     skiplist_iterator si;
     unsigned int nterms, ntermswr, ntermsnew, ntermsall;
 
+    classes = class_fetch();
+    tclass = class_lookup(classes, cclass);
     pNdb = db_get_intlist((uint8_t *)EMAILS_KEY,
             sizeof EMAILS_KEY - 1, &mustbe1);
     if (pNdb && mustbe1 == 1)
@@ -74,10 +79,10 @@ void train_update(enum mode mode) {
     else
         Ndb = 0;
     Ndb += nemails;
-    db_set_intlist((uint8_t *)EMAILS_KEY, sizeof EMAILS_KEY - 1, &Ndb, 1);
+    db_hash_store((uint8_t *)EMAILS_KEY, sizeof EMAILS_KEY - 1,
+            (void *)&Ndb, sizeof Ndb);
 
-    count_add((uint8_t *)EMAILS_CLASS_KEY, sizeof EMAILS_CLASS_KEY - 1,
-            tclass_c, nemails);
+    tclass->docs += nemails;
 
     if (isatty(1))
         fprintf(stderr, "Writing: corpus now contains %u emails\n", Ndb);
@@ -94,7 +99,7 @@ void train_update(enum mode mode) {
         k = skiplist_itr_key(token_list, si, &kl);
         p = skiplist_itr_value(token_list, si);
 if (0) fprintf(stderr, "term %.*s: %d\n", (int)kl, k, *p);
-        if (count_add(k, kl, tclass_c, *p))
+        if (count_add(k, kl, tclass->code, *p))
             ++ntermsnew;
         ntermsall += *p;
 
@@ -107,16 +112,13 @@ if (0) fprintf(stderr, "term %.*s: %d\n", (int)kl, k, *p);
         fprintf(stderr, "Writing: %u / %u terms (%u new)\n",
                 ntermswr, nterms, ntermsnew);
     
-    pnvocab = db_get_intlist((uint8_t *)VOCAB_KEY,
-            sizeof VOCAB_KEY - 1, &mustbe1);
-    if (pnvocab && mustbe1 == 1)
-        nvocab = *pnvocab;
-    else
-        nvocab = 0;
+    pnvocab = db_hash_fetch_uint32((uint8_t *)VOCAB_KEY, sizeof VOCAB_KEY - 1);
+    if (pnvocab) nvocab = *pnvocab;
+    else nvocab = 0;
+    TRACE fprintf(stderr, "vocabulary was: %u\n", nvocab);
     nvocab += ntermsnew;
-    db_set_intlist((uint8_t *)VOCAB_KEY, sizeof VOCAB_KEY - 1, &nvocab, 1);
+    db_hash_store_uint32((uint8_t *)VOCAB_KEY, sizeof VOCAB_KEY - 1, nvocab);
 
-    count_add((uint8_t *)TERMS_CLASS_KEY, sizeof TERMS_CLASS_KEY - 1,
-            tclass_c, ntermsall);
-
+    tclass->terms += ntermsall;
+    class_store(classes);
 }

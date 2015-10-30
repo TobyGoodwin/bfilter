@@ -23,4 +23,4 @@
 */
 
 _Bool train_read(void);
-void train_update(enum mode mode);
+void train_update(char *);

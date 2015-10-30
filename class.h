@@ -11,7 +11,7 @@ struct class {
 };
 
 struct class *class_fetch(void);
-int class_lookup(char *);
+struct class *class_lookup(struct class *, char *);
 _Bool class_store(struct class *);
 
 #endif

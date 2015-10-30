@@ -32,8 +32,9 @@ int db_get_pair(const char *name, int *a, int *b) {
     return 1;
 }
 
+/* needs a lot of work :-( */
 int main(void) {
-    double p;
+    uint8_t *p;
 
     printf("1..4\n");
 

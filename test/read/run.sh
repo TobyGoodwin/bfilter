@@ -1,6 +1,6 @@
 depends test/iread
 act=$(mktemp)
-exp=$(echo $target | sed 's,.in,.out,')
+exp=$(echo $target | sed 's,.in$,.out,')
 echo $command $target '>' $act
 $command $target > $act
 if diff -q $act $exp; then

@@ -225,6 +225,23 @@ _Bool db_hash_store(uint8_t *k, size_t k_sz, uint8_t *d, size_t d_sz) {
     return tdb_store(filterdb, key, dat, 0) == 0;
 }
 
+/* returns a pointer to a uint32, which caller must free; may return NULL */
+uint32_t *db_hash_fetch_uint32(uint8_t *k, size_t k_sz) {
+    size_t s;
+    uint32_t *x;
+    
+    x = db_hash_fetch(k, k_sz, &s);
+    if (!x || s != sizeof *x)
+        return 0;
+    *x = ntohl(*x);
+    return x;
+}
+
+_Bool db_hash_store_uint32(uint8_t *k, size_t k_sz, uint32_t d) {
+    d = htonl(d);
+    return db_hash_store(k, k_sz, &d, sizeof d);
+}
+
 
 #define CLASSES_KEY ((uint8_t *)"__classes__")
 

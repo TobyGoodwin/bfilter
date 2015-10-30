@@ -74,27 +74,27 @@ _Bool class_store(struct class *cs) {
             (uint8_t *)CLASSES_KEY, sizeof(CLASSES_KEY) - 1, csl.x, csl.l);
 }
 
-int class_lookup(char *c) {
+struct class *class_lookup(struct class *cs, char *c) {
     int m, n;
-    struct class *cp, *cs = class_fetch();
+    struct class *cp;
 
     m = 0;
     assert(cs); /* get_classes must abort if it fails to read */
     for (n = 0, cp = cs; cp->code; ++n, ++cp) {
         if (strcmp(c, (char *)cp->name) == 0)
-            return cp->code;
+            return cp;
         if (cp->code > m) m = cp->code;
     }
 
+    /* not found? create a new class */
     cp = xmalloc((n + 2) * sizeof *cp);
     memcpy(cp, cs, n * sizeof *cp);
     ++m;
     cp[n].name = (uint8_t *)c;
     cp[n].code = m;
     ++n;
-    cp[n].name = 0;
-    cp[n].code = 0; /* sentinel */
+    cp[n].name = 0; /* sentinel */
+    cp[n].code = cp[n].docs = cp[n].terms = 0;
 
-    class_store(cp);
-    return m;
+    return cp + n;
 }

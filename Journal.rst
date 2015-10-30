@@ -11,6 +11,18 @@ More importantly, we need a single ``__classes__`` record that holds
 codes, counts of terms, and counts of emails. (Yes, that means it will
 need to be rewritten every time we train a new message.)
 
+OK, that's up and running.
+
+Mainly fiddling at the moment. I simplified ``token.c`` right down, and
+removed the ``any isalpha`` test, as it seemed counterproductive
+(especially with the rather limited idea we have of what an alphabetic
+character is in the Unicode world). But I do want to reintroduce a test
+for ``all isdigit``, since there really is no point in scoring tokens
+like ``55`` and ``179``.
+
+However, I need to actually get the thing working again before I can do
+that...
+
 2015-10-27
 ==========
 

@@ -22,6 +22,7 @@
 
 */
 
+#include <assert.h>
 #include <errno.h>
 #include <stdio.h>
 #include <string.h>
@@ -64,7 +65,7 @@ _Bool flagb = 0;
 char *flagD = 0;
 
 
-int run(enum mode mode);
+int run(enum mode mode, char *cclass);
 
 unsigned int max_tokens;
 
@@ -80,6 +81,7 @@ unsigned int max_tokens;
  *          stats       Print some statistics about the database.
  */
 int main(int argc, char *argv[]) {
+    char *cclass = 0;
     enum mode mode = error;
     int arg = 1;
 
@@ -101,10 +103,10 @@ next_arg:
         case 1:
             if (strcmp(argv[arg], "isspam") == 0) {
                 mode = train;
-                tclass = "spam"; tclass_c = 1;
+                cclass = "spam";
             } else if (strcmp(argv[arg], "isreal") == 0) {
                 mode = train;
-                tclass = "real"; tclass_c = 2;
+                cclass = "real";
             } else if (strcmp(argv[arg], "test") == 0)
                 mode = test;
             else if (strcmp(argv[arg], "annotate") == 0)
@@ -118,7 +120,7 @@ next_arg:
         case 2:
             if (strcmp(argv[arg], "train") == 0) {
                 mode = train;
-                tclass = argv[arg + 1];
+                cclass = argv[arg + 1];
             }
             break;
 
@@ -127,7 +129,7 @@ next_arg:
             break;
     }
 
-    return run(mode);
+    return run(mode, cclass);
 }
 
 static void token_list_dump(skiplist s) {
@@ -144,7 +146,7 @@ static void token_list_dump(skiplist s) {
     }
 }
 
-int run(enum mode mode) {
+int run(enum mode mode, char *cclass) {
     int retval = 0;
     FILE *tempfile;
 
@@ -188,8 +190,7 @@ int run(enum mode mode) {
     
     switch (mode) {
         case train:
-            tclass_c = class_lookup(tclass);
-            train_update(mode);
+            train_update(cclass);
             break;
 
         case test:
@@ -211,6 +212,11 @@ int run(enum mode mode) {
 
         case stats:
             db_print_stats();
+            break;
+
+        case error:
+            /* cannot possibly get here, but keep compiler quiet */
+            assert(0);
             break;
     }
 

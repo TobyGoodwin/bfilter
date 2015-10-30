@@ -11,52 +11,42 @@
 #include "db.h"
 #include "settings.h"
 
-#define TRACE if (0)
+#define TRACE if (1)
+#define UNSURE ((uint8_t *)"UNSURE")
 
 uint8_t *bayes(skiplist tokens) {
     struct class *class, *classes;
-    uint32_t *epc, *tpc;
-    int i, nc, nt, n_class, n_total, t_class, t_total;
+    size_t nc;
+    int i, n_total;
     double score[20]; /* XXX */
     double maxprob = -DBL_MAX, minprob = 0.;
     uint8_t *maxclass;
+    uint32_t *p_ui32, t_total;
    
-    classes = db_get_classes();
+    classes = class_fetch();
+    if (classes->code == 0)
+        return UNSURE;
     /* XXX */
-    n_total = *db_get_intlist((uint8_t *)EMAILS_KEY, sizeof EMAILS_KEY - 1, &nc);
-    t_total = *db_get_intlist((uint8_t *)VOCAB_KEY, sizeof VOCAB_KEY - 1, &nc);
-    TRACE fprintf(stderr, "total terms: %d\n", t_total);
-    epc = db_get_intlist((uint8_t *)EMAILS_CLASS_KEY, sizeof EMAILS_CLASS_KEY - 1, &nc);
-
-    tpc = db_get_intlist((uint8_t *)TERMS_CLASS_KEY, sizeof TERMS_CLASS_KEY - 1, &nt);
+    n_total = *db_hash_fetch((uint8_t *)EMAILS_KEY, sizeof EMAILS_KEY - 1, &nc);
+    p_ui32 = db_hash_fetch_uint32((uint8_t *)VOCAB_KEY, sizeof VOCAB_KEY - 1);
+    if (p_ui32) t_total = *p_ui32;
+    else return UNSURE;
+    TRACE fprintf(stderr, "documents (emails trained): %d\n", n_total);
+    TRACE fprintf(stderr, "vocabulary (total distinct terms): %d\n", t_total);
 
     for (class = classes; class->code; ++class) {
         skiplist_iterator si;
 
         TRACE fprintf(stderr, "class %s (%d)\n", class->name, class->code);
-        for (i = 0; i < nc; i += 2)
-            if (epc[i] == class->code) {
-                n_class = epc[i + 1];
-                break;
-            }
-        /* what happens if this class isn't in emails per class? redesign so it
-         * can't happen */
-        assert(i < nc);
-        TRACE fprintf(stderr, "emails in class %s: %d\n", class->name, n_class);
-        TRACE fprintf(stderr, "prior(%s): %f\n", class->name, (double)n_class / n_total);
-        score[class->code] = log((double)n_class / n_total);
+        TRACE fprintf(stderr, "emails in class %s: %d\n",
+                class->name, class->docs);
+        TRACE fprintf(stderr, "prior(%s): %f\n",
+                class->name, (double)class->docs / n_total);
+        score[class->code] = log((double)class->docs / (double)n_total);
 
-        for (i = 0; i < nt; i += 2) {
-            if (tpc[i] == class->code) {
-                t_class = tpc[i + 1];
-                break;
-            }
-        }
-        TRACE fprintf(stderr, "t_%s = %d, t_total = %d\n", class->name, t_class, t_total);
-        /* what happens if this class isn't in terms per class? redesign so it
-         * can't happen */
-        assert(i < nt);
-        TRACE fprintf(stderr, "terms in class %s: %d\n", class->name, t_class);
+        TRACE fprintf(stderr, "t_%s = %d, t_total = %d\n",
+                class->name, class->terms, t_total);
+        TRACE fprintf(stderr, "terms in class %s: %d\n", class->name, class->terms);
         for (si = skiplist_itr_first(tokens); si;
                 si = skiplist_itr_next(tokens, si)) {
             double p;
@@ -70,11 +60,6 @@ uint8_t *bayes(skiplist tokens) {
             occurs = *(int *)skiplist_itr_value(tokens, si);
             TRACE fprintf(stderr, "term %.*s occurs %d times\n",
                     (int)t_len, t, occurs);
-            for (i = 0; i < nc; i += 2)
-                if (epc[i] == class->code) {
-                    n_class = epc[i + 1];
-                    break;
-                }
             cnts = db_get_intlist(t, t_len, &ncnts);
             if (!cnts) continue; /* not in training vocabulary */
             Tct = 0;
@@ -84,7 +69,7 @@ uint8_t *bayes(skiplist tokens) {
                     break;
                 }
             TRACE fprintf(stderr, "Tct = %d\n", Tct);
-            p = (Tct + 1.) / (t_class + t_total);
+            p = (Tct + 1.) / (class->terms + t_total);
             TRACE fprintf(stderr, "condprob[%s][%.*s] = %g\n",
                     class->name, (int)t_len, t, p);
             score[class->code] += occurs * log(p);
@@ -93,7 +78,8 @@ uint8_t *bayes(skiplist tokens) {
     }
 
     for (class = classes; class->code; ++class) {
-        TRACE fprintf(stderr, "score(%s): %f\n", class->name, score[class->code]);
+        TRACE fprintf(stderr, "score(%s): %f\n",
+                class->name, score[class->code]);
         if (score[class->code] < minprob) {
             minprob = score[class->code];
         }
@@ -104,7 +90,7 @@ uint8_t *bayes(skiplist tokens) {
     }
     TRACE fprintf(stderr, "logprob range: %f\n", maxprob - minprob);
     if (maxprob - minprob < 3.)
-        return (uint8_t *)"UNSURE";
+        return UNSURE;
 
     return maxclass;
 }

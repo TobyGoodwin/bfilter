@@ -33,7 +33,7 @@ bfilter: $(OBJS) depend
 test/icook: test/cook/cook.o cook.o line.o
 	$(CC) $(LDFLAGS) -o $@ $^ $(LDLIBS)
 
-test/ipass: test/pass/pass.o cook.o fdump.o line.o read.o util.o
+test/ipass: test/pass/pass.o cook.o fdump.o line.o read.o util.o utf8.o
 	$(CC) $(LDFLAGS) -o $@ $^ $(LDLIBS)
 
 test/iread: test/read/read.o cook.o line.o read.o utf8.o util.o
