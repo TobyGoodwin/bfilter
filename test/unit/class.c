@@ -3,8 +3,8 @@ depends test/uclass
 export BFILTER_DB=$(mktemp)
 echo $BFILTER_DB
 mcheck 'foo:1-4-1,bar:2-5-4,baz:3-6-9,quux:4-7-16,' foo bar baz quux
-mcheck ''
-mcheck 'foo:1-4-1,:2-5-4,baz:3-6-9,quux:4-7-16,' foo '' baz quux
+mcheck 'foo:1-4-1,bar:2-5-4,baz:3-6-9,quux:4-7-16,'
+mcheck 'foo:3-6-9,bar:2-5-4,baz:3-6-9,quux:4-7-16,red:1-4-1,:2-5-4,' red '' foo
 */
 
 #include <stdint.h>
@@ -16,21 +16,19 @@ mcheck 'foo:1-4-1,:2-5-4,baz:3-6-9,quux:4-7-16,' foo '' baz quux
 
 int main(int argc, char **argv) {
     int i;
-    struct class *cs = xmalloc(10 * sizeof(*cs));
-    struct class *r;
-
-    for (i = 1; i < argc; ++i) {
-        cs[i - 1].name = (uint8_t *)argv[i];
-        cs[i - 1].code = i;
-        cs[i - 1].docs = i + 3;
-        cs[i - 1].terms = i * i;
-    }
-    cs[i - 1].code = 0;
+    struct class *c, *cs;
 
     if (!db_open()) return 1;
-    class_store(cs);
+    for (i = 1; i < argc; ++i) {
+        cs = class_fetch();
+        c = class_lookup(cs, argv[i]);
+        c->code = i;
+        c->docs = i + 3;
+        c->terms = i * i;
+        class_store(cs);
+    }
 
-    for (r = class_fetch(); r->code; ++r)
-        printf("%s:%d-%d-%d,", r->name, r->code, r->docs, r->terms);
+    for (c = class_fetch(); c->code; ++c)
+        printf("%s:%d-%d-%d,", c->name, c->code, c->docs, c->terms);
     printf("\n");
 }

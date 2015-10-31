@@ -40,11 +40,16 @@ struct class *class_fetch(void) {
     } else
         csa = csn = 0;
         
-    /* add a sentinel */
+    /* add two sentinels */
     if (csn == csa)
-        cs = xrealloc(cs, ++csa * sizeof *cs);
+        cs = xrealloc(cs, (csa += 2) * sizeof *cs);
+
     cs[csn].name = 0;
-    cs[csn].code = 0;
+    cs[csn].code = cs[csn].docs = cs[csn].terms = 0;
+
+    ++csn;
+    cs[csn].name = 0;
+    cs[csn].code = cs[csn].docs = cs[csn].terms = 0;
 
     return cs;
 }
@@ -74,6 +79,9 @@ _Bool class_store(struct class *cs) {
             (uint8_t *)CLASSES_KEY, sizeof(CLASSES_KEY) - 1, csl.x, csl.l);
 }
 
+/* warning: overwrites the first sentinel inserted by class_lookup: you
+ * can only call class_lookup() once between class_fetch() and
+ * class_store() */
 struct class *class_lookup(struct class *cs, char *c) {
     int m, n;
     struct class *cp;
@@ -86,15 +94,7 @@ struct class *class_lookup(struct class *cs, char *c) {
         if (cp->code > m) m = cp->code;
     }
 
-    /* not found? create a new class */
-    cp = xmalloc((n + 2) * sizeof *cp);
-    memcpy(cp, cs, n * sizeof *cp);
-    ++m;
-    cp[n].name = (uint8_t *)c;
-    cp[n].code = m;
-    ++n;
-    cp[n].name = 0; /* sentinel */
-    cp[n].code = cp[n].docs = cp[n].terms = 0;
-
-    return cp + n;
+    cp->name = (uint8_t *)c;
+    cp->code = m + 1;
+    return cp;
 }

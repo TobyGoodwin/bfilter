@@ -23,6 +23,14 @@ like ``55`` and ``179``.
 However, I need to actually get the thing working again before I can do
 that...
 
+Ah. Hmm. The classes interface is unpleasant. The problem is that
+``class_lookup()`` may need to add a new class, which means changing the
+list of classes. So it needs an interface like ``struct class
+*class_lookup(struct class **classes)``. The other alternative I can see
+is for ``class_fetch()`` to always ensure that there are *two*
+sentinels, so we can use one for our new class. That's actually less
+code...
+
 2015-10-27
 ==========
 
