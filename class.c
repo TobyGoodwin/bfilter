@@ -41,7 +41,7 @@ struct class *class_fetch(void) {
         csa = csn = 0;
         
     /* add two sentinels */
-    if (csn == csa)
+    if (csn + 1 >= csa)
         cs = xrealloc(cs, (csa += 2) * sizeof *cs);
 
     cs[csn].name = 0;

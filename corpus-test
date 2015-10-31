@@ -18,6 +18,7 @@ if [ ! -x $bf ]; then
 fi
 
 export BFILTER_DB=$(mktemp)
+echo $BFILTER_DB
 
 cd $corpus/spam
 nspam=$(ls | wc -l)
@@ -34,6 +35,7 @@ mham=$(echo $nham / $ntrain | bc)
 
 for m in $(ls | awk "NR % $mham == 0 { print }"); do
     echo $m
+    #if [ $m = '1404241811.531.hydrogen.mv6.co.uk' ]; then exit 1; fi
     $bf isreal < $m
 done
 

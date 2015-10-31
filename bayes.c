@@ -11,7 +11,7 @@
 #include "db.h"
 #include "settings.h"
 
-#define TRACE if (1)
+#define TRACE if (0)
 #define UNSURE ((uint8_t *)"UNSURE")
 
 uint8_t *bayes(skiplist tokens) {

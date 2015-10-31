@@ -31,6 +31,10 @@ is for ``class_fetch()`` to always ensure that there are *two*
 sentinels, so we can use one for our new class. That's actually less
 code...
 
+Bleargh, horrid memory bug. Now fixed. Looks like some of the tokens
+we're generating are still bogus, but at least we're running the
+corpus-test to completion again.
+
 2015-10-27
 ==========
 
