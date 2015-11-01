@@ -26,7 +26,9 @@ uint8_t *bayes(skiplist tokens) {
     classes = class_fetch();
     if (classes->code == 0)
         return UNSURE;
-    /* XXX */
+    p_ui32 = db_hash_fetch_uint32((uint8_t *)EMAILS_KEY, sizeof EMAILS_KEY - 1);
+    if (p_ui32) n_total = *p_ui32;
+    else return UNSURE;
     n_total = *db_hash_fetch((uint8_t *)EMAILS_KEY, sizeof EMAILS_KEY - 1, &nc);
     p_ui32 = db_hash_fetch_uint32((uint8_t *)VOCAB_KEY, sizeof VOCAB_KEY - 1);
     if (p_ui32) t_total = *p_ui32;
@@ -46,7 +48,8 @@ uint8_t *bayes(skiplist tokens) {
 
         TRACE fprintf(stderr, "t_%s = %d, t_total = %d\n",
                 class->name, class->terms, t_total);
-        TRACE fprintf(stderr, "terms in class %s: %d\n", class->name, class->terms);
+        TRACE fprintf(stderr, "terms in class %s: %d\n",
+                class->name, class->terms);
         for (si = skiplist_itr_first(tokens); si;
                 si = skiplist_itr_next(tokens, si)) {
             double p;
@@ -74,9 +77,11 @@ uint8_t *bayes(skiplist tokens) {
                     class->name, (int)t_len, t, p);
             score[class->code] += occurs * log(p);
         }
-
     }
 
+    /* check the range of logprobs, and return UNSURE if it is too small (XXX
+     * would it be better just to compare the distance between the winner and
+     * the runner up?) */
     for (class = classes; class->code; ++class) {
         TRACE fprintf(stderr, "score(%s): %f\n",
                 class->name, score[class->code]);
@@ -89,7 +94,7 @@ uint8_t *bayes(skiplist tokens) {
         }
     }
     TRACE fprintf(stderr, "logprob range: %f\n", maxprob - minprob);
-    if (maxprob - minprob < 3.)
+    if (maxprob - minprob < UNSURE_LOG_RANGE)
         return UNSURE;
 
     return maxclass;

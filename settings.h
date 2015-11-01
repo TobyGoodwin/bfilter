@@ -16,12 +16,7 @@ unsigned int max_tokens;
  * Largest term we consider. */
 #define MAX_TERM_LEN    32
 
-/* SIGNIFICANT_TERMS
- * Once we have collected terms, we order them by significance. Only the
- * first few most significant terms are used to calculate the
- * probability for a message. */
-#define SIGNIFICANT_TERMS 23
-
-/* SPAM_THRESHOLD
- * If p > SPAM_THRESHOLD, label this message as spam. */
-#define SPAM_THRESHOLD 0.9
+/* UNSURE_LOG_RANGE
+ * if the range of log probabilities is smaller than this double, classify as
+ * UNSURE */
+#define UNSURE_LOG_RANGE 3.
