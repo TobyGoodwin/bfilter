@@ -7,8 +7,6 @@
  *
  */
 
-static const char rcsid[] = "$Id: db.c,v 1.7 2005/06/07 16:42:04 chris Exp $";
-
 #include <sys/types.h>
 
 #include <errno.h>
@@ -29,6 +27,15 @@ static const char rcsid[] = "$Id: db.c,v 1.7 2005/06/07 16:42:04 chris Exp $";
 #include "class.h"
 #include "line.h"
 #include "util.h"
+
+/* These macros are ugly, but not as ugly as the #ifdef shenanigans to portably
+ * include <endian.h> (Linux) or <sys/endian.h> (some of *BSD). Because
+ * balkanization makes everything better for everyone! No, wait, the other
+ * thing... :-( */
+#define htonll(x) ((1==htonl(1)) ? (x) : \
+        ((uint64_t)htonl((x) & 0xFFFFFFFF) << 32) | htonl((x) >> 32))
+#define ntohll(x) ((1==ntohl(1)) ? (x) : \
+        ((uint64_t)ntohl((x) & 0xFFFFFFFF) << 32) | ntohl((x) >> 32))
 
 static TDB_CONTEXT *filterdb;
 static size_t dbsize;
