@@ -1,3 +1,28 @@
+2015-11-01
+==========
+
+Inspiration! Make bfilter use scaffold.
+
+Here we currently are::
+
+    ham: 99.30% correct, .40% unsure; spam: 47.80% correct, 11.80% unsure
+    -rw-------. 1 toby toby 561152 Nov  1 22:33 /tmp/tmp.ECWZEcQb5H
+    9.53user 4.98system 0:14.36elapsed 101%CPU (4516maxresident)k
+
+What happens if we reject 2-character tokens? This::
+
+    ham: 99.30% correct, .40% unsure; spam: 47.80% correct, 11.80% unsure
+    -rw-------. 1 toby toby 561152 Nov  1 22:34 /tmp/tmp.zAf01i273R
+    9.39user 5.06system 0:14.29elapsed 101%CPU (4364maxresident)k
+
+So that's fine. And what about rejecting tokens that are all digits? ::
+
+    ham: 99.20% correct, .50% unsure; spam: 48.60% correct, 12.20% unsure
+    -rw-------. 1 toby toby 606208 Nov  2 19:40 /tmp/tmp.Hb9fEBX3Lq
+    9.51user 5.56system 0:15.36elapsed 98%CPU (4604maxresident)k
+
+Wow. That deserves an A/B test.
+
 2015-10-29
 ==========
 

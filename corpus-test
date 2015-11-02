@@ -51,6 +51,7 @@ echo wrong $wrong
 unsure=$(grep -c UNSURE $out)
 echo unsure $unsure
 pspam=$(echo "scale=2; $right * 100 / ($right + $wrong + $unsure)" | bc)
+pspamu=$(echo "scale=2; $unsure * 100 / ($right + $wrong + $unsure)" | bc)
 rm $out
 
 cd $corpus/ham
@@ -65,8 +66,9 @@ echo wrong $wrong
 unsure=$(grep -c UNSURE $out)
 echo unsure $unsure
 pham=$(echo "scale=2; $right * 100 / ($right + $wrong + $unsure)" | bc)
+phamu=$(echo "scale=2; $unsure * 100 / ($right + $wrong + $unsure)" | bc)
 rm $out
 
 echo
-echo "ham: $pham% correct, spam: $pspam% correct"
+echo "ham: $pham% correct, $phamu% unsure; spam: $pspam% correct, $pspamu% unsure"
 ls -l $BFILTER_DB

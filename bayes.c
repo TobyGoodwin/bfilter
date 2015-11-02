@@ -61,8 +61,6 @@ uint8_t *bayes(skiplist tokens) {
 
             t = skiplist_itr_key(tokens, si, &t_len);
             occurs = *(int *)skiplist_itr_value(tokens, si);
-            TRACE fprintf(stderr, "term %.*s occurs %d times\n",
-                    (int)t_len, t, occurs);
             cnts = db_get_intlist(t, t_len, &ncnts);
             if (!cnts) continue; /* not in training vocabulary */
             Tct = 0;
@@ -99,6 +97,3 @@ uint8_t *bayes(skiplist tokens) {
 
     return maxclass;
 }
-
-
-

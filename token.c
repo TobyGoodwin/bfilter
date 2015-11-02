@@ -12,6 +12,8 @@
 #include "util.h"
 
 void token_submit(uint8_t *t, size_t l) {
+    _Bool all_digits;
+    int i;
     /* XXX probably want to move this test higher, as there's no point
      * continuing to tokenize if we've reached the limit. */
 #if 0
@@ -22,12 +24,23 @@ void token_submit(uint8_t *t, size_t l) {
     if (l < 2)
         return;
 
-    if (strncmp((const char *)t, "--", 2) == 0)
+    if (t[0] == '-' && t[1] == '-')
         return; /* probably a MIME separator */
 
     /* Reject long terms */
     if (l > MAX_TERM_LEN)
         return;
+
+    all_digits = 1;
+    for (i = 0; i < l; ++i)
+        if (t[i] < '0' || t[i] > '9') {
+            all_digits = 0;
+            break;
+        }
+    if (all_digits) {
+        fprintf(stderr, "rejecting %.*s\n", l, t);
+        return;
+    }
 
     compose(t, l);
 }

@@ -136,13 +136,12 @@ static void token_list_dump(skiplist s) {
     skiplist_iterator x;
 
     for (x = skiplist_itr_first(s); x; x =skiplist_itr_next(s, x)) {
-        char *k;
-        int n;
-        size_t l;
+        size_t k_sz;
+        uint8_t *k;
 
-        k = (char *)skiplist_itr_key(s, x, &l);
-        n = *(int *)skiplist_itr_value(s, x);
-        printf("%.*s => %d\n", (int)l, k, n);
+        k = skiplist_itr_key(s, x, &k_sz);
+        fprintf(stderr, "%.*s (%d occurrences)\n", (int)k_sz, k,
+                *(int *)skiplist_itr_value(s, x));
     }
 }
 
