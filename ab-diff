@@ -8,8 +8,8 @@ fi
 a=$(mktemp)
 b=$(mktemp)
 
-BFILTER_DB=/tmp/a-db /home/toby/hck/bfilter/bfilter-a -D$1 test < $2 > $a
-BFILTER_DB=/tmp/b-db /home/toby/hck/bfilter/bfilter-b -D$1 test < $2 > $b
+BFILTER_DB=/tmp/a-db /home/toby/hck/bfilter/bfilter-a -D$1 test < $2 > $a 2>&1
+BFILTER_DB=/tmp/b-db /home/toby/hck/bfilter/bfilter-b -D$1 test < $2 > $b 2>&1
 
 diff -u $a $b | less
 

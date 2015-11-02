@@ -15,13 +15,23 @@ What happens if we reject 2-character tokens? This::
     -rw-------. 1 toby toby 561152 Nov  1 22:34 /tmp/tmp.zAf01i273R
     9.39user 5.06system 0:14.29elapsed 101%CPU (4364maxresident)k
 
-So that's fine. And what about rejecting tokens that are all digits? ::
+So that's fine. And what about rejecting tokens that are all digits?
+(d5cc26c) ::
 
     ham: 99.20% correct, .50% unsure; spam: 48.60% correct, 12.20% unsure
     -rw-------. 1 toby toby 606208 Nov  2 19:40 /tmp/tmp.Hb9fEBX3Lq
     9.51user 5.56system 0:15.36elapsed 98%CPU (4604maxresident)k
 
-Wow. That deserves an A/B test.
+Wow. That's in the noise, but I think it deserves an A/B test. Except
+the A/B test is bust. Unfortunately we don't have any way to find the
+"most significant" changes any more (although that was largely illusory
+anyway).
+
+Hah! So one message was real and is now unsure: it was fromm 38 degrees,
+and the 10 occurrences of ``38`` presumably tipped the balance. On the
+spam side, changes are all positive except one. The only difference is
+some fragments of MIME separators: I don't really understand how they
+changed the situation, but it's just bad luck really.
 
 2015-10-29
 ==========
