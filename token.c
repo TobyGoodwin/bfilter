@@ -37,10 +37,8 @@ void token_submit(uint8_t *t, size_t l) {
             all_digits = 0;
             break;
         }
-    if (all_digits) {
-        fprintf(stderr, "rejecting %.*s\n", l, t);
+    if (all_digits)
         return;
-    }
 
     compose(t, l);
 }

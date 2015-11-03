@@ -3,14 +3,70 @@
 
 Still need to make some decisions.
 
-1. Should we include a database version? Yes, yes, oh yes.
+1. Should we include a database version?
 
-2. Should we use timestamps? Still really undecided.
+2. Should we use timestamps?
 
 3. Should we enable the history code? Or remove it? Or leave it in but
 with the default HISTORY_LEN of 1?
 
-For history, we could certainly try some tests. With history 1 ()::
+4. Should we reintroduce MAX_TOKENS in any form?
+
+5. Should we hash database keys?
+
+For point 1, yes yes, oh yes. We'll have, I guess, a ``__version__``
+key; it can use the ``uint32`` routines. Start it at 3, I suppose. (What
+do we do if it's not there? Do we need an ``init`` command to create
+it?)
+
+For 2, I'm not sure. Obviously timestamps have the potential to limit
+the database size. However, I rather like the fact that the database
+does not need to be written when testing a message, and it's obviously
+good news for performance. (Incidentally, leaving timestamps out
+obviates the argument for using tdb in the first place! I wonder if gdbm
+performs any better?)
+
+For 3, I'm skeptical that it's probabilisticly sound. Obviously to some
+extent it's winding back the independence assumption, but I have seen
+cases where a single phrase scored repeatedly and messed up the answer.
+The fact that we're now testing all tokens should help with that though.
+
+We could certainly try some tests. With history 1 (0d85ceb)::
+
+    ham: 99.20% correct, .50% unsure; spam: 48.60% correct, 12.20% unsure
+    -rw-------. 1 toby toby 606208 Nov  3 21:56 /tmp/tmp.c5BbewPlxV
+    9.49user 6.12system 0:27.45elapsed 56%CPU (4440maxresident)k
+
+And 2 (no commit, really, all I changed was HISTORY_LEN)::
+
+    ham: 99.40% correct, .20% unsure; spam: 58.70% correct, 7.40% unsure
+    -rw-------. 1 toby toby 2162688 Nov  3 22:04 /tmp/tmp.iyRRhXOgox
+    39.70user 7.54system 0:47.47elapsed 99%CPU (5560maxresident)k
+
+Oh, that's interesting. That's a very substantial increase in spam
+detection, although obviously we've paid the price in terms of time and
+space performance. What if we go higher? ::
+
+    ham: 99.20% correct, .50% unsure; spam: 61.90% correct, 9.40% unsure
+    -rw-------. 1 toby toby 5283840 Nov  3 22:07 /tmp/tmp.dLXGTBW4WX
+    164.58user 10.08system 2:54.80elapsed 99%CPU (8092maxresident)k
+
+OK, and what about 4? ::
+
+    ham: 99.00% correct, .60% unsure; spam: 65.20% correct, 7.60% unsure
+    -rw-------. 1 toby toby 8261632 Nov  3 22:11 /tmp/tmp.YTrgjEU5yj
+    476.38user 14.23system 8:11.69elapsed 99%CPU (11148maxresident)k
+
+Well. On this input, it does appear that 2 gives a useful improvement at
+an acceptable price. I'm not sure it's worth going higher. So the code
+stays.
+
+Question 4, MAX_TOKENS. I can't see any reason for it. I suppose I
+should just check that we don't have disastrous performance with a huge
+message, but I really think we should be about linear.
+
+Question 5, hashing keys. I can see 2 possible arguments for hashing:
+privacy, and space.
 
 2015-11-01
 ==========

@@ -2,7 +2,7 @@
  * The number of tokens we may amalgamate into a single term. You can
  * tweak this; larger numbers use more database space, but should give
  * more accurate discrimination of spam and nonspam. */
-#define HISTORY_LEN     1
+#define HISTORY_LEN     4
 
 /* MAX_TOKENS
  * Largest number of tokens we generate from a single mail, when

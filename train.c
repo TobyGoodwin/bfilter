@@ -37,7 +37,7 @@
 #include "train.h"
 #include "util.h"
 
-#define TRACE if (1)
+#define TRACE if (0)
 
 _Bool train_read(void) {
     do {
