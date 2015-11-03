@@ -1,3 +1,17 @@
+2015-11-03
+==========
+
+Still need to make some decisions.
+
+1. Should we include a database version? Yes, yes, oh yes.
+
+2. Should we use timestamps? Still really undecided.
+
+3. Should we enable the history code? Or remove it? Or leave it in but
+with the default HISTORY_LEN of 1?
+
+For history, we could certainly try some tests. With history 1 ()::
+
 2015-11-01
 ==========
 
@@ -27,7 +41,7 @@ the A/B test is bust. Unfortunately we don't have any way to find the
 "most significant" changes any more (although that was largely illusory
 anyway).
 
-Hah! So one message was real and is now unsure: it was fromm 38 degrees,
+Hah! So one message was real and is now unsure: it was from 38 degrees,
 and the 10 occurrences of ``38`` presumably tipped the balance. On the
 spam side, changes are all positive except one. The only difference is
 some fragments of MIME separators: I don't really understand how they
@@ -1671,3 +1685,5 @@ annotating the inner parts of multipart MIME messages. Which:
 First item on the todo list will be to add a "whole message" flag. I
 never want to treat the input as an mbox, although I don't suppose I
 should remove that functionality.
+
+vim:set tw=72 nocindent:
