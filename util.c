@@ -1,13 +1,26 @@
 /*
- * util.c:
- * Useful functions.
- *
- * Copyright (c) 2003 Chris Lightfoot. All rights reserved.
- * Email: chris@ex-parrot.com; WWW: http://www.ex-parrot.com/~chris/
- *
- */
 
-static const char rcsid[] = "$Id: util.c,v 1.1 2003/01/16 10:45:28 chris Exp $";
+    Copyright (c) 2003 Chris Lightfoot. All rights reserved.
+    Copyright (c) 2015 Toby Goodwin.
+    toby@paccrat.org
+    https://github.com/TobyGoodwin/bfilter
+
+    This file is part of bfilter.
+
+    Bfilter is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Bfilter is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with bfilter.  If not, see <http://www.gnu.org/licenses/>.
+
+*/
 
 /* for strdup() */
 #define _DEFAULT_SOURCE 1
@@ -20,6 +33,7 @@ static const char rcsid[] = "$Id: util.c,v 1.1 2003/01/16 10:45:28 chris Exp $";
 #include <string.h>
 #include <unistd.h>
 
+#include "error.h"
 #include "util.h"
 
 /* xmalloc:
@@ -27,7 +41,7 @@ static const char rcsid[] = "$Id: util.c,v 1.1 2003/01/16 10:45:28 chris Exp $";
 void *xmalloc(size_t n) {
     void *v;
     v = malloc(n);
-    if (!v) abort();
+    if (!v) nomem();
     return v;
 }
 
@@ -36,7 +50,7 @@ void *xmalloc(size_t n) {
 void *xcalloc(size_t n, size_t m) {
     void *v;
     v = calloc(n, m);
-    if (!v) abort();
+    if (!v) nomem();
     return v;
 }
 
@@ -45,7 +59,7 @@ void *xcalloc(size_t n, size_t m) {
 void *xrealloc(void *w, size_t n) {
     void *v;
     v = realloc(w, n);
-    if (n != 0 && !v) abort();
+    if (n != 0 && !v) nomem();
     return v;
 }
 
@@ -54,7 +68,7 @@ void *xrealloc(void *w, size_t n) {
 char *xstrdup(const char *s) {
     char *t;
     t = strdup(s);
-    if (!t) abort();
+    if (!t) nomem();
     return t;
 }
 
@@ -99,4 +113,3 @@ const uint8_t *memstr(const uint8_t *haystack, const size_t hlen,
 
     return NULL;
 }
-
