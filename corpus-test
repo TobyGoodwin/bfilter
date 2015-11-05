@@ -17,7 +17,7 @@ if [ ! -x $bf ]; then
     exit 1
 fi
 
-export BFILTER_DB=$(mktemp)
+export BFILTER_DB=$(mktemp -u)
 echo $BFILTER_DB
 
 cd $corpus/spam

@@ -38,11 +38,14 @@ _Bool db_hash_store(uint8_t *k, size_t k_sz, uint8_t *d, size_t d_sz);
 uint32_t *db_hash_fetch_uint32(uint8_t *k, size_t k_sz);
 _Bool db_hash_store_uint32(uint8_t *k, size_t k_sz, uint32_t d);
 
-void db_set_pair(const char *name, int a, int b);
+#if 0
+void db_set_pair(const char *name, unsint a, int b);
 int db_get_pair(const char *name, int *a, int *b);
-void db_set_intlist(const uint8_t *, size_t, uint32_t *, int);
-uint32_t *db_get_intlist(const uint8_t *, size_t, int *);
-unsigned int db_clean(int ndays);
+#endif
+
+void db_set_intlist(const uint8_t *, size_t, uint32_t *, unsigned int);
+uint32_t *db_get_intlist(const uint8_t *, size_t, unsigned int *);
+void db_clean(int ndays);
 void db_print_stats(void);
 
 #endif /* __DB_H_ */

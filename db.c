@@ -25,7 +25,10 @@
 #include <sys/stat.h>
 
 #include "class.h"
+#include "db.h"
+#include "error.h"
 #include "line.h"
+#include "settings.h"
 #include "util.h"
 
 /* These macros are ugly, but not as ugly as the #ifdef shenanigans to portably
@@ -65,14 +68,31 @@ static char *dbfilename(const char *suffix) {
                 return 0;
             home = P->pw_dir;
         }
-        name = xmalloc(strlen(home) + 10);
-        sprintf(name, "%s/.bfildb2", home);
+        name = xmalloc(strlen(home) + strlen(DATABASE_NAME) + 2);
+        sprintf(name, "%s/%s", home, DATABASE_NAME);
     }
     if (suffix) {
         name = xrealloc(name, strlen(name) + strlen(suffix) + 1);
         strcat(name, suffix);
     }
     return name;
+}
+
+#define VERSION_KEY "--version--"
+#define VERSION 3
+#define MIN_VERSION 3
+
+void db_init(void) {
+    if (!db_hash_store_uint32(VERSION_KEY, sizeof VERSION_KEY - 1, VERSION))
+        fatal1x("cannot write version key");
+}
+
+_Bool db_check_version(void) {
+    uint32_t *v;
+
+    v = db_hash_fetch_uint32(VERSION_KEY, sizeof VERSION_KEY - 1);
+    if (!v || *v < MIN_VERSION || *v > VERSION)
+        fatal1("bad database version");
 }
 
 /* db_open
@@ -85,8 +105,17 @@ int db_open(void) {
 
     name = dbfilename(NULL);
 
-    if (!(filterdb = tdb_open(name, 0, 0, O_CREAT | O_RDWR, 0666)))
-        fprintf(stderr, "bfilter: %s: %s\n", name, strerror(errno));
+    filterdb = tdb_open(name, 0, 0, O_RDWR, 0600);
+    if (!filterdb && errno == ENOENT) {
+        filterdb = tdb_open(name, 0, 0, O_CREAT | O_RDWR, 0600);
+        if (filterdb)
+            db_init();
+    }
+
+    if (!filterdb)
+        fatal3x("cannot open database `", name, "'");
+
+    db_check_version();
 
     if (0 == stat(name, &st))
         dbsize = st.st_size;
@@ -159,7 +188,8 @@ int db_get_pair(const char *name, unsigned int *a, unsigned int *b) {
 }
 
 /* store an integer list x of size n under key k of size k_sz */
-void db_set_intlist(uint8_t *k, size_t k_sz, uint32_t *x, unsigned int n) {
+void db_set_intlist(const uint8_t *k, size_t k_sz,
+        uint32_t *x, unsigned int n) {
     TDB_DATA key, d;
     unsigned char h[HASHLEN];
 
@@ -178,7 +208,7 @@ void db_set_intlist(uint8_t *k, size_t k_sz, uint32_t *x, unsigned int n) {
 }
 
 /* retrieve an integer list of size n from key k of size k_sz */
-uint32_t *db_get_intlist(uint8_t *k, size_t k_sz, unsigned int *n) {
+uint32_t *db_get_intlist(const uint8_t *k, size_t k_sz, unsigned int *n) {
     TDB_DATA key, d;
     unsigned char h[HASHLEN];
 

@@ -1,3 +1,21 @@
+2015-11-04
+==========
+
+Database version. The only way I can think of this working is to have an
+``init`` command that creates a database, empty except for the
+``--version--``. In ``db_open()``, we check that the key exists and has
+a known value, bailing if not.
+
+Wait a sec. If we're a bit more clever about how we open the database...
+start without ``O_CREAT`` - if that fails, then proceed as though for
+``init``. One (rather ugly) hitch with this scheme: you can no longer
+use ``mktemp`` to create the database (as then the first open succeeds,
+and it complains when we try to read the version). However, ``mktemp
+-u`` is fine.
+
+Let's start by assuming we're going to keep (or rather, reintroduce)
+timestamps.
+
 2015-11-03
 ==========
 
@@ -26,10 +44,11 @@ good news for performance. (Incidentally, leaving timestamps out
 obviates the argument for using tdb in the first place! I wonder if gdbm
 performs any better?)
 
-For 3, I'm skeptical that it's probabilisticly sound. Obviously to some
-extent it's winding back the independence assumption, but I have seen
-cases where a single phrase scored repeatedly and messed up the answer.
-The fact that we're now testing all tokens should help with that though.
+For 3, I'm skeptical that it's probabilistically sound. Obviously to
+some extent it's winding back the independence assumption, but I have
+seen cases where a single phrase scored repeatedly and messed up the
+answer. The fact that we're now testing all tokens should help with that
+though.
 
 We could certainly try some tests. With history 1 (0d85ceb)::
 

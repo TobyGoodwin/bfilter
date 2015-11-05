@@ -169,8 +169,8 @@ _Bool read_email(const _Bool fromline, FILE *in, FILE **tmp) {
      * save file. */
     while (1) {
         line_read(in, &x);
-        TRACE fprintf(stderr, "read %d (%.*s)\n", x.l,
-                x.l < 40 ? x.l - 1 : 40, x.x);
+        TRACE fprintf(stderr, "read %lu (%.*s)\n", x.l,
+                x.l < 40 ? (int)x.l - 1 : 40, x.x);
         nbytesrd += x.l;
         s_cur = transition(fromline, s_old, &x);
         TRACE fprintf(stderr, "state %d => %d\n", s_old, s_cur);
