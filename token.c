@@ -14,13 +14,7 @@
 void token_submit(uint8_t *t, size_t l) {
     _Bool all_digits;
     int i;
-    /* XXX probably want to move this test higher, as there's no point
-     * continuing to tokenize if we've reached the limit. */
-#if 0
-    if (ntokens_submitted > max_tokens) {
-        return;
-    }
-#endif
+
     if (l < 2)
         return;
 

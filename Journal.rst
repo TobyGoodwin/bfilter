@@ -1,3 +1,18 @@
+2015-11-05
+==========
+
+OK. Let's revisit this list.
+
+1. Database versions [DONE]
+
+2. Timestamps (undecided)
+
+3. History code (left in with default 2)
+
+4. MAX_TOKENS (needs excising properly)
+
+5. hashing keys (undecided)
+
 2015-11-04
 ==========
 

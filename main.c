@@ -67,8 +67,6 @@ char *flagD = 0;
 
 int run(enum mode mode, char *cclass);
 
-unsigned int max_tokens;
-
 /* main ARGC ARGV
  * Entry point. Usage:
  *
@@ -160,14 +158,12 @@ int run(enum mode mode, char *cclass) {
             break;
 
         case train:
-            max_tokens = MAX_TRAIN_TOKENS;
             if (!train_read())
                 return 1;
             break;
 
         case test:
         case annotate:
-            max_tokens = MAX_TEST_TOKENS;
             /* Read a single email. */
             errno = 0;
             if (!read_email(0, stdin, mode == annotate ? &tempfile : 0)) {

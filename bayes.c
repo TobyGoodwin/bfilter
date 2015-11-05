@@ -80,7 +80,7 @@ uint8_t *bayes(skiplist tokens) {
             uint8_t *t;
             size_t t_len;
             uint32_t *cnts;
-            int ncnts, Tct;
+            unsigned int ncnts, Tct;
             int occurs; /* number of occurences of this term in test text */
 
             t = skiplist_itr_key(tokens, si, &t_len);

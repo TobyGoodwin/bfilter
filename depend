@@ -18,4 +18,4 @@ token.o: token.c compose.h settings.h submit.h skiplist.h token.h util.h
 train.o: train.c bfilter.h skiplist.h count.h db.h class.h read.h \
  submit.h train.h util.h
 utf8.o: utf8.c utf8.h
-util.o: util.c util.h
+util.o: util.c error.h util.h

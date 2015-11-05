@@ -83,14 +83,15 @@ static char *dbfilename(const char *suffix) {
 #define MIN_VERSION 3
 
 void db_init(void) {
-    if (!db_hash_store_uint32(VERSION_KEY, sizeof VERSION_KEY - 1, VERSION))
+    if (!db_hash_store_uint32((uint8_t *)VERSION_KEY, sizeof VERSION_KEY - 1,
+                VERSION))
         fatal1x("cannot write version key");
 }
 
-_Bool db_check_version(void) {
+void db_check_version(void) {
     uint32_t *v;
 
-    v = db_hash_fetch_uint32(VERSION_KEY, sizeof VERSION_KEY - 1);
+    v = db_hash_fetch_uint32((uint8_t *)VERSION_KEY, sizeof VERSION_KEY - 1);
     if (!v || *v < MIN_VERSION || *v > VERSION)
         fatal1("bad database version");
 }
