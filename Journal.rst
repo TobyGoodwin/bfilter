@@ -9,9 +9,58 @@ OK. Let's revisit this list.
 
 3. History code (left in with default 2)
 
-4. MAX_TOKENS (needs excising properly)
+4. MAX_TOKENS (needs excising properly - DONE)
 
 5. hashing keys (undecided)
+
+So, I was discussing hashing (when bedtime came around). I can think of
+2 reasons why Oggie might have done this. The first is that, perhaps, it
+saves a bit of space. He does report average term length, which often is
+in the teens when HISTORY_LEN is 3, so using a mere 8 bytes per term is
+a modest win.
+
+I'm inclined to think the more significant factor was the privacy one.
+If the bfilter database is leaked, it's possible to divine quite a lot
+about the content of the emails that have been fed to it, possibly
+including identity of correspondents, and certainly an overview of
+topics. (With a long HISTORY_LEN, it's possible to reconstruct with some
+certainty at least some of the phrases that have appeared.)
+
+So those are the arguments I can think of in favour of hashing.
+
+The space argument I'm not very swayed by. The privacy concerns are very
+real, but obviously the machine running bfilter also has (or has had)
+the emails that contributed to the database! It is simply necessary to
+treat the database with the same respect as the mail spool.
+
+I have two arguments against. One is that I'm seriously worried about
+the possibility of collisions in a mere 64 bits. (It's also a concern
+that the hash function in use is MD5, which is considered "broken",
+although it's hard to think that a spammer would be in a position to
+exploit this.
+
+For the majority of keys in the database, a hash collision *might* alter
+the result. However, if there were a collision with one of the meta-keys
+(``--version--`` etc), it would destroy the database. The solution to
+this, of course, is to *not* hash those meta-keys (and ensure that they
+are a different length from any possible term hash). Anyway, it's some
+tedious analysis to make sure that everything is sound.
+
+The other thing to be said against hashing is that it makes it
+incredibly difficult to see what's going on. True, given a term we can
+see its scores. But we cannot answer any question about the collection
+of terms (such as, what is the most commonly occurring term? or, which
+terms are the most reliable indicator of spams?). This seems like a
+major loss.
+
+So, on the whole, I'm inclined to dispense with hashing.
+
+(There is always the option of a non-decision: make hashing a compile
+time configurable. And perhaps the right thing to do for the time being
+is not to excise the code.)
+
+And that leaves timestamps. No time to go into all my reasons, but I
+think they have to go.
 
 2015-11-04
 ==========
