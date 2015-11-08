@@ -32,8 +32,8 @@
  * if this was a new term */
 _Bool count_add(uint8_t *t, size_t t_sz, int c, int n) {
     _Bool gotit = 0;
-    int i, n_is;
     uint32_t *is, *x;
+    unsigned int i, n_is;
 
     is = db_get_intlist(t, t_sz, &n_is);
     if (!is || n_is % 2 != 0) {

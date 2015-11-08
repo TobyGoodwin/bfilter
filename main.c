@@ -109,10 +109,12 @@ next_arg:
                 mode = test;
             else if (strcmp(argv[arg], "annotate") == 0)
                 mode = annotate;
+#if 0
             else if (strcmp(argv[arg], "cleandb") == 0)
                 mode = cleandb;
             else if (strcmp(argv[arg], "stats") == 0)
                 mode = stats;
+#endif
             break;
 
         case 2:
@@ -202,11 +204,11 @@ int run(enum mode mode, char *cclass) {
 
         case cleandb:
             /* Copy recent data to new database, replace old one. */
-            db_clean(28);
+            //db_clean(28);
             break;
 
         case stats:
-            db_print_stats();
+            //db_print_stats();
             break;
 
         case error:

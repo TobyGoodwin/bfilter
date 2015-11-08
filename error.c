@@ -19,6 +19,12 @@ static void message6(const char *a, const char *b, const char *c,
     fprintf(stderr, "%s%s%s%s%s%s\n", a, b, c, d, e, f);
 }
 
+static void message8(const char *a, const char *b, const char *c,
+        const char *d, const char *e, const char *f,
+        const char *g, const char *h) {
+    fprintf(stderr, "%s%s%s%s%s%s%s%s\n", a, b, c, d, e, f, g, h);
+}
+
 static void message10(const char *a, const char *b, const char *c,
         const char *d, const char *e, const char *f, const char *g,
         const char *h, const char *i, const char *j) {
@@ -43,6 +49,13 @@ void fatal5(const char *a, const char *b, const char *c,
     exit(1);
 }
 
+void fatal7(const char *a, const char *b, const char *c,
+        const char *d, const char *e, const char *f,
+        const char *g) {
+    message8(fatal, a, b, c, d, e, f, g);
+    exit(1);
+}
+
 void fatal9(const char *a, const char *b, const char *c,
         const char *d, const char *e, const char *f,
         const char *g, const char *h, const char *i) {
@@ -56,6 +69,11 @@ void fatal1x(const char *a) {
 
 void fatal3x(const char *a, const char *b, const char *c) {
     fatal5(a, b, c, ": ", strerror(errno));
+}
+
+void fatal5x(const char *a, const char *b, const char *c,
+        const char *d, const char *e) {
+    fatal7(a, b, c, d, e, ": ", strerror(errno));
 }
 
 static const char *warning = "pacc: warning: ";

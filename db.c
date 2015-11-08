@@ -132,6 +132,7 @@ void db_close(void) {
     tdb_close(filterdb);
 }
 
+#if 0
 /* db_set_pair NAME A B
  * Save under NAME the pair A, B, also setting the timestamp. */
 void db_set_pair(const char *name, unsigned int a, unsigned int b) {
@@ -184,19 +185,20 @@ int db_get_pair(const char *name, unsigned int *a, unsigned int *b) {
         return 1;
     }
 }
+#endif
 
 /* store an integer list x of size n under key k of size k_sz */
 void db_set_intlist(const uint8_t *k, size_t k_sz,
         uint32_t *x, unsigned int n) {
     TDB_DATA key, d;
+#if 0
     unsigned char h[HASHLEN];
 
-#if 0
     make_hash(k, k_sz, h);
     key.dptr = h;
     key.dsize = HASHLEN;
 #endif
-    key.dptr = k;
+    key.dptr = (unsigned char *)k;
     key.dsize = k_sz;
 
     d.dptr = (void *)x;
@@ -208,14 +210,14 @@ void db_set_intlist(const uint8_t *k, size_t k_sz,
 /* retrieve an integer list of size n from key k of size k_sz */
 uint32_t *db_get_intlist(const uint8_t *k, size_t k_sz, unsigned int *n) {
     TDB_DATA key, d;
+#if 0
     unsigned char h[HASHLEN];
 
-#if 0
     make_hash(k, k_sz, h);
     key.dptr = h;
     key.dsize = HASHLEN;
 #endif
-    key.dptr = k;
+    key.dptr = (unsigned char *)k;
     key.dsize = k_sz;
 
     d = tdb_fetch(filterdb, key);
@@ -227,9 +229,9 @@ uint32_t *db_get_intlist(const uint8_t *k, size_t k_sz, unsigned int *n) {
 
 uint8_t *db_hash_fetch(uint8_t *k, size_t k_sz, size_t *d_sz) {
     TDB_DATA key, d;
+#if 0
     unsigned char h[HASHLEN];
 
-#if 0
     make_hash(k, k_sz, h);
     key.dptr = h;
     key.dsize = HASHLEN;
@@ -244,9 +246,9 @@ uint8_t *db_hash_fetch(uint8_t *k, size_t k_sz, size_t *d_sz) {
 
 _Bool db_hash_store(uint8_t *k, size_t k_sz, uint8_t *d, size_t d_sz) {
     TDB_DATA key, dat;
+#if 0
     unsigned char h[HASHLEN];
 
-#if 0
     make_hash(k, k_sz, h);
     key.dptr = h;
     key.dsize = HASHLEN;
@@ -265,7 +267,7 @@ uint32_t *db_hash_fetch_uint32(uint8_t *k, size_t k_sz) {
     size_t s;
     uint32_t *x;
     
-    x = db_hash_fetch(k, k_sz, &s);
+    x = (uint32_t *)db_hash_fetch(k, k_sz, &s);
     if (!x || s != sizeof *x)
         return 0;
     *x = ntohl(*x);
@@ -274,7 +276,7 @@ uint32_t *db_hash_fetch_uint32(uint8_t *k, size_t k_sz) {
 
 _Bool db_hash_store_uint32(uint8_t *k, size_t k_sz, uint32_t d) {
     d = htonl(d);
-    return db_hash_store(k, k_sz, &d, sizeof d);
+    return db_hash_store(k, k_sz, (uint8_t *)&d, sizeof d);
 }
 
 
@@ -343,6 +345,7 @@ void db_set_classes(struct class *cs) {
     tdb_store(filterdb, k, v, 0); /* XXX return value? */
 }
 
+#if 0
 struct cleanparam {
     TDB_CONTEXT *cp_db;
     time_t cp_maxage;
@@ -400,16 +403,13 @@ void db_clean(int ndays) {
     while (!c.cp_db) {
         char suffix[32];
         xfree(newname);
-        sprintf(suffix, ".new.%8u.%8u.%8u", (unsigned)rand(), (unsigned)rand(), (unsigned)time(NULL));
+        sprintf(suffix, ".new.%8u.%8u.%8u", (unsigned)rand(), (unsigned)rand(),
+                (unsigned)time(NULL));
         newname = dbfilename(suffix);
-        if (!(c.cp_db = tdb_open(newname, 0, 0, O_CREAT | O_RDWR | O_EXCL, 0666)) && errno != EEXIST) {
-            fprintf(stderr, "bfilter: %s: %s\n", newname, strerror(errno));
-            return;
-        }
+        c.cp_db = tdb_open(newname, 0, 0, O_CREAT | O_RDWR | O_EXCL, 0600);
+        if (!c.cp_db && errno != EEXIST)
+            fatal3x("cannot open temp database `", newname, "'");
     }
-
-    c.cp_maxage = ndays * 24 * 3600;
-    c.cp_ntotal = tdb_traverse(filterdb, NULL, NULL);
 
     tdb_traverse(filterdb, copy_items, &c);
     printf("\n");
@@ -417,15 +417,14 @@ void db_clean(int ndays) {
     tdb_close(c.cp_db);
     tdb_close(filterdb);
 
-    if (-1 == rename(newname, name)) {
-        fprintf(stderr, "bfilter: replace %s: %s\n", name, strerror(errno));
-    }
-    
+    if (rename(newname, name) == -1)
+        fatal5x("cannot rename `", newname, "' to `", name, "'");
+
     db_open();
 
     xfree(newname);
     xfree(name);
-    
+
     return;
 }
 
@@ -566,3 +565,4 @@ void db_print_stats(void) {
 
     printf("\n");
 }
+#endif

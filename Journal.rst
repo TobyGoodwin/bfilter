@@ -1,3 +1,17 @@
+2015-11-08
+==========
+
+I'm looking at reworking the ``cleandb`` command. Now that we no longer
+have timestamps, we can't discard least-recently used terms. The idea is
+instead to discard terms that have only appeared once - although
+imperfect, this should allow to clear up some bogons.
+
+However, it's all pretty messy. I think what I should *actually* do is
+disable ``cleandb`` (and ``stats``) at least for now. I think it's
+pretty crucial to start using ``bfilter`` in anger as soon as possible,
+and tweaks like this (which won't actually affect any decisions) can
+wait.
+
 2015-11-05
 ==========
 
