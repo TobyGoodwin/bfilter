@@ -24,6 +24,7 @@
 #include <sys/fcntl.h>
 #include <sys/stat.h>
 
+#include "bfilter.h"
 #include "class.h"
 #include "db.h"
 #include "error.h"
@@ -78,12 +79,8 @@ static char *dbfilename(const char *suffix) {
     return name;
 }
 
-#define VERSION_KEY "--version--"
-#define VERSION 3
-#define MIN_VERSION 3
-
 void db_init(void) {
-    if (!db_hash_store_uint32((uint8_t *)VERSION_KEY, sizeof VERSION_KEY - 1,
+    if (!db_hash_store_uint32((uint8_t *)KEY_VERSION, sizeof KEY_VERSION - 1,
                 VERSION))
         fatal1x("cannot write version key");
 }
@@ -91,7 +88,7 @@ void db_init(void) {
 void db_check_version(void) {
     uint32_t *v;
 
-    v = db_hash_fetch_uint32((uint8_t *)VERSION_KEY, sizeof VERSION_KEY - 1);
+    v = db_hash_fetch_uint32((uint8_t *)KEY_VERSION, sizeof KEY_VERSION - 1);
     if (!v || *v < MIN_VERSION || *v > VERSION)
         fatal1("bad database version");
 }
@@ -281,15 +278,13 @@ _Bool db_hash_store_uint32(uint8_t *k, size_t k_sz, uint32_t d) {
 }
 
 
-#define CLASSES_KEY ((uint8_t *)"__classes__")
-
 struct class *db_get_classes(void) {
     TDB_DATA k, v;
     uint8_t key[HASHLEN], *p;
     struct class *cs = 0;
     int csa = 0, csn = 0;
 
-    make_hash(CLASSES_KEY, sizeof(CLASSES_KEY) - 1, key);
+    make_hash((uint8_t *)KEY_CLASSES, sizeof KEY_CLASSES - 1, key);
     k.dptr = key;
     k.dsize = HASHLEN;
 
@@ -328,7 +323,7 @@ void db_set_classes(struct class *cs) {
     struct line csl = { 0 };
     uint8_t key[HASHLEN];
 
-    make_hash(CLASSES_KEY, sizeof(CLASSES_KEY) - 1, key);
+    make_hash((uint8_t *)KEY_CLASSES, sizeof KEY_CLASSES - 1, key);
     k.dptr = key;
     k.dsize = HASHLEN;
 

@@ -26,12 +26,11 @@
 #include <assert.h>
 #include <string.h>
 
+#include "bfilter.h"
 #include "class.h"
 #include "db.h"
 #include "line.h"
 #include "util.h"
-
-#define CLASSES_KEY "__classes__"
 
 struct class *class_fetch(void) {
     size_t x_sz;
@@ -39,7 +38,7 @@ struct class *class_fetch(void) {
     struct class *cs = 0;
     int csa = 0, csn = 0;
 
-    x = db_hash_fetch((uint8_t *)CLASSES_KEY, sizeof(CLASSES_KEY) - 1, &x_sz);
+    x = db_hash_fetch((uint8_t *)KEY_CLASSES, sizeof(KEY_CLASSES) - 1, &x_sz);
     if (x) {
         /* note that the cs array we build here contains pointers into the data
          * x returned from the database; tdb specifies that the caller is
@@ -100,7 +99,7 @@ _Bool class_store(struct class *cs) {
         }
     }
     return db_hash_store(
-            (uint8_t *)CLASSES_KEY, sizeof(CLASSES_KEY) - 1, csl.x, csl.l);
+            (uint8_t *)KEY_CLASSES, sizeof(KEY_CLASSES) - 1, csl.x, csl.l);
 }
 
 /* warning: overwrites the first sentinel inserted by class_lookup: you

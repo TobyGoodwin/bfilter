@@ -72,14 +72,14 @@ void train_update(char *cclass) {
 
     classes = class_fetch();
     tclass = class_lookup(classes, cclass);
-    pNdb = db_get_intlist((uint8_t *)EMAILS_KEY,
-            sizeof EMAILS_KEY - 1, &mustbe1);
+    pNdb = db_get_intlist((uint8_t *)KEY_DOCUMENTS,
+            sizeof KEY_DOCUMENTS - 1, &mustbe1);
     if (pNdb && mustbe1 == 1)
         Ndb = *pNdb;
     else
         Ndb = 0;
     Ndb += nemails;
-    db_hash_store((uint8_t *)EMAILS_KEY, sizeof EMAILS_KEY - 1,
+    db_hash_store((uint8_t *)KEY_DOCUMENTS, sizeof KEY_DOCUMENTS - 1,
             (void *)&Ndb, sizeof Ndb);
 
     tclass->docs += nemails;
@@ -112,12 +112,14 @@ if (0) fprintf(stderr, "term %.*s: %d\n", (int)kl, k, *p);
         fprintf(stderr, "Writing: %u / %u terms (%u new)\n",
                 ntermswr, nterms, ntermsnew);
     
-    pnvocab = db_hash_fetch_uint32((uint8_t *)VOCAB_KEY, sizeof VOCAB_KEY - 1);
+    pnvocab = db_hash_fetch_uint32((uint8_t *)KEY_VOCABULARY,
+            sizeof KEY_VOCABULARY - 1);
     if (pnvocab) nvocab = *pnvocab;
     else nvocab = 0;
     TRACE fprintf(stderr, "vocabulary was: %u\n", nvocab);
     nvocab += ntermsnew;
-    db_hash_store_uint32((uint8_t *)VOCAB_KEY, sizeof VOCAB_KEY - 1, nvocab);
+    db_hash_store_uint32((uint8_t *)KEY_VOCABULARY,
+            sizeof KEY_VOCABULARY - 1, nvocab);
 
     tclass->terms += ntermsall;
     class_store(classes);

@@ -59,8 +59,12 @@ So, on the whole, I'm inclined to dispense with hashing.
 time configurable. And perhaps the right thing to do for the time being
 is not to excise the code.)
 
-And that leaves timestamps. No time to go into all my reasons, but I
-think they have to go.
+And that leaves timestamps. I think they have to go. Mainly because
+performance. Now, it's sad that that leaves us with no way to shrink a
+database, but the cost is too high. Wait! How about recasting cleandb to
+remove any terms which have a count of 1? That will remove the vast
+majority of oddities, and should have little to no effect on
+classification. Let's see.
 
 2015-11-04
 ==========

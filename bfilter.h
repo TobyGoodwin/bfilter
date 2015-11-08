@@ -28,6 +28,16 @@
 
 enum mode { error, train, test, annotate, cleandb, stats } mode;
 
+/* Special keys */
+#define KEY_CLASSES "--classes--"
+#define KEY_DOCUMENTS "--documents--"
+#define KEY_VERSION "--version--"
+#define KEY_VOCABULARY "--vocabulary--"
+
+/* Current database version, and lowest version that this code can use */
+#define VERSION 3
+#define MIN_VERSION 3
+
 /* Global variables are bad, m'kay? */
 _Bool flagb;
 char *flagD;
