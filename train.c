@@ -66,21 +66,18 @@ void train_update(char *cclass) {
     struct class *classes, *tclass;
     uint32_t Ndb, *pNdb;
     uint32_t nvocab, *pnvocab;
-    int mustbe1;
     skiplist_iterator si;
     unsigned int nterms, ntermswr, ntermsnew, ntermsall;
 
     classes = class_fetch();
     tclass = class_lookup(classes, cclass);
-    pNdb = db_get_intlist((uint8_t *)KEY_DOCUMENTS,
-            sizeof KEY_DOCUMENTS - 1, &mustbe1);
-    if (pNdb && mustbe1 == 1)
-        Ndb = *pNdb;
-    else
-        Ndb = 0;
+    pNdb = db_hash_fetch_uint32((uint8_t *)KEY_DOCUMENTS,
+            sizeof KEY_DOCUMENTS - 1);
+    if (pNdb) Ndb = *pNdb;
+    else Ndb = 0;
     Ndb += nemails;
-    db_hash_store((uint8_t *)KEY_DOCUMENTS, sizeof KEY_DOCUMENTS - 1,
-            (void *)&Ndb, sizeof Ndb);
+    db_hash_store_uint32((uint8_t *)KEY_DOCUMENTS, sizeof KEY_DOCUMENTS - 1,
+            Ndb);
 
     tclass->docs += nemails;
 
