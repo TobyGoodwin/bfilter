@@ -33,44 +33,44 @@ bfilter: $(OBJS) depend
 test/icook: test/cook/cook.o cook.o line.o
 	$(CC) $(LDFLAGS) -o $@ $^ $(LDLIBS)
 
-test/ipass: test/pass/pass.o cook.o fdump.o line.o read.o util.o utf8.o
+test/ipass: test/pass/pass.o cook.o error.o fdump.o line.o read.o util.o utf8.o
 	$(CC) $(LDFLAGS) -o $@ $^ $(LDLIBS)
 
-test/iread: test/read/read.o cook.o line.o read.o utf8.o util.o
+test/iread: test/read/read.o cook.o error.o line.o read.o utf8.o util.o
 	$(CC) $(LDFLAGS) -o $@ $^ $(LDLIBS)
 
-test/itoken: test/token/main.o cook.o line.o read.o token.o utf8.o util.o
+test/itoken: test/token/main.o cook.o error.o line.o read.o token.o utf8.o util.o
 	$(CC) $(LDFLAGS) -o $@ $^ $(LDLIBS)
 
 # unit tests
 test/ubayes: test/unit/bayes.o bayes.o error.o line.o pool.o skiplist.o submit.o util.o
 	$(CC) $(LDFLAGS) -o $@ $^ $(LDLIBS)
 
-test/uclass: test/unit/class.o class.o db.o line.o util.o
+test/uclass: test/unit/class.o class.o db.o error.o line.o util.o
 	$(CC) $(LDFLAGS) -o $@ $^ $(LDLIBS)
 
-test/ucompose: test/unit/compose.o compose.o
+test/ucompose: test/unit/compose.o compose.o error.o
 	$(CC) $(LDFLAGS) -o $@ $^ $(LDLIBS)
 
-test/ucount: test/unit/count.o count.o db.o line.o util.o
+test/ucount: test/unit/count.o count.o db.o error.o line.o util.o
 	$(CC) $(LDFLAGS) -o $@ $^ $(LDLIBS)
 
-test/udb_intlist: test/unit/db_intlist.o db.o line.o util.o
+test/udb_intlist: test/unit/db_intlist.o db.o error.o line.o util.o
 	$(CC) $(LDFLAGS) -o $@ $^ $(LDLIBS)
 
-test/uline: test/unit/line.o line.o util.o
+test/uline: test/unit/line.o error.o line.o util.o
 	$(CC) $(LDFLAGS) -o $@ $^ $(LDLIBS)
 
-test/uskiplist0: test/unit/skiplist0.o pool.o skiplist.o util.o
+test/uskiplist0: test/unit/skiplist0.o error.o pool.o skiplist.o util.o
 	$(CC) $(LDFLAGS) -o $@ $^ $(LDLIBS)
 
-test/uskiplist1: test/unit/skiplist1.o pool.o skiplist.o util.o
+test/uskiplist1: test/unit/skiplist1.o error.o pool.o skiplist.o util.o
 	$(CC) $(LDFLAGS) -o $@ $^ $(LDLIBS)
 
-test/uskiplist: test/unit/skiplist.o pool.o skiplist.o util.o
+test/uskiplist: test/unit/skiplist.o error.o pool.o skiplist.o util.o
 	$(CC) $(LDFLAGS) -o $@ $^ $(LDLIBS)
 
-test/utoken: test/unit/token.o token.o util.o
+test/utoken: test/unit/token.o error.o token.o util.o
 	$(CC) $(LDFLAGS) -o $@ $^ $(LDLIBS)
 
 test/uutf8: test/unit/utf8.o utf8.o

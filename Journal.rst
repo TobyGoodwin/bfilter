@@ -15,6 +15,9 @@ document being tested is the first instance of the second class.
 first instance of a class we've not previously seen, but, errm, that
 leads to a spectacularly unuseful "classifier"!)
 
+OK, so that's ``unit/bayes.c`` doing something at least minimally
+useful.
+
 2015-11-08
 ==========
 
@@ -98,6 +101,8 @@ database, but the cost is too high. Wait! How about recasting cleandb to
 remove any terms which have a count of 1? That will remove the vast
 majority of oddities, and should have little to no effect on
 classification. Let's see.
+
+And with minor more tweaking, all tests pass! \o/
 
 2015-11-04
 ==========

@@ -1,6 +1,6 @@
 /*
 depends test/uclass
-export BFILTER_DB=$(mktemp)
+export BFILTER_DB=$(mktemp -u)
 echo $BFILTER_DB
 mcheck 'foo:1-4-1,bar:2-5-4,baz:3-6-9,quux:4-7-16,' foo bar baz quux
 mcheck 'foo:1-4-1,bar:2-5-4,baz:3-6-9,quux:4-7-16,'

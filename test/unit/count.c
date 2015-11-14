@@ -1,6 +1,6 @@
 /*
 depends test/ucount
-export BFILTER_DB=$(mktemp)
+export BFILTER_DB=$(mktemp -u)
 mcheck '3,1,' 3
 mcheck '3,2,' 3
 mcheck '3,2,5,2,' 5 5

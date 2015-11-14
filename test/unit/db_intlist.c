@@ -1,6 +1,6 @@
 /*
 depends test/udb_intlist
-export BFILTER_DB=$(mktemp)
+export BFILTER_DB=$(mktemp -u)
 mcheck '1,1,2,4,3,9,4,16,' a b c d
 */
 
