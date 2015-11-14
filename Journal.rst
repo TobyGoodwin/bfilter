@@ -1,3 +1,20 @@
+2015-11-13
+==========
+
+Finally getting round to writing unit tests for ``bayes.c``. Quite a lot
+of infrastructure is needed. Currently I have a working test for when no
+documents at all have been trained. :-)
+
+Now, suppose just one document (or, in general, documents of only one
+class) have been trained. What should ``bayes()`` answer? The options
+are ``UNSURE``, or the single class we've seen. And it should be
+``UNSURE``, as that means "train me". After all, it may well be that the
+document being tested is the first instance of the second class.
+
+(Of course, generalising that argument, *any* document could be the
+first instance of a class we've not previously seen, but, errm, that
+leads to a spectacularly unuseful "classifier"!)
+
 2015-11-08
 ==========
 
@@ -11,6 +28,8 @@ disable ``cleandb`` (and ``stats``) at least for now. I think it's
 pretty crucial to start using ``bfilter`` in anger as soon as possible,
 and tweaks like this (which won't actually affect any decisions) can
 wait.
+
+Let's fix the test suite.
 
 2015-11-05
 ==========

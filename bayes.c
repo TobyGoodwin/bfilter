@@ -47,6 +47,7 @@ uint8_t *bayes(skiplist tokens) {
     uint32_t *p_ui32, t_total;
    
     classes = class_fetch();
+    assert(classes);
     if (classes->code == 0)
         return UNSURE;
 
