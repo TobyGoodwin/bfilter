@@ -1,3 +1,39 @@
+2016-01-09
+==========
+
+A few days ago, I started using bfilter (the ``mnbc`` branch) in anger
+on my live email. It's early days, but I'm extremely pleased with it so
+far. I've now merged all that back into the ``master`` branch.
+
+There are several changes I want to make, and features to add. First,
+flare really wants some measure of confidence for the classification. It
+wants to display prominent training buttons if the confidence is low.
+
+Currently, we check the range of logprobs. If this is smaller than the
+compile-time constant ``UNSURE_LOG_RANGE``, the classification is
+``UNSURE``. The version I'm using has the range set to 3, and I don't
+think it's ever said ``UNSURE`` since the very first few trainings.
+
+So, what I'm thinking is: instead of all that, we always report the
+winning classification. On a second line (for ``test``), or in a comment
+(for ``annotate``) we report the log prob range (as an integer?). The
+invoking program is then free to decide what to do about it all. This
+also solves the dilemma for when only a single category has been
+trained: report it, with a range of 0.
+
+There are three other circumstances where ``UNSURE`` is currently used:
+if no categories at all have been trained, or no documents, or no
+vocabulary. As far as I can see the last two would represent database
+corruption, and should be errors (I should write tests that tries to
+exercise them).
+
+As for the first case, perhaps it should be something like ``no category
+defined`` (or ``NULL``?), with a range of 0, naturally.
+
+One could argue that reporting of the range should be optional,
+controlled by a flag. But since we have no users, let's keep the options
+down for now.
+
 2015-11-13
 ==========
 
