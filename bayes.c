@@ -38,7 +38,7 @@
 #define TRACE if (0)
 #define UNSURE ((uint8_t *)"UNSURE")
 
-uint8_t *bayes(skiplist tokens) {
+uint8_t *bayes(skiplist tokens, unsigned long *rangep) {
     struct class *class, *classes;
     int i, n_total;
     double score[20]; /* XXX */
@@ -105,9 +105,8 @@ uint8_t *bayes(skiplist tokens) {
         }
     }
 
-    /* check the range of logprobs, and return UNSURE if it is too small (XXX
-     * would it be better just to compare the distance between the winner and
-     * the runner up?) */
+    /* check the range of logprobs (XXX would it be better just to compare the
+     * distance between the winner and the runner up?) */
     for (class = classes; class->code; ++class) {
         TRACE fprintf(stderr, "score(%s): %f\n",
                 class->name, score[class->code]);
@@ -120,8 +119,9 @@ uint8_t *bayes(skiplist tokens) {
         }
     }
     TRACE fprintf(stderr, "logprob range: %f\n", maxprob - minprob);
-    if (maxprob - minprob < UNSURE_LOG_RANGE)
-        return UNSURE;
+
+    if (rangep)
+        *rangep = (unsigned long)(maxprob - minprob);
 
     return maxclass;
 }

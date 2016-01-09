@@ -25,4 +25,5 @@
 #include <stdint.h>
 #include "skiplist.h"
 
-uint8_t *bayes(skiplist);
+/* XXX better to use a struct return perhaps? */
+uint8_t *bayes(skiplist, unsigned long *);
