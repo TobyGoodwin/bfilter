@@ -1,3 +1,44 @@
+2016-01-10
+==========
+
+Before I get back to making ranges better, let me quickly jot down the
+other features I'm wanting to add:
+
+1. Some way to support multiple sources of classification. Specifically,
+   I want to use a honey pot that only gets spam to automatically train the
+   filter. Interface could be another environment variable, say
+   ``BFILTER_DBS_EXTRA``. Then we just wrap an extra database loop around
+   the classes loop. (Does that calculate the right thing? I *think* so.)
+
+2. I want to be able to **untrain** a message. This will be used when
+   the user changes their mind about a classification. It's easy enough to
+   do: same as training, but decrement the count for the given class
+   instead of incrementing. (What happens if the count is already 0, or the
+   term is not present? My initial thought was that we should abort, since
+   clearly we were mistaken in thinking that this message had been trained.
+   However, that makes things very fragile: if bfilter's tokenization
+   changes at all, there's no way to untrain a message. Also we don't have
+   a (sane) way to atomically rollback the changes already made. So a
+   second option is to carry on regardless. A third option that has just
+   occurred to me is to carry on regardless, but also add a **trained**
+   command, which basically tells you if the first option would abort or
+   not, which with high probability tells you if this message has been
+   trained or not. Then flare does not have to remember which messages have
+   been trained. (But the fragility argument still applies.))
+
+3. There should be to remove a category. Best idea I've had is to add a
+    **disable** command that marks a category as dormant: we then simply
+    skip testing for it, but don't forget any of the data. Obviously there's
+    a matchig **enable** command to wake it up again. Oh oh oh! If it's
+    possible to train to a dormant category, that might offer a nice way to
+    start training: create the General and Spam categories, but mark Spam as
+    dormant till a few messages have been trained. Perhaps. (But another way
+    to handle it is to start with a trained user database, or a add a basic
+    spam classifier to the multiple database.)
+
+Anyway. I don't like the way I did ranges, I want to try using a
+``struct`` return instead.
+
 2016-01-09
 ==========
 
