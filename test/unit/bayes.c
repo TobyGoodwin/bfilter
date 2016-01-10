@@ -44,16 +44,6 @@ struct class *class_fetch(void) {
     }
 }
 
-#if 0
-uint8_t *db_hash_fetch(uint8_t *k, size_t k_sz, size_t *d_sz) {
-    fprintf(stderr, "fetch: %.*s\n", (int)k_sz, k);
-    if (streq(k, "--classes--")) {
-        if (test == 1) return 0;
-    }
-    return 0;
-}
-#endif
-
 uint32_t t_spam[] = { 1, 5, 2, 0 };
 uint32_t t_ham[] = { 1, 0, 2, 5 };
 
@@ -81,45 +71,47 @@ uint32_t *db_hash_fetch_uint32(uint8_t *k, size_t k_sz) {
 }
 
 int main(void) {
-    uint8_t *p;
+    struct bayes_result p;
 
     printf("1..4\n");
 
-    // empty class list => UNSURE
+    // empty class list => UNKNOWN
     test = 1;
     token_list = skiplist_new(0);
     p = bayes(token_list);
-    if (!streq(p, "UNSURE")) printf("not ");
-    printf("ok 1 empty: %s\n", p);
+    if (!streq(p.category, "UNKNOWN") ||
+            floor(p.range) != 0) printf("not ");
+    printf("ok 1 empty: %s (%.1f)\n", p.category, p.range);
 
-    // single class list => UNSURE
+    // single class list => that class, but with 0 range
     test = 2;
     submit("spamword", 8);
     submit("spamword", 8);
     p = bayes(token_list);
-    if (!streq(p, "UNSURE")) printf("not ");
-    printf("ok 2 single class: %s\n", p);
+    if (!streq(p.category, "spam") ||
+            floor(p.range) != 0) printf("not ");
+    printf("ok 2 single class: %s (%.1f)\n", p.category, p.range);
 
     // two classes, spam message => spam
     test = 3;
     p = bayes(token_list);
-    if (!streq(p, "spam")) printf("not ");
-    printf("ok 3 spam: %s\n", p);
+    if (!streq(p.category, "spam")) printf("not ");
+    printf("ok 3 spam: %s (%.1f)\n", p.category, p.range);
 
     // ham message => ham
     token_list = skiplist_new(0);
     submit("hamword", 7);
     submit("hamword", 7);
     p = bayes(token_list);
-    if (!streq(p, "ham")) printf("not ");
-    printf("ok 4 ham: %s\n", p);
+    if (!streq(p.category, "ham")) printf("not ");
+    printf("ok 4 ham: %s (%.1f)\n", p.category, p.range);
 
-    // balanced message => UNSURE
+    // balanced message => zero range
     submit("spamword", 8);
     submit("spamword", 8);
     p = bayes(token_list);
-    if (!streq(p, "UNSURE")) printf("not ");
-    printf("ok 5 balanced: %s\n", p);
+    if (floor(p.range) != 0) printf("not ");
+    printf("ok 5 balanced: %s (%.1f)\n", p.category, p.range);
 
     return 0;
 }
