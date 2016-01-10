@@ -25,5 +25,9 @@
 #include <stdint.h>
 #include "skiplist.h"
 
-/* XXX better to use a struct return perhaps? */
-uint8_t *bayes(skiplist, unsigned long *);
+struct bayes_result {
+    uint8_t *category;
+    double range;
+};
+
+struct bayes_result bayes(skiplist);

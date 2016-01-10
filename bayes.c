@@ -36,30 +36,29 @@
 #include "settings.h"
 
 #define TRACE if (0)
-#define UNSURE ((uint8_t *)"UNSURE")
 
-uint8_t *bayes(skiplist tokens, unsigned long *rangep) {
+struct bayes_result bayes(skiplist tokens) {
     struct class *class, *classes;
     int i, n_total;
     double score[20]; /* XXX */
     double maxprob = -DBL_MAX, minprob = 0.;
-    uint8_t *maxclass;
+    struct bayes_result r = { (uint8_t *)"UNKNOWN", 0. };
     uint32_t *p_ui32, t_total;
    
     classes = class_fetch();
     assert(classes);
     if (classes->code == 0)
-        return UNSURE;
+        return r;
 
     p_ui32 = db_hash_fetch_uint32((uint8_t *)KEY_DOCUMENTS,
             sizeof KEY_DOCUMENTS - 1);
     if (p_ui32) n_total = *p_ui32;
-    else return UNSURE;
+    else return r;
 
     p_ui32 = db_hash_fetch_uint32((uint8_t *)KEY_VOCABULARY,
             sizeof KEY_VOCABULARY - 1);
     if (p_ui32) t_total = *p_ui32;
-    else return UNSURE;
+    else return r;
 
     TRACE fprintf(stderr, "documents (emails trained): %d\n", n_total);
     TRACE fprintf(stderr, "vocabulary (total distinct terms): %d\n", t_total);
@@ -115,13 +114,12 @@ uint8_t *bayes(skiplist tokens, unsigned long *rangep) {
         }
         if (score[class->code] > maxprob) {
             maxprob = score[class->code];
-            maxclass = class->name;
+            r.category = class->name;
         }
     }
     TRACE fprintf(stderr, "logprob range: %f\n", maxprob - minprob);
 
-    if (rangep)
-        *rangep = (unsigned long)(maxprob - minprob);
+    r.range = maxprob - minprob;
 
-    return maxclass;
+    return r;
 }

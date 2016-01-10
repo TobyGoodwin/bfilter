@@ -37,7 +37,10 @@ other features I'm wanting to add:
     spam classifier to the multiple database.)
 
 Anyway. I don't like the way I did ranges, I want to try using a
-``struct`` return instead.
+``struct`` return instead. Yes, that seems much cleaner. I opted to
+return a ``double`` rather than an ``unsigned long`` for the range, as
+that avoids overflow issues, and it's easy enough to truncate while
+printing.
 
 2016-01-09
 ==========

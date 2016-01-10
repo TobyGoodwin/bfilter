@@ -186,23 +186,23 @@ int run(enum mode mode, char *cclass) {
     if (flagD && strchr(flagD, 't')) token_list_dump(token_list);
     
     switch (mode) {
-        unsigned long range;
+        struct bayes_result r;
 
         case train:
             train_update(cclass);
             break;
 
         case test:
-            printf("%s\n", bayes(token_list, &range));
-            printf("%ld\n", range);
+            r = bayes(token_list);
+            printf("%s\n%.0f\n", r.category, r.range);
             break;
 
         case annotate:
             /* Headers of the email have already been written, and remainder
-             * saved in tempfile. Compute p(spam), write our header, then dump
-             * the rest of the email. */
-            printf("X-Bfilter-Class: %s", bayes(token_list, &range));
-            printf(" (%ld)\n", range);
+             * saved in tempfile. Classify, write our header, then dump the
+             * rest of the email. */
+            r = bayes(token_list);
+            printf("X-Bfilter-Class: %s (%.0f)\n", r.category, r.range);
             if (!fdump(tempfile)) retval = 1;
             break;
 
