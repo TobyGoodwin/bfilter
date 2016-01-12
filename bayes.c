@@ -27,6 +27,7 @@
 #include <float.h>
 #include <math.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include "bayes.h"
@@ -34,36 +35,56 @@
 #include "count.h"
 #include "db.h"
 #include "settings.h"
+#include "util.h"
 
 #define TRACE if (0)
 
-struct bayes_result bayes(skiplist tokens) {
+static int cmp(const void *x, const void *y) {
+    const struct bayes_result *a = x;
+    const struct bayes_result *b = y;
+    return b->logprob - a->logprob;
+}
+
+static struct bayes_result *sort(struct bayes_result *x, int n) {
+    qsort(x, n, sizeof *x, cmp);
+    return x;
+}
+
+struct bayes_result *bayes(skiplist tokens, int *n) {
     struct class *class, *classes;
-    int i, n_total;
-    double score[20]; /* XXX */
-    double maxprob = -DBL_MAX, minprob = 0.;
-    struct bayes_result r = { (uint8_t *)"UNKNOWN", 0. };
+    int c, i, n_class = 0, n_total;
+    struct bayes_result *r;
     uint32_t *p_ui32, t_total;
    
+    if (n) *n = 0;
+
     classes = class_fetch();
     assert(classes);
     if (classes->code == 0)
-        return r;
+        return 0;
 
     p_ui32 = db_hash_fetch_uint32((uint8_t *)KEY_DOCUMENTS,
             sizeof KEY_DOCUMENTS - 1);
     if (p_ui32) n_total = *p_ui32;
-    else return r;
+    else return 0;
 
     p_ui32 = db_hash_fetch_uint32((uint8_t *)KEY_VOCABULARY,
             sizeof KEY_VOCABULARY - 1);
     if (p_ui32) t_total = *p_ui32;
-    else return r;
+    else return 0;
 
     TRACE fprintf(stderr, "documents (emails trained): %d\n", n_total);
     TRACE fprintf(stderr, "vocabulary (total distinct terms): %d\n", t_total);
 
-    for (class = classes; class->code; ++class) {
+    // how many classes do we have?
+    for (class = classes; class->code; ++class)
+        ++n_class;
+
+    if (n) *n = n_class;
+    r = xmalloc(n_class * sizeof *r);
+
+    for (c = 0, class = classes; class->code; ++c, ++class) {
+        double lp;
         skiplist_iterator si;
 
         TRACE fprintf(stderr, "class %s (%d)\n", class->name, class->code);
@@ -71,7 +92,8 @@ struct bayes_result bayes(skiplist tokens) {
                 class->name, class->docs);
         TRACE fprintf(stderr, "prior(%s): %f\n",
                 class->name, (double)class->docs / n_total);
-        score[class->code] = log((double)class->docs / (double)n_total);
+        r[c].category = class->name;
+        lp = log((double)class->docs / (double)n_total);
 
         TRACE fprintf(stderr, "t_%s = %d, t_total = %d\n",
                 class->name, class->terms, t_total);
@@ -100,26 +122,11 @@ struct bayes_result bayes(skiplist tokens) {
             p = (Tct + 1.) / (class->terms + t_total);
             TRACE fprintf(stderr, "condprob[%s][%.*s] = %g\n",
                     class->name, (int)t_len, t, p);
-            score[class->code] += occurs * log(p);
+            lp += occurs * log(p);
         }
+        r[c].logprob = lp;
     }
 
-    /* check the range of logprobs (XXX would it be better just to compare the
-     * distance between the winner and the runner up?) */
-    for (class = classes; class->code; ++class) {
-        TRACE fprintf(stderr, "score(%s): %f\n",
-                class->name, score[class->code]);
-        if (score[class->code] < minprob) {
-            minprob = score[class->code];
-        }
-        if (score[class->code] > maxprob) {
-            maxprob = score[class->code];
-            r.category = class->name;
-        }
-    }
-    TRACE fprintf(stderr, "logprob range: %f\n", maxprob - minprob);
-
-    r.range = maxprob - minprob;
-
+    sort(r, n_class);
     return r;
 }

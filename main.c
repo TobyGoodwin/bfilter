@@ -186,25 +186,36 @@ int run(enum mode mode, char *cclass) {
     if (flagD && strchr(flagD, 't')) token_list_dump(token_list);
     
     switch (mode) {
-        struct bayes_result r;
 
         case train:
             train_update(cclass);
             break;
 
         case test:
-            r = bayes(token_list);
-            printf("%s\n%.0f\n", r.category, r.range);
-            break;
-
         case annotate:
-            /* Headers of the email have already been written, and remainder
-             * saved in tempfile. Classify, write our header, then dump the
-             * rest of the email. */
-            r = bayes(token_list);
-            printf("X-Bfilter-Class: %s (%.0f)\n", r.category, r.range);
-            if (!fdump(tempfile)) retval = 1;
-            break;
+            {
+                double gap;
+                int r_n;
+                struct bayes_result *r;
+                uint8_t *cat;
+
+                r = bayes(token_list, &r_n);
+                if (r_n > 0) cat = r[0].category;
+                else cat = (uint8_t *)"UNKNOWN";
+                if (r_n > 1) gap = r[0].logprob - r[1].logprob;
+                else gap = 0.0;
+
+                if (mode == test) 
+                    printf("%s\n%.0f\n", cat, gap);
+                else {
+                    /* Headers of the email have already been written, and
+                     * remainder saved in tempfile. Classify, write our header,
+                     * then dump the rest of the email. */
+                    printf("X-Bfilter-Class: %s (%.0f)\n", cat, gap);
+                    if (!fdump(tempfile)) retval = 1;
+                }
+                break;
+            }
 
         case cleandb:
             /* Copy recent data to new database, replace old one. */

@@ -1,3 +1,24 @@
+2016-01-11
+==========
+
+OK, so reporting the complete range is definitely wrong. Suppose we end
+up with Foo (100), Bar (105), Qux (200). That's clearly a much less
+certain classification than Foo (100), Bar (195), Qux (200), but the
+range is the same.
+
+So. We report the gap (margin, clearance?) instead. Do this by building
+an array of classes and logprobs and sorting it. (There is absolutely no
+point in saying that we only need the first 2 values so build a heap.
+Anyone who says that has clearly spent far too long looking at algorithm
+books.)
+
+Arguably ``bayes()`` should just build the array and return it;
+something else can sort it and decide what to do with it. I can imagine
+that at some point we might decide to output the whole array (or have an
+option to do so), but let's keep it simple for now. Oh, and how I mark
+the length of the array? Either a sentinel (with a null name pointer)
+or a ``size_t *`` argument, I suppose.
+
 2016-01-10
 ==========
 
@@ -26,15 +47,15 @@ other features I'm wanting to add:
    trained or not. Then flare does not have to remember which messages have
    been trained. (But the fragility argument still applies.))
 
-3. There should be to remove a category. Best idea I've had is to add a
-    **disable** command that marks a category as dormant: we then simply
-    skip testing for it, but don't forget any of the data. Obviously there's
-    a matchig **enable** command to wake it up again. Oh oh oh! If it's
-    possible to train to a dormant category, that might offer a nice way to
-    start training: create the General and Spam categories, but mark Spam as
-    dormant till a few messages have been trained. Perhaps. (But another way
-    to handle it is to start with a trained user database, or a add a basic
-    spam classifier to the multiple database.)
+3. There needs to be a way to remove a category. Best idea I've had is
+   to add a **disable** command that marks a category as dormant: we then
+   simply skip testing for it, but don't forget any of the data. Obviously
+   there's a matchig **enable** command to wake it up again. Oh oh oh! If
+   it's possible to train to a dormant category, that might offer a nice
+   way to start training: create the General and Spam categories, but mark
+   Spam as dormant till a few messages have been trained. Perhaps. (But
+   another way to handle it is to start with a trained user database, or a
+   add a basic spam classifier to the multiple database.)
 
 Anyway. I don't like the way I did ranges, I want to try using a
 ``struct`` return instead. Yes, that seems much cleaner. I opted to

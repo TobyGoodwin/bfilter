@@ -27,7 +27,7 @@
 
 struct bayes_result {
     uint8_t *category;
-    double range;
+    double logprob;
 };
 
-struct bayes_result bayes(skiplist);
+struct bayes_result *bayes(skiplist, int *);
