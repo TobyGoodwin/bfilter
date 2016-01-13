@@ -1,3 +1,15 @@
+2016-01-12
+==========
+
+Latest results (c3bf71c)::
+
+    ham: 99.40% correct, 0% unsure; spam: 64.10% correct, 0% unsure
+    -rw-------. 1 toby toby 2162688 Jan 12 22:35 /tmp/tmp.5tt2NRxTOB
+    34.89user 7.03system 0:41.77elapsed 100%CPU (5588maxresident)k
+
+I was worried that this was a major regression, but I was forgetting
+that we have ``HISTORY_LEN 2``. OK, let's make this live.
+
 2016-01-11
 ==========
 
