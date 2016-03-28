@@ -42,7 +42,11 @@
 static int cmp(const void *x, const void *y) {
     const struct bayes_result *a = x;
     const struct bayes_result *b = y;
-    return b->logprob - a->logprob;
+    const double c = a->logprob;
+    const double d = b->logprob;
+    if (c > d) return -1;
+    if (c < d) return 1;
+    return 0;
 }
 
 static struct bayes_result *sort(struct bayes_result *x, int n) {

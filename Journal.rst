@@ -1,3 +1,17 @@
+2016-03-28
+==========
+
+Oh dear::
+
+    [root@lithium ~]# BFILTER_DB=/home/toby/store/bfilter/1.tdb
+    /home/toby/bin/bfilter test  < /home/toby/store/cur/1459163149.15017.lithium.flare.email
+    Spam
+    -1
+
+I have no idea how this is even possible. Oh, ok. Turns out my
+comparison function was nonsense. Specifically, I believe it was
+returning 0 for values that differed by less than 1.
+
 2016-01-12
 ==========
 
