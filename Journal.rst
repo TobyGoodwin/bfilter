@@ -34,6 +34,39 @@ quicker than the other::
 That's over 4 times quicker! Not too surprising, since it should be
 doing about 1/5th of the number of database lookups.
 
+2016-04-12
+==========
+
+I am considering switching from TDB to SQLite. Mainly because I am
+already pushing at the boundaries of TDB with special keys that have
+structured values, such as ``--classes--``. And some of the changes that
+have in mind, such as the ability to rename and delete classes, will
+involve inventing and implementing further tedious semantics for them.
+Bunging the whole lot into a proper database would facilitate these and
+future changes.
+
+I also suspect that SQLite may well already outperform TDB. Only one way
+to find out...
+
+Obviously the first thing I need is a SQLite model::
+
+    General
+      Version Integer
+      Documents Integer
+      Vocabulary Integer
+    Class
+      Id Integer Primary Key
+      Name Text
+      Docs Integer
+      Terms Integer
+    Term
+      Id Integer Primary Key
+      Term Text
+    CT
+      Class ClassId
+      Term TermId
+      Count Integer
+
 2016-03-28
 ==========
 
