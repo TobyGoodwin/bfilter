@@ -25,9 +25,12 @@
 #ifndef __DB_H_
 #define __DB_H_
 
+#include <sqlite3.h>
+
 #include "class.h"
 
 /* db.c */
+sqlite3 *db_db(void);
 int db_open(void);
 void db_close(void);
 int db_class(const char *);
