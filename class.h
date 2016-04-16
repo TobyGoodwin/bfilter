@@ -28,8 +28,8 @@
 #include <stdint.h>
 
 struct class {
-    uint8_t *name; /* nul terminated */
-    uint32_t code; /* unique id for "foreign key" */
+    const uint8_t *name; /* nul terminated */
+    uint32_t code; /* unique id */
     uint32_t docs; /* number of documents in this class */
     uint32_t terms; /* total number of terms (inc dups) in docs in class */
 };

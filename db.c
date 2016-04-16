@@ -58,6 +58,10 @@ static void make_hash(const uint8_t *term, const size_t len, uint8_t hash[8]) {
     memcpy(hash, md5, HASHLEN);
 }
 
+struct sqlite3 *db_db(void) {
+    return db;
+}
+
 static char *dbfilename(const char *suffix) {
     char *name, *home;
     if ((home = getenv("BFILTER_DB")))
@@ -136,8 +140,9 @@ void db_check_version(void) {
     if (r != SQLITE_ROW)
         fatal2("cannot step statement: ", sqlite3_errmsg(db));
     if (sqlite3_column_type(stmt, 0) != SQLITE_INTEGER)
-        fatal2("non-integer type: ", sqlite3_errmsg(db));
+        fatal1("version.version has non-integer type");
     v = sqlite3_column_int(stmt, 0);
+    sqlite3_finalize(stmt);
     if (v < MIN_VERSION || v > VERSION) {
         char vs[25];
         snprintf(vs, 25, "%d", v);
@@ -197,7 +202,7 @@ int db_open(void) {
 /* db_close
  * Close the filter database. */
 void db_close(void) {
-    tdb_close(db);
+    sqlite3_close_v2(db);
 }
 
 #if 0

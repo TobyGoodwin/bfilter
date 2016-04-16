@@ -71,18 +71,19 @@ void train_update(char *cclass) {
 
     classes = class_fetch();
     tclass = class_lookup(classes, cclass);
-    pNdb = db_hash_fetch_uint32((uint8_t *)KEY_DOCUMENTS,
-            sizeof KEY_DOCUMENTS - 1);
-    if (pNdb) Ndb = *pNdb;
-    else Ndb = 0;
-    Ndb += nemails;
-    db_hash_store_uint32((uint8_t *)KEY_DOCUMENTS, sizeof KEY_DOCUMENTS - 1,
-            Ndb);
+    // not needed with sqlite
+    // pNdb = db_hash_fetch_uint32((uint8_t *)KEY_DOCUMENTS,
+    //         sizeof KEY_DOCUMENTS - 1);
+    // if (pNdb) Ndb = *pNdb;
+    // else Ndb = 0;
+    // Ndb += nemails;
+    // db_hash_store_uint32((uint8_t *)KEY_DOCUMENTS, sizeof KEY_DOCUMENTS - 1,
+    //         Ndb);
 
     tclass->docs += nemails;
 
-    if (isatty(1))
-        fprintf(stderr, "Writing: corpus now contains %u emails\n", Ndb);
+    // if (isatty(1))
+    //     fprintf(stderr, "Writing: corpus now contains %u emails\n", Ndb);
 
     nterms = skiplist_size(token_list); /* distinct terms */
     ntermsall = 0; /* terms including dups */
@@ -109,14 +110,15 @@ if (0) fprintf(stderr, "term %.*s: %d\n", (int)kl, k, *p);
         fprintf(stderr, "Writing: %u / %u terms (%u new)\n",
                 ntermswr, nterms, ntermsnew);
     
-    pnvocab = db_hash_fetch_uint32((uint8_t *)KEY_VOCABULARY,
-            sizeof KEY_VOCABULARY - 1);
-    if (pnvocab) nvocab = *pnvocab;
-    else nvocab = 0;
-    TRACE fprintf(stderr, "vocabulary was: %u\n", nvocab);
-    nvocab += ntermsnew;
-    db_hash_store_uint32((uint8_t *)KEY_VOCABULARY,
-            sizeof KEY_VOCABULARY - 1, nvocab);
+    // not needed with sqlite
+    // pnvocab = db_hash_fetch_uint32((uint8_t *)KEY_VOCABULARY,
+    //         sizeof KEY_VOCABULARY - 1);
+    // if (pnvocab) nvocab = *pnvocab;
+    // else nvocab = 0;
+    // TRACE fprintf(stderr, "vocabulary was: %u\n", nvocab);
+    // nvocab += ntermsnew;
+    // db_hash_store_uint32((uint8_t *)KEY_VOCABULARY,
+    //         sizeof KEY_VOCABULARY - 1, nvocab);
 
     tclass->terms += ntermsall;
     class_store(classes);

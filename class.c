@@ -24,14 +24,67 @@
 
 #include <arpa/inet.h>
 #include <assert.h>
+#include <sqlite3.h>
 #include <string.h>
 
 #include "bfilter.h"
 #include "class.h"
 #include "db.h"
+#include "error.h"
 #include "line.h"
 #include "util.h"
 
+static const char *get_classes = "\
+SELECT id, name, docs, terms FROM class ORDER BY id; \
+";
+
+struct class *class_fetch(void) {
+    int csa = 0, csn = 0, r;
+    sqlite3 *db = db_db();
+    sqlite3_stmt *stmt;
+    struct class *cs = 0;
+
+    r = sqlite3_prepare_v2(db, get_classes, strlen(get_classes), &stmt, 0);
+    if (r != SQLITE_OK)
+        fatal2("cannot prepare statement: ", sqlite3_errmsg(db));
+    while ((r = sqlite3_step(stmt)) == SQLITE_ROW) {
+        int i;
+
+        if (csn == csa)
+            cs = xrealloc(cs, (csa = csa * 2 + 1) * sizeof *cs);
+
+        if (sqlite3_column_type(stmt, 0) != SQLITE_INTEGER)
+            fatal1("class.id has non-integer type");
+        cs[csn].code = sqlite3_column_int(stmt, 0);
+
+        if (sqlite3_column_type(stmt, 1) != SQLITE_TEXT)
+            fatal1("class.name has non-text type");
+        cs[csn].name = sqlite3_column_text(stmt, 1);
+
+        if (sqlite3_column_type(stmt, 2) != SQLITE_INTEGER)
+            fatal1("class.docs has non-integer type");
+        cs[csn].docs = sqlite3_column_int(stmt, 2);
+
+        if (sqlite3_column_type(stmt, 3) != SQLITE_INTEGER)
+            fatal1("class.terms has non-integer type");
+        cs[csn].terms = sqlite3_column_int(stmt, 3);
+    }
+    sqlite3_finalize(stmt);
+
+    /* add two sentinels */
+    if (csn + 1 >= csa)
+        cs = xrealloc(cs, (csa += 2) * sizeof *cs);
+
+    cs[csn].name = 0;
+    cs[csn].code = cs[csn].docs = cs[csn].terms = 0;
+
+    ++csn;
+    cs[csn].name = 0;
+    cs[csn].code = cs[csn].docs = cs[csn].terms = 0;
+
+    return cs;
+}
+#if 0
 struct class *class_fetch(void) {
     size_t x_sz;
     uint8_t *p, *x;
@@ -76,7 +129,9 @@ struct class *class_fetch(void) {
 
     return cs;
 }
+#endif
 
+#if 0
 _Bool class_store(struct class *cs) {
     struct line csl = { 0 };
     struct class *p;
@@ -101,10 +156,10 @@ _Bool class_store(struct class *cs) {
     return db_hash_store(
             (uint8_t *)KEY_CLASSES, sizeof(KEY_CLASSES) - 1, csl.x, csl.l);
 }
+#endif
 
-/* warning: overwrites the first sentinel inserted by class_lookup: you
- * can only call class_lookup() once between class_fetch() and
- * class_store() */
+/* warning: overwrites the first sentinel inserted by class_fetch(): you can
+ * only call class_lookup() once between class_fetch() and class_store() */
 struct class *class_lookup(struct class *cs, char *c) {
     int m, n;
     struct class *cp;
