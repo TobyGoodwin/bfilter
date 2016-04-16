@@ -15,4 +15,4 @@
 
 /* DATABASE_NAME
  * default database name (relative to $HOME) */
-#define DATABASE_NAME ".bfilter.tdb"
+#define DATABASE_NAME ".bfilter.sqlite"

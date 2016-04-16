@@ -21,6 +21,7 @@
 
 #include <openssl/md5.h>
 #include <netinet/in.h>
+#include <sqlite3.h>
 #include <sys/fcntl.h>
 #include <sys/stat.h>
 
@@ -41,7 +42,7 @@
 #define ntohll(x) ((1==ntohl(1)) ? (x) : \
         ((uint64_t)ntohl((x) & 0xFFFFFFFF) << 32) | ntohl((x) >> 32))
 
-static TDB_CONTEXT *filterdb;
+static sqlite3 *db;
 static size_t dbsize;
 
 /* HASHLEN
@@ -79,10 +80,51 @@ static char *dbfilename(const char *suffix) {
     return name;
 }
 
+const char *initstr = "\
+CREATE TABLE class ( \
+  id INTEGER PRIMARY KEY, \
+  name TEXT NOT NULL, \
+  docs INTEGER NOT NULL, \
+  terms INTEGER NOT NULL ); \
+CREATE TABLE term ( \
+  id INTEGER PRIMARY KEY, \
+  term TEXT NOT NULL ); \
+CREATE TABLE c_t ( \
+  class INTEGER NOT NULL, \
+  term INTEGER NOT NULL, \
+  count INTEGER, \
+    PRIMARY KEY (class, term), \
+    FOREIGN KEY (class) REFERENCES class (id), \
+    FOREIGN KEY (term) REFERENCES term (id)); \
+CREATE TABLE version ( \
+  version INTEGER NOT NULL ); \
+";
+
+const char *setver = "INSERT INTO version (version) VALUES (?);";
+
 void db_init(void) {
-    if (!db_hash_store_uint32((uint8_t *)KEY_VERSION, sizeof KEY_VERSION - 1,
-                VERSION))
-        fatal1x("cannot write version key");
+    char *errmsg = 0;
+    int r;
+    sqlite3_stmt *stmt;
+
+    sqlite3_exec(db, initstr, 0, 0, &errmsg);
+    if (errmsg != 0)
+        fatal2("cannot initialize database: ", errmsg);
+
+    r = sqlite3_prepare_v2(db, setver, strlen(setver), &stmt, 0);
+    if (r != SQLITE_OK)
+        fatal2("cannot prepare statement: ", sqlite3_errmsg(db));
+    r = sqlite3_bind_int(stmt, 1, VERSION);
+    if (r != SQLITE_OK)
+        fatal2("cannot bind value: ", sqlite3_errmsg(db));
+    r = sqlite3_step(stmt);
+    if (r != SQLITE_DONE)
+        fatal2("cannot step statement: ", sqlite3_errmsg(db));
+    sqlite3_finalize(stmt);
+
+    //if (!db_hash_store_uint32((uint8_t *)KEY_VERSION, sizeof KEY_VERSION - 1,
+                //VERSION))
+        //fatal1x("cannot write version key");
 }
 
 void db_check_version(void) {
@@ -99,37 +141,47 @@ void db_check_version(void) {
  * read/write in all cases. */
 int db_open(void) {
     char *name;
+    int err, flags;
     struct stat st;
 
     name = dbfilename(NULL);
 
-    filterdb = tdb_open(name, 0, 0, O_RDWR, 0600);
-    if (!filterdb && errno == ENOENT) {
-        filterdb = tdb_open(name, 0, 0, O_CREAT | O_RDWR, 0600);
-        if (filterdb)
+    // db = tdb_open(name, 0, 0, O_RDWR, 0600);
+    flags = SQLITE_OPEN_READWRITE;
+    err = sqlite3_open_v2(name, &db, flags, 0);
+
+    if (err != SQLITE_OK && errno == ENOENT) {
+        flags |= SQLITE_OPEN_CREATE;
+        err = sqlite3_open_v2(name, &db, flags, 0);
+        if (err == SQLITE_OK)
             db_init();
     }
 
-    if (!filterdb)
-        fatal3x("cannot open database `", name, "'");
+    if (err != SQLITE_OK) {
+        fatal4("cannot open database `", name, "': ", sqlite3_errmsg(db));
+        sqlite3_close(db);
+    }
 
     db_check_version();
 
+    /*
     if (0 == stat(name, &st))
         dbsize = st.st_size;
     
     xfree(name);
 
-    if (filterdb)
+    if (db)
         return 1;
     else
         return 0;
+        */
+    return 1;
 }
 
 /* db_close
  * Close the filter database. */
 void db_close(void) {
-    tdb_close(filterdb);
+    tdb_close(db);
 }
 
 #if 0
@@ -153,7 +205,7 @@ void db_set_pair(const char *name, unsigned int a, unsigned int b) {
     d.dptr = data;
     d.dsize = 12;
 
-    tdb_store(filterdb, k, d, TDB_REPLACE);
+    tdb_store(db, k, d, TDB_REPLACE);
 }
 
 /* db_get_pair NAME A B
@@ -167,7 +219,7 @@ int db_get_pair(const char *name, unsigned int *a, unsigned int *b) {
     k.dptr = key;
     k.dsize = HASHLEN;
     
-    d = tdb_fetch(filterdb, k);
+    d = tdb_fetch(db, k);
     if (!d.dptr || (d.dsize != 8 && d.dsize != 12))
         return 0;
     else {
@@ -204,7 +256,7 @@ void db_set_intlist(const uint8_t *k, size_t k_sz,
     d.dptr = (void *)x;
     d.dsize = 4 * n;
 
-    tdb_store(filterdb, key, d, 0);
+    tdb_store(db, key, d, 0);
 }
 
 /* retrieve an integer list of size n from key k of size k_sz */
@@ -220,7 +272,7 @@ uint32_t *db_get_intlist(const uint8_t *k, size_t k_sz, unsigned int *n) {
     key.dptr = (unsigned char *)k;
     key.dsize = k_sz;
 
-    d = tdb_fetch(filterdb, key);
+    d = tdb_fetch(db, key);
     if (!d.dptr || d.dsize % sizeof(uint32_t) != 0)
         return 0;
     *n = d.dsize / sizeof(uint32_t);
@@ -239,7 +291,7 @@ uint8_t *db_hash_fetch(uint8_t *k, size_t k_sz, size_t *d_sz) {
     key.dptr = k;
     key.dsize = k_sz;
 
-    d = tdb_fetch(filterdb, key);
+    d = tdb_fetch(db, key);
     *d_sz = d.dsize;
     return d.dptr;
 }
@@ -259,7 +311,7 @@ _Bool db_hash_store(uint8_t *k, size_t k_sz, uint8_t *d, size_t d_sz) {
     dat.dptr = d;
     dat.dsize = d_sz;
 
-    return tdb_store(filterdb, key, dat, 0) == 0;
+    return tdb_store(db, key, dat, 0) == 0;
 }
 
 /* returns a pointer to a uint32, which caller must free; may return NULL */
@@ -290,7 +342,7 @@ struct class *db_get_classes(void) {
     k.dptr = key;
     k.dsize = HASHLEN;
 
-    v = tdb_fetch(filterdb, k);
+    v = tdb_fetch(db, k);
     if (v.dptr) {
         /* note that the cs array we build here contains pointers into the data
          * v returned from the database; tdb specifies that the caller is
@@ -342,7 +394,7 @@ void db_set_classes(struct class *cs) {
         line_cat(&csl, &c);
     }
     v.dptr = csl.x; v.dsize = csl.l;
-    tdb_store(filterdb, k, v, 0); /* XXX return value? */
+    tdb_store(db, k, v, 0); /* XXX return value? */
 }
 
 #if 0
@@ -411,11 +463,11 @@ void db_clean(int ndays) {
             fatal3x("cannot open temp database `", newname, "'");
     }
 
-    tdb_traverse(filterdb, copy_items, &c);
+    tdb_traverse(db, copy_items, &c);
     printf("\n");
 
     tdb_close(c.cp_db);
-    tdb_close(filterdb);
+    tdb_close(db);
 
     if (rename(newname, name) == -1)
         fatal5x("cannot rename `", newname, "' to `", name, "'");
@@ -516,7 +568,7 @@ void db_print_stats(void) {
         fprintf(stderr, "bfilter: database seems to be empty; add some spam and nonspam\n");
         return;
     }
-    tdb_traverse(filterdb, gather_stats, (void*)&S);
+    tdb_traverse(db, gather_stats, (void*)&S);
 
     printf("\n");
 

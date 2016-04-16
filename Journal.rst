@@ -50,7 +50,7 @@ to find out...
 
 Obviously the first thing I need is a SQLite model::
 
-    General
+    Total
       Version Integer
       Documents Integer
       Vocabulary Integer
@@ -66,6 +66,13 @@ Obviously the first thing I need is a SQLite model::
       Class ClassId
       Term TermId
       Count Integer
+
+On further reflection, ``TotalDocuments`` is (should be!) equal to
+``SELECT sum(docs) FROM class``, and ``TotalVocabulary`` should be equal
+to ``SELECT sum(count) FROM c_t``. I should probably start by assuming
+that SQLite can implement those efficiently enough, and optimize if
+needed. (Note, though, that the values will only change when a document
+is being trained, so caching seems smart.)
 
 2016-03-28
 ==========

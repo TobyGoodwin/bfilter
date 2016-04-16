@@ -9,9 +9,18 @@ static void message2(const char *a, const char *b) {
     fprintf(stderr, "%s%s\n", a, b);
 }
 
+static void message3(const char *a, const char *b, const char *c) {
+    fprintf(stderr, "%s%s%s\n", a, b, c);
+}
+
 static void message4(const char *a, const char *b, const char *c,
         const char *d) {
     fprintf(stderr, "%s%s%s%s\n", a, b, c, d);
+}
+
+static void message5(const char *a, const char *b, const char *c,
+        const char *d, const char *e) {
+    fprintf(stderr, "%s%s%s%s%s\n", a, b, c, d, e);
 }
 
 static void message6(const char *a, const char *b, const char *c,
@@ -38,8 +47,18 @@ void fatal1(const char *a) {
     exit(1);
 }
 
+void fatal2(const char *a, const char *b) {
+    message3(fatal, a, b);
+    exit(1);
+}
+
 void fatal3(const char *a, const char *b, const char *c) {
     message4(fatal, a, b, c);
+    exit(1);
+}
+
+void fatal4(const char *a, const char *b, const char *c, const char *d) {
+    message5(fatal, a, b, c, d);
     exit(1);
 }
 
