@@ -22,7 +22,9 @@
 
 */
 
+#include <assert.h>
 #include <errno.h>
+#include <sqlite3.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -31,6 +33,7 @@
 #include "bfilter.h"
 #include "count.h"
 #include "db.h"
+#include "error.h"
 #include "read.h"
 #include "skiplist.h"
 #include "submit.h"
@@ -61,16 +64,51 @@ _Bool train_read(void) {
     return 1;
 }
 
+const char *get_class = "SELECT name FROM class WHERE name = ?;";
+const char *update_class = "\
+UPDATE class \
+  SET docs = docs + ?, terms = terms + ? \
+  WHERE name = ?; \
+";
+
 void train_update(char *cclass) {
     /* Update total number of emails and the data for each word. */
+    char *t;
+    sqlite3 *db = db_db();
     struct class *classes, *tclass;
     uint32_t Ndb, *pNdb;
     uint32_t nvocab, *pnvocab;
     skiplist_iterator si;
     unsigned int nterms, ntermswr, ntermsnew, ntermsall;
 
-    classes = class_fetch();
-    tclass = class_lookup(classes, cclass);
+    int r, v;
+    sqlite3_stmt *stmt;
+
+    r = sqlite3_prepare_v2(db, get_class, strlen(get_class), &stmt, 0);
+    if (r != SQLITE_OK)
+        fatal2("cannot prepare statement: ", sqlite3_errmsg(db));
+    r = sqlite3_bind_text(stmt, 1, cclass, strlen(cclass), 0);
+    if (r != SQLITE_OK)
+        fatal2("cannot bind value: ", sqlite3_errmsg(db));
+    r = sqlite3_step(stmt);
+    if (r == SQLITE_ROW) {
+        if (sqlite3_column_type(stmt, 0) != SQLITE_TEXT)
+            fatal1("class.name has non-text type");
+        assert(strcmp(sqlite3_column_text(stmt, 0), cclass) == 0);
+    } else if (r == SQLITE_DONE) {
+        // insert
+        fatal1("cannot insert yet");
+    } else
+        fatal2("cannot step statement: ", sqlite3_errmsg(db));
+    sqlite3_finalize(stmt);
+
+    //
+    // classes = class_fetch();
+    // tclass = class_lookup(classes, cclass);
+   
+    // select from class where name = cclass;
+    // insert if missing
+
     // not needed with sqlite
     // pNdb = db_hash_fetch_uint32((uint8_t *)KEY_DOCUMENTS,
     //         sizeof KEY_DOCUMENTS - 1);
@@ -80,7 +118,7 @@ void train_update(char *cclass) {
     // db_hash_store_uint32((uint8_t *)KEY_DOCUMENTS, sizeof KEY_DOCUMENTS - 1,
     //         Ndb);
 
-    tclass->docs += nemails;
+    // tclass->docs += nemails;
 
     // if (isatty(1))
     //     fprintf(stderr, "Writing: corpus now contains %u emails\n", Ndb);
@@ -97,8 +135,8 @@ void train_update(char *cclass) {
         k = skiplist_itr_key(token_list, si, &kl);
         p = skiplist_itr_value(token_list, si);
 if (0) fprintf(stderr, "term %.*s: %d\n", (int)kl, k, *p);
-        if (count_add(k, kl, tclass->code, *p))
-            ++ntermsnew;
+        // if (count_add(k, kl, tclass->code, *p))
+        //    ++ntermsnew;
         ntermsall += *p;
 
         if (isatty(1) && (ntermswr % 500) == 0)
@@ -109,6 +147,21 @@ if (0) fprintf(stderr, "term %.*s: %d\n", (int)kl, k, *p);
     if (isatty(1))
         fprintf(stderr, "Writing: %u / %u terms (%u new)\n",
                 ntermswr, nterms, ntermsnew);
+
+    r = sqlite3_prepare_v2(db, update_class, strlen(update_class), &stmt, 0);
+    if (r != SQLITE_OK)
+        fatal2("cannot prepare statement: ", sqlite3_errmsg(db));
+
+    r = sqlite3_bind_int(stmt, 1, nemails);
+    if (r != SQLITE_OK) fatal2("cannot bind value: ", sqlite3_errmsg(db));
+    r = sqlite3_bind_int(stmt, 2, ntermsall);
+    if (r != SQLITE_OK) fatal2("cannot bind value: ", sqlite3_errmsg(db));
+    r = sqlite3_bind_text(stmt, 3, cclass, strlen(cclass), 0);
+    if (r != SQLITE_OK) fatal2("cannot bind value: ", sqlite3_errmsg(db));
+
+    r = sqlite3_step(stmt);
+    if (r != SQLITE_DONE)
+        fatal2("cannot update: ", sqlite3_errmsg(db));
     
     // not needed with sqlite
     // pnvocab = db_hash_fetch_uint32((uint8_t *)KEY_VOCABULARY,
@@ -120,6 +173,7 @@ if (0) fprintf(stderr, "term %.*s: %d\n", (int)kl, k, *p);
     // db_hash_store_uint32((uint8_t *)KEY_VOCABULARY,
     //         sizeof KEY_VOCABULARY - 1, nvocab);
 
-    tclass->terms += ntermsall;
-    class_store(classes);
+    // update class set docs = docs + nemails, terms = terms + ntermsall where name = cclass;
+    // tclass->terms += ntermsall;
+    // class_store(classes);
 }
