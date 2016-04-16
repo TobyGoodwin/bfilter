@@ -80,7 +80,7 @@ static char *dbfilename(const char *suffix) {
     return name;
 }
 
-const char *initstr = "\
+static const char *create = "\
 CREATE TABLE class ( \
   id INTEGER PRIMARY KEY, \
   name TEXT NOT NULL, \
@@ -100,18 +100,18 @@ CREATE TABLE version ( \
   version INTEGER NOT NULL ); \
 ";
 
-const char *setver = "INSERT INTO version (version) VALUES (?);";
+static const char *set_version = "INSERT INTO version (version) VALUES (?);";
 
 void db_init(void) {
     char *errmsg = 0;
     int r;
     sqlite3_stmt *stmt;
 
-    sqlite3_exec(db, initstr, 0, 0, &errmsg);
+    sqlite3_exec(db, create, 0, 0, &errmsg);
     if (errmsg != 0)
         fatal2("cannot initialize database: ", errmsg);
 
-    r = sqlite3_prepare_v2(db, setver, strlen(setver), &stmt, 0);
+    r = sqlite3_prepare_v2(db, set_version, strlen(set_version), &stmt, 0);
     if (r != SQLITE_OK)
         fatal2("cannot prepare statement: ", sqlite3_errmsg(db));
     r = sqlite3_bind_int(stmt, 1, VERSION);
@@ -121,19 +121,35 @@ void db_init(void) {
     if (r != SQLITE_DONE)
         fatal2("cannot step statement: ", sqlite3_errmsg(db));
     sqlite3_finalize(stmt);
-
-    //if (!db_hash_store_uint32((uint8_t *)KEY_VERSION, sizeof KEY_VERSION - 1,
-                //VERSION))
-        //fatal1x("cannot write version key");
 }
 
-void db_check_version(void) {
-    uint32_t *v;
+static const char *get_version = "SELECT version FROM version;";
 
+void db_check_version(void) {
+    int r, v;
+    sqlite3_stmt *stmt;
+
+    r = sqlite3_prepare_v2(db, get_version, strlen(get_version), &stmt, 0);
+    if (r != SQLITE_OK)
+        fatal2("cannot prepare statement: ", sqlite3_errmsg(db));
+    r = sqlite3_step(stmt);
+    if (r != SQLITE_ROW)
+        fatal2("cannot step statement: ", sqlite3_errmsg(db));
+    if (sqlite3_column_type(stmt, 0) != SQLITE_INTEGER)
+        fatal2("non-integer type: ", sqlite3_errmsg(db));
+    v = sqlite3_column_int(stmt, 0);
+    if (v < MIN_VERSION || v > VERSION) {
+        char vs[25];
+        snprintf(vs, 25, "%d", v);
+        fatal2("bad database version: ", vs);
+    }
+}
+
+/*
     v = db_hash_fetch_uint32((uint8_t *)KEY_VERSION, sizeof KEY_VERSION - 1);
     if (!v || *v < MIN_VERSION || *v > VERSION)
         fatal1("bad database version");
-}
+*/
 
 /* db_open
  * Open the filter database, which lives in ~/.bfildb. Returns 1 on success
