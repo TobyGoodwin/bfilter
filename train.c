@@ -64,19 +64,6 @@ _Bool train_read(void) {
     return 1;
 }
 
-const char begin[] = "BEGIN TRANSACTION;";
-const char commit[] = "COMMIT;";
-const char insert_class[] = "\
-INSERT INTO class (name, docs, terms) \
-  VALUES (?, 0, 0);\
-";
-#if 0
-const char *insert_class = "\
-INSERT INTO class (name, docs, terms) \
-  VALUES (?, 0, 0); \
-";
-#endif
-const char *get_class = "SELECT id FROM class WHERE name = ?;";
 const char *update_class = "\
 UPDATE class \
   SET docs = docs + ?, terms = terms + ? \
@@ -99,71 +86,10 @@ void train_update(char *cclass) {
     sqlite3_stmt *stmt;
     char *errmsg;
 
-#if 0
-    r = sqlite3_exec(db, begin, 0, 0, &errmsg);
-    if (errmsg) fatal2("cannot begin transaction: ", errmsg);
-
-    r = sqlite3_prepare_v2(db, get_class, strlen(get_class), &stmt, 0);
-    if (r != SQLITE_OK)
-        fatal2("cannot prepare statement: ", sqlite3_errmsg(db));
-
-loop:
-    r = sqlite3_bind_text(stmt, 1, cclass, strlen(cclass), 0);
-    if (r != SQLITE_OK)
-        fatal2("cannot bind value: ", sqlite3_errmsg(db));
-    r = sqlite3_step(stmt);
-    if (r == SQLITE_ROW) {
-        if (sqlite3_column_type(stmt, 0) != SQLITE_INTEGER)
-            fatal1("class.name has non-integer type");
-        cid = sqlite3_column_int(stmt, 0);
-    } else if (r == SQLITE_DONE) {
-        sqlite3_stmt *s;
-        assert(!inserted); inserted = 1;
-        // insert
-        r = sqlite3_prepare_v2(db, insert_class, sizeof(insert_class), &s, 0);
-        if (r != SQLITE_OK)
-            fatal4("cannot prepare statement `", insert_class, "': ",
-                    sqlite3_errmsg(db));
-        r = sqlite3_bind_text(s, 1, cclass, strlen(cclass), 0);
-        if (r != SQLITE_OK)
-            fatal2("cannot bind value: ", sqlite3_errmsg(db));
-        r = sqlite3_step(s);
-        if (r != SQLITE_DONE)
-            fatal2("cannot step statement: ", sqlite3_errmsg(db));
-        sqlite3_finalize(s);
-        sqlite3_reset(stmt);
-        goto loop;
-    } else
-        fatal2("cannot step statement: ", sqlite3_errmsg(db));
-    sqlite3_finalize(stmt);
-
-    r = sqlite3_exec(db, commit, 0, 0, &errmsg);
-    if (errmsg) fatal2("cannot commit: ", errmsg);
-#endif
 
     cid = class_id_furnish(cclass);
 
 fprintf(stderr, "cid is %d\n", cid);
-    //
-    // classes = class_fetch();
-    // tclass = class_lookup(classes, cclass);
-   
-    // select from class where name = cclass;
-    // insert if missing
-
-    // not needed with sqlite
-    // pNdb = db_hash_fetch_uint32((uint8_t *)KEY_DOCUMENTS,
-    //         sizeof KEY_DOCUMENTS - 1);
-    // if (pNdb) Ndb = *pNdb;
-    // else Ndb = 0;
-    // Ndb += nemails;
-    // db_hash_store_uint32((uint8_t *)KEY_DOCUMENTS, sizeof KEY_DOCUMENTS - 1,
-    //         Ndb);
-
-    // tclass->docs += nemails;
-
-    // if (isatty(1))
-    //     fprintf(stderr, "Writing: corpus now contains %u emails\n", Ndb);
 
     nterms = skiplist_size(token_list); /* distinct terms */
     ntermsall = 0; /* terms including dups */
