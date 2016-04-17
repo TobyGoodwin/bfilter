@@ -36,6 +36,8 @@
 static const char sql_begin[] = "BEGIN TRANSACTION";
 static const char sql_commit[] = "COMMIT";
 static const char sql_cid[] = "SELECT id FROM class WHERE name = ?";
+static const char sql_insert[] =
+    "INSERT INTO class (name, docs, terms) VALUES (?, 0, 0)";
 
 _Bool class_id_fetch(sqlite3 *db, char *c, int *x) {
     int r;
@@ -55,23 +57,52 @@ _Bool class_id_fetch(sqlite3 *db, char *c, int *x) {
         if (sqlite3_column_type(s, 0) != SQLITE_INTEGER)
             fatal1("class.name has non-integer type");
         *x = sqlite3_column_int(s, 0);
+        sqlite3_finalize(s);
         return 1;
     } else if (r == SQLITE_DONE) {
-        return 0;
-    } else {
+    } else
         fatal2("cannot step statement: ", sqlite3_errmsg(db));
-        return 0;
-    }
+    sqlite3_finalize(s);
+    return 0;
+}
+
+void class_insert(sqlite3 *db, char *c) {
+    int r;
+    sqlite3_stmt *s;
+
+    r = sqlite3_prepare_v2(db, sql_insert, sizeof sql_insert, &s, 0);
+    if (r != SQLITE_OK)
+        fatal4("cannot prepare stmt `", sql_insert, "': ", sqlite3_errmsg(db));
+    r = sqlite3_bind_text(s, 1, c, strlen(c), 0);
+    if (r != SQLITE_OK)
+        fatal4("cannot bind value `", c, "': ", sqlite3_errmsg(db));
+    r = sqlite3_step(s);
+    if (r != SQLITE_DONE)
+        fatal4("cannot step stmt `", sql_insert, "': ", sqlite3_errmsg(db));
+    sqlite3_finalize(s);
 }
 
 int class_id_furnish(char *c) {
-    int r;
+    char *errmsg;
+    int r = 0;
     sqlite3 *db = db_db();
 
+    r = sqlite3_exec(db, sql_begin, 0, 0, &errmsg);
+    if (errmsg) fatal2("cannot begin transaction: ", errmsg);
+
     if (class_id_fetch(db, c, &r))
-        return r;
-    else fatal1("cannot insert");
-    return 0;
+        goto done;
+
+    class_insert(db, c);
+
+    if (!class_id_fetch(db, c, &r))
+        fatal4("failed to insert class `", c, "': ", sqlite3_errmsg(db));
+
+done:
+    r = sqlite3_exec(db, sql_commit, 0, 0, &errmsg);
+    if (errmsg) fatal2("cannot commit: ", errmsg);
+
+    return r;
 }
 
 #if 0
