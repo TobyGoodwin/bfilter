@@ -1,7 +1,7 @@
 /*
 
     Copyright (c) 2003 Chris Lightfoot. All rights reserved.
-    Copyright (c) 2015 Toby Goodwin.
+    Copyright (c) 2015 - 2016 Toby Goodwin.
     toby@paccrat.org
     https://github.com/TobyGoodwin/bfilter
 
@@ -113,34 +113,4 @@ if (0) fprintf(stderr, "term %.*s: %d\n", (int)kl, k, *p);
                 ntermswr, nterms, ntermsnew);
 
     class_update(cid, nemails, ntermsall);
-#if 0
-    r = sqlite3_prepare_v2(db, update_class, strlen(update_class), &stmt, 0);
-    if (r != SQLITE_OK)
-        fatal2("cannot prepare statement: ", sqlite3_errmsg(db));
-
-    r = sqlite3_bind_int(stmt, 1, nemails);
-    if (r != SQLITE_OK) fatal2("cannot bind value: ", sqlite3_errmsg(db));
-    r = sqlite3_bind_int(stmt, 2, ntermsall);
-    if (r != SQLITE_OK) fatal2("cannot bind value: ", sqlite3_errmsg(db));
-    r = sqlite3_bind_text(stmt, 3, cclass, strlen(cclass), 0);
-    if (r != SQLITE_OK) fatal2("cannot bind value: ", sqlite3_errmsg(db));
-
-    r = sqlite3_step(stmt);
-    if (r != SQLITE_DONE)
-        fatal2("cannot update: ", sqlite3_errmsg(db));
-    
-    // not needed with sqlite
-    // pnvocab = db_hash_fetch_uint32((uint8_t *)KEY_VOCABULARY,
-    //         sizeof KEY_VOCABULARY - 1);
-    // if (pnvocab) nvocab = *pnvocab;
-    // else nvocab = 0;
-    // TRACE fprintf(stderr, "vocabulary was: %u\n", nvocab);
-    // nvocab += ntermsnew;
-    // db_hash_store_uint32((uint8_t *)KEY_VOCABULARY,
-    //         sizeof KEY_VOCABULARY - 1, nvocab);
-
-    // update class set docs = docs + nemails, terms = terms + ntermsall where name = cclass;
-    // tclass->terms += ntermsall;
-    // class_store(classes);
-#endif
 }
