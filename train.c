@@ -24,7 +24,6 @@
 
 #include <assert.h>
 #include <errno.h>
-#include <sqlite3.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -73,7 +72,6 @@ UPDATE class \
 void train_update(char *cclass) {
     /* Update total number of emails and the data for each word. */
     char *t;
-    sqlite3 *db = db_db();
     struct class *classes, *tclass;
     int cid;
     uint32_t Ndb, *pNdb;
@@ -83,8 +81,6 @@ void train_update(char *cclass) {
     _Bool inserted = 0;
 
     int r, v;
-    sqlite3_stmt *stmt;
-    char *errmsg;
 
 
     cid = class_id_furnish(cclass);
@@ -116,6 +112,8 @@ if (0) fprintf(stderr, "term %.*s: %d\n", (int)kl, k, *p);
         fprintf(stderr, "Writing: %u / %u terms (%u new)\n",
                 ntermswr, nterms, ntermsnew);
 
+    class_update(cid, nemails, ntermsall);
+#if 0
     r = sqlite3_prepare_v2(db, update_class, strlen(update_class), &stmt, 0);
     if (r != SQLITE_OK)
         fatal2("cannot prepare statement: ", sqlite3_errmsg(db));
@@ -144,4 +142,5 @@ if (0) fprintf(stderr, "term %.*s: %d\n", (int)kl, k, *p);
     // update class set docs = docs + nemails, terms = terms + ntermsall where name = cclass;
     // tclass->terms += ntermsall;
     // class_store(classes);
+#endif
 }

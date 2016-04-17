@@ -89,7 +89,8 @@ CREATE TABLE class ( \
   id INTEGER PRIMARY KEY, \
   name TEXT NOT NULL, \
   docs INTEGER NOT NULL, \
-  terms INTEGER NOT NULL ); \
+  terms INTEGER NOT NULL, \
+   UNIQUE (name) ); \
 CREATE TABLE term ( \
   id INTEGER PRIMARY KEY, \
   term TEXT NOT NULL ); \

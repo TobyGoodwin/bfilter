@@ -28,6 +28,7 @@
 #include <stdint.h>
 
 int class_id_furnish(char *);
+void class_update(int, int, int);
 
 struct class {
     const uint8_t *name; /* nul terminated */

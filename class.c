@@ -35,6 +35,8 @@ static const char sql_commit[] = "COMMIT";
 static const char sql_cid[] = "SELECT id FROM class WHERE name = ?";
 static const char sql_insert[] =
     "INSERT INTO class (name, docs, terms) VALUES (?, 0, 0)";
+static const char sql_update[] =
+    "UPDATE class SET docs = docs + ?, terms = terms + ? WHERE id = ?";
 
 _Bool class_id_fetch(sqlite3 *db, char *c, int *x) {
     int r;
@@ -81,23 +83,68 @@ void class_insert(sqlite3 *db, char *c) {
 
 int class_id_furnish(char *c) {
     char *errmsg;
-    int r = 0;
+    int x;
     sqlite3 *db = db_db();
 
-    r = sqlite3_exec(db, sql_begin, 0, 0, &errmsg);
+    sqlite3_exec(db, sql_begin, 0, 0, &errmsg);
     if (errmsg) fatal2("cannot begin transaction: ", errmsg);
 
-    if (class_id_fetch(db, c, &r))
+    x = 0;
+    if (class_id_fetch(db, c, &x))
         goto done;
 
     class_insert(db, c);
 
-    if (!class_id_fetch(db, c, &r))
+    if (!class_id_fetch(db, c, &x))
         fatal4("failed to insert class `", c, "': ", sqlite3_errmsg(db));
 
 done:
-    r = sqlite3_exec(db, sql_commit, 0, 0, &errmsg);
+    sqlite3_exec(db, sql_commit, 0, 0, &errmsg);
     if (errmsg) fatal2("cannot commit: ", errmsg);
 
-    return r;
+    return x;
+}
+
+void class_update(int cid, int nd, int nt) {
+    int r;
+    sqlite3 *db = db_db();
+    sqlite3_stmt *s;
+
+    r = sqlite3_prepare_v2(db, sql_update, sizeof sql_update, &s, 0);
+    if (r != SQLITE_OK)
+        fatal4("cannot prepare stmt `", sql_update, "': ", sqlite3_errmsg(db));
+
+    r = sqlite3_bind_int(s, 1, nd);
+    if (r != SQLITE_OK)
+        fatal2("cannot bind first value: ", sqlite3_errmsg(db));
+
+    r = sqlite3_bind_int(s, 2, nt);
+    if (r != SQLITE_OK)
+        fatal2("cannot bind second value: ", sqlite3_errmsg(db));
+
+    r = sqlite3_bind_int(s, 3, cid);
+    if (r != SQLITE_OK)
+        fatal2("cannot bind third value: ", sqlite3_errmsg(db));
+
+    r = sqlite3_step(s);
+    if (r != SQLITE_DONE)
+        fatal4("cannot step stmt `", sql_update, "': ", sqlite3_errmsg(db));
+    sqlite3_finalize(s);
+
+#if 0
+    r = sqlite3_prepare_v2(db, update_class, strlen(update_class), &stmt, 0);
+    if (r != SQLITE_OK)
+        fatal2("cannot prepare statement: ", sqlite3_errmsg(db));
+
+    r = sqlite3_bind_int(stmt, 1, nemails);
+    if (r != SQLITE_OK) fatal2("cannot bind value: ", sqlite3_errmsg(db));
+    r = sqlite3_bind_int(stmt, 2, ntermsall);
+    if (r != SQLITE_OK) fatal2("cannot bind value: ", sqlite3_errmsg(db));
+    r = sqlite3_bind_text(stmt, 3, cclass, strlen(cclass), 0);
+    if (r != SQLITE_OK) fatal2("cannot bind value: ", sqlite3_errmsg(db));
+
+    r = sqlite3_step(stmt);
+    if (r != SQLITE_DONE)
+        fatal2("cannot update: ", sqlite3_errmsg(db));
+#endif
 }
