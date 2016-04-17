@@ -99,6 +99,7 @@ void train_update(char *cclass) {
     sqlite3_stmt *stmt;
     char *errmsg;
 
+#if 0
     r = sqlite3_exec(db, begin, 0, 0, &errmsg);
     if (errmsg) fatal2("cannot begin transaction: ", errmsg);
 
@@ -138,6 +139,9 @@ loop:
 
     r = sqlite3_exec(db, commit, 0, 0, &errmsg);
     if (errmsg) fatal2("cannot commit: ", errmsg);
+#endif
+
+    cid = class_id_furnish(cclass);
 
 fprintf(stderr, "cid is %d\n", cid);
     //

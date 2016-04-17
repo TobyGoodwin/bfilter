@@ -27,6 +27,8 @@
 
 #include <stdint.h>
 
+int class_id_furnish(char *);
+
 struct class {
     const uint8_t *name; /* nul terminated */
     uint32_t code; /* unique id */

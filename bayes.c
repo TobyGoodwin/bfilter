@@ -62,7 +62,7 @@ struct bayes_result *bayes(skiplist tokens, int *n) {
    
     if (n) *n = 0;
 
-    classes = class_fetch();
+    //classes = class_fetch();
     assert(classes);
     if (classes->code == 0)
         return 0;
