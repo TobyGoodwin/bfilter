@@ -66,10 +66,16 @@ _Bool train_read(void) {
 
 const char begin[] = "BEGIN TRANSACTION;";
 const char commit[] = "COMMIT;";
+const char insert_class[] = "\
+INSERT INTO class (name, docs, terms) \
+  VALUES (?, 0, 0);\
+";
+#if 0
 const char *insert_class = "\
 INSERT INTO class (name, docs, terms) \
   VALUES (?, 0, 0); \
 ";
+#endif
 const char *get_class = "SELECT id FROM class WHERE name = ?;";
 const char *update_class = "\
 UPDATE class \
@@ -99,6 +105,8 @@ void train_update(char *cclass) {
     r = sqlite3_prepare_v2(db, get_class, strlen(get_class), &stmt, 0);
     if (r != SQLITE_OK)
         fatal2("cannot prepare statement: ", sqlite3_errmsg(db));
+
+loop:
     r = sqlite3_bind_text(stmt, 1, cclass, strlen(cclass), 0);
     if (r != SQLITE_OK)
         fatal2("cannot bind value: ", sqlite3_errmsg(db));
@@ -108,9 +116,22 @@ void train_update(char *cclass) {
             fatal1("class.name has non-integer type");
         cid = sqlite3_column_int(stmt, 0);
     } else if (r == SQLITE_DONE) {
+        sqlite3_stmt *s;
         assert(!inserted); inserted = 1;
         // insert
-        fatal1("cannot insert yet");
+        r = sqlite3_prepare_v2(db, insert_class, sizeof(insert_class), &s, 0);
+        if (r != SQLITE_OK)
+            fatal4("cannot prepare statement `", insert_class, "': ",
+                    sqlite3_errmsg(db));
+        r = sqlite3_bind_text(s, 1, cclass, strlen(cclass), 0);
+        if (r != SQLITE_OK)
+            fatal2("cannot bind value: ", sqlite3_errmsg(db));
+        r = sqlite3_step(s);
+        if (r != SQLITE_DONE)
+            fatal2("cannot step statement: ", sqlite3_errmsg(db));
+        sqlite3_finalize(s);
+        sqlite3_reset(stmt);
+        goto loop;
     } else
         fatal2("cannot step statement: ", sqlite3_errmsg(db));
     sqlite3_finalize(stmt);
@@ -118,6 +139,7 @@ void train_update(char *cclass) {
     r = sqlite3_exec(db, commit, 0, 0, &errmsg);
     if (errmsg) fatal2("cannot commit: ", errmsg);
 
+fprintf(stderr, "cid is %d\n", cid);
     //
     // classes = class_fetch();
     // tclass = class_lookup(classes, cclass);
