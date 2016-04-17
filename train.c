@@ -64,7 +64,13 @@ _Bool train_read(void) {
     return 1;
 }
 
-const char *get_class = "SELECT name FROM class WHERE name = ?;";
+const char begin[] = "BEGIN TRANSACTION;";
+const char commit[] = "COMMIT;";
+const char *insert_class = "\
+INSERT INTO class (name, docs, terms) \
+  VALUES (?, 0, 0); \
+";
+const char *get_class = "SELECT id FROM class WHERE name = ?;";
 const char *update_class = "\
 UPDATE class \
   SET docs = docs + ?, terms = terms + ? \
@@ -76,13 +82,19 @@ void train_update(char *cclass) {
     char *t;
     sqlite3 *db = db_db();
     struct class *classes, *tclass;
+    int cid;
     uint32_t Ndb, *pNdb;
     uint32_t nvocab, *pnvocab;
     skiplist_iterator si;
     unsigned int nterms, ntermswr, ntermsnew, ntermsall;
+    _Bool inserted = 0;
 
     int r, v;
     sqlite3_stmt *stmt;
+    char *errmsg;
+
+    r = sqlite3_exec(db, begin, 0, 0, &errmsg);
+    if (errmsg) fatal2("cannot begin transaction: ", errmsg);
 
     r = sqlite3_prepare_v2(db, get_class, strlen(get_class), &stmt, 0);
     if (r != SQLITE_OK)
@@ -92,15 +104,19 @@ void train_update(char *cclass) {
         fatal2("cannot bind value: ", sqlite3_errmsg(db));
     r = sqlite3_step(stmt);
     if (r == SQLITE_ROW) {
-        if (sqlite3_column_type(stmt, 0) != SQLITE_TEXT)
-            fatal1("class.name has non-text type");
-        assert(strcmp(sqlite3_column_text(stmt, 0), cclass) == 0);
+        if (sqlite3_column_type(stmt, 0) != SQLITE_INTEGER)
+            fatal1("class.name has non-integer type");
+        cid = sqlite3_column_int(stmt, 0);
     } else if (r == SQLITE_DONE) {
+        assert(!inserted); inserted = 1;
         // insert
         fatal1("cannot insert yet");
     } else
         fatal2("cannot step statement: ", sqlite3_errmsg(db));
     sqlite3_finalize(stmt);
+
+    r = sqlite3_exec(db, commit, 0, 0, &errmsg);
+    if (errmsg) fatal2("cannot commit: ", errmsg);
 
     //
     // classes = class_fetch();
