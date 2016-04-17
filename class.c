@@ -22,7 +22,6 @@
 
 */
 
-#include <arpa/inet.h>
 #include <assert.h>
 #include <sqlite3.h>
 #include <string.h>
@@ -34,6 +33,48 @@
 #include "line.h"
 #include "util.h"
 
+static const char sql_begin[] = "BEGIN TRANSACTION";
+static const char sql_commit[] = "COMMIT";
+static const char sql_cid[] = "SELECT id FROM class WHERE name = ?";
+
+_Bool class_id_fetch(sqlite3 *db, char *c, int *x) {
+    int r;
+    sqlite3_stmt *s;
+
+    r = sqlite3_prepare_v2(db, sql_cid, sizeof sql_cid, &s, 0);
+    if (r != SQLITE_OK)
+        fatal4("cannot prepare statement `", sql_cid, "': ",
+                sqlite3_errmsg(db));
+
+    r = sqlite3_bind_text(s, 1, c, strlen(c), 0);
+    if (r != SQLITE_OK)
+        fatal4("cannot bind value `", c, "': ", sqlite3_errmsg(db));
+
+    r = sqlite3_step(s);
+    if (r == SQLITE_ROW) {
+        if (sqlite3_column_type(s, 0) != SQLITE_INTEGER)
+            fatal1("class.name has non-integer type");
+        *x = sqlite3_column_int(s, 0);
+        return 1;
+    } else if (r == SQLITE_DONE) {
+        return 0;
+    } else {
+        fatal2("cannot step statement: ", sqlite3_errmsg(db));
+        return 0;
+    }
+}
+
+int class_id_furnish(char *c) {
+    int r;
+    sqlite3 *db = db_db();
+
+    if (class_id_fetch(db, c, &r))
+        return r;
+    else fatal1("cannot insert");
+    return 0;
+}
+
+#if 0
 static const char *get_classes = "\
 SELECT id, name, docs, terms FROM class ORDER BY id; \
 ";
@@ -176,3 +217,4 @@ struct class *class_lookup(struct class *cs, char *c) {
     cp->code = m + 1;
     return cp;
 }
+#endif
