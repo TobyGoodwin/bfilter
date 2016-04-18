@@ -22,9 +22,6 @@
 
 */
 
-#ifndef CLASS_H
-#define CLASS_H
-
 #include <stdint.h>
 
 int class_id_furnish(char *);
@@ -41,5 +38,3 @@ struct class {
 struct class *class_fetch(void);
 struct class *class_lookup(struct class *, char *);
 _Bool class_store(struct class *);
-
-#endif
