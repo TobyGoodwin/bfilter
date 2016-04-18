@@ -5,6 +5,7 @@ cook.o: cook.c cook.h line.h utf8.h util.h
 count.o: count.c count.h db.h util.h
 db.o: db.c bfilter.h skiplist.h db.h error.h settings.h util.h
 db-class.o: db-class.c bfilter.h skiplist.h db.h db-class.h error.h
+db-term.o: db-term.c bfilter.h skiplist.h db.h db-term.h error.h
 error.o: error.c error.h
 fdump.o: fdump.c fdump.h
 line.o: line.c line.h util.h
@@ -16,7 +17,7 @@ skiplist.o: skiplist.c pool.h skiplist.h util.h
 submit.o: submit.c settings.h submit.h skiplist.h
 term.o: term.c bfilter.h skiplist.h db.h error.h term.h
 token.o: token.c compose.h settings.h submit.h skiplist.h token.h util.h
-train.o: train.c bfilter.h skiplist.h count.h db.h db-class.h error.h \
- read.h submit.h train.h util.h
+train.o: train.c bfilter.h skiplist.h count.h db.h db-class.h db-term.h \
+ error.h read.h submit.h train.h util.h
 utf8.o: utf8.c utf8.h
 util.o: util.c error.h util.h

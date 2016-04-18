@@ -33,6 +33,7 @@
 #include "count.h"
 #include "db.h"
 #include "db-class.h"
+#include "db-term.h"
 #include "error.h"
 #include "read.h"
 #include "skiplist.h"
@@ -90,6 +91,7 @@ fprintf(stderr, "cid is %d\n", cid);
     nterms = skiplist_size(token_list); /* distinct terms */
     ntermsall = 0; /* terms including dups */
 
+    db_begin();
     for (si = skiplist_itr_first(token_list), ntermswr = 0, ntermsnew = 0; si;
             si = skiplist_itr_next(token_list, si), ++ntermswr) {
         uint8_t *k;
@@ -99,6 +101,7 @@ fprintf(stderr, "cid is %d\n", cid);
         k = skiplist_itr_key(token_list, si, &kl);
         p = skiplist_itr_value(token_list, si);
 if (0) fprintf(stderr, "term %.*s: %d\n", (int)kl, k, *p);
+fprintf(stderr, "tid is %d\n", db_term_id_furnish(k, kl));
         //if (term_add( m 
         // if (count_add(k, kl, tclass->code, *p))
         //    ++ntermsnew;
@@ -114,4 +117,5 @@ if (0) fprintf(stderr, "term %.*s: %d\n", (int)kl, k, *p);
                 ntermswr, nterms, ntermsnew);
 
     db_class_update(cid, nemails, ntermsall);
+    db_commit();
 }

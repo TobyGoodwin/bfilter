@@ -18,10 +18,10 @@ LDLIBS += -lsqlite3 -ltdb -lcrypto -lm #-lefence
 VERSION = 0.4
 
 TXTS = README COPYING bfilter.1 CHANGES tokeniser-states.dot migrate-0.2-to-0.3
-SRCS = bayes.c compose.c cook.c count.c db.c db-class.c error.c fdump.c line.c main.c pool.c \
-       read.c skiplist.c submit.c term.c token.c train.c utf8.c util.c
-HDRS = bayes.h compose.h cook.h count.h db.h db-class.h error.h fdump.h line.h pool.h \
-       read.h skiplist.h submit.h term.h token.h train.h utf8.h util.h
+SRCS = bayes.c compose.c cook.c count.c db.c db-class.c db-term.c error.c fdump.c line.c main.c pool.c \
+       read.c skiplist.c submit.c token.c train.c utf8.c util.c
+HDRS = bayes.h compose.h cook.h count.h db.h db-class.h db-term.h error.h fdump.h line.h pool.h \
+       read.h skiplist.h submit.h token.h train.h utf8.h util.h
 OBJS = $(SRCS:.c=.o)
 
 CFLAGS += -DBFILTER_VERSION=\"$(VERSION)\"
