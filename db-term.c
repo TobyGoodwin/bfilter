@@ -78,23 +78,20 @@ static void db_term_insert(sqlite3 *db, uint8_t *t, int tl) {
     sqlite3_finalize(s);
 }
 
+// needs to run inside a transaction
 int db_term_id_furnish(uint8_t *t, int tl) {
     int x;
     sqlite3 *db = db_db();
 
-    //db_begin();
-
     x = 0;
     if (db_term_id_fetch(db, t, tl, &x))
-        goto done;
+        return x;
 
     db_term_insert(db, t, tl);
 
     if (!db_term_id_fetch(db, t, tl, &x))
         fatal2("failed to insert term: ", sqlite3_errmsg(db));
 
-done:
-    //db_commit();
     return x;
 }
 

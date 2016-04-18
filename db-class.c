@@ -79,23 +79,20 @@ static void db_class_insert(sqlite3 *db, char *c) {
     sqlite3_finalize(s);
 }
 
+// needs to run inside a transaction
 int db_class_id_furnish(char *c) {
     int x;
     sqlite3 *db = db_db();
 
-    db_begin();
-
     x = 0;
     if (db_class_id_fetch(db, c, &x))
-        goto done;
+        return x;
 
     db_class_insert(db, c);
 
     if (!db_class_id_fetch(db, c, &x))
         fatal4("failed to insert class `", c, "': ", sqlite3_errmsg(db));
 
-done:
-    db_commit();
     return x;
 }
 
