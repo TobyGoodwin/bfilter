@@ -32,6 +32,7 @@
 #include "bfilter.h"
 #include "count.h"
 #include "db.h"
+#include "db-class.h"
 #include "error.h"
 #include "read.h"
 #include "skiplist.h"
@@ -82,7 +83,7 @@ void train_update(char *cclass) {
 
     int r, v;
 
-    cid = class_id_furnish(cclass);
+    cid = db_class_id_furnish(cclass);
 
 fprintf(stderr, "cid is %d\n", cid);
 
@@ -112,5 +113,5 @@ if (0) fprintf(stderr, "term %.*s: %d\n", (int)kl, k, *p);
         fprintf(stderr, "Writing: %u / %u terms (%u new)\n",
                 ntermswr, nterms, ntermsnew);
 
-    class_update(cid, nemails, ntermsall);
+    db_class_update(cid, nemails, ntermsall);
 }

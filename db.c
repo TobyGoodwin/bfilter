@@ -65,7 +65,7 @@ CREATE TABLE class ( \
 CREATE TABLE term ( \
   id INTEGER PRIMARY KEY, \
   term TEXT NOT NULL ); \
-CREATE TABLE c_t ( \
+CREATE TABLE count ( \
   class INTEGER NOT NULL, \
   term INTEGER NOT NULL, \
   count INTEGER, \
@@ -76,7 +76,7 @@ CREATE TABLE version ( \
   version INTEGER NOT NULL ); \
 ";
 
-static const char *set_version = "INSERT INTO version (version) VALUES (?);";
+static const char set_version[] = "INSERT INTO version (version) VALUES (?)";
 
 void db_init(void) {
     char *errmsg = 0;
@@ -87,7 +87,7 @@ void db_init(void) {
     if (errmsg != 0)
         fatal2("cannot initialize database: ", errmsg);
 
-    r = sqlite3_prepare_v2(db, set_version, strlen(set_version), &stmt, 0);
+    r = sqlite3_prepare_v2(db, set_version, sizeof set_version, &stmt, 0);
     if (r != SQLITE_OK)
         fatal2("cannot prepare statement: ", sqlite3_errmsg(db));
     r = sqlite3_bind_int(stmt, 1, VERSION);
@@ -99,13 +99,13 @@ void db_init(void) {
     sqlite3_finalize(stmt);
 }
 
-static const char *get_version = "SELECT version FROM version;";
+static const char get_version[] = "SELECT version FROM version;";
 
 void db_check_version(void) {
     int r, v;
     sqlite3_stmt *stmt;
 
-    r = sqlite3_prepare_v2(db, get_version, strlen(get_version), &stmt, 0);
+    r = sqlite3_prepare_v2(db, get_version, sizeof get_version, &stmt, 0);
     if (r != SQLITE_OK)
         fatal2("cannot prepare statement: ", sqlite3_errmsg(db));
     r = sqlite3_step(stmt);

@@ -27,8 +27,6 @@
 
 #include <sqlite3.h>
 
-#include "class.h"
-
 /* db.c */
 sqlite3 *db_db(void);
 int db_open(void);

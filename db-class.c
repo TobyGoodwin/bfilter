@@ -26,8 +26,8 @@
 #include <string.h>
 
 #include "bfilter.h"
-#include "class.h"
 #include "db.h"
+#include "db-class.h"
 #include "error.h"
 
 static const char sql_cid[] = "SELECT id FROM class WHERE name = ?";
@@ -36,7 +36,7 @@ static const char sql_insert[] =
 static const char sql_update[] =
     "UPDATE class SET docs = docs + ?, terms = terms + ? WHERE id = ?";
 
-_Bool class_id_fetch(sqlite3 *db, char *c, int *x) {
+static _Bool db_class_id_fetch(sqlite3 *db, char *c, int *x) {
     int r;
     sqlite3_stmt *s;
 
@@ -63,7 +63,7 @@ _Bool class_id_fetch(sqlite3 *db, char *c, int *x) {
     return 0;
 }
 
-void class_insert(sqlite3 *db, char *c) {
+static void db_class_insert(sqlite3 *db, char *c) {
     int r;
     sqlite3_stmt *s;
 
@@ -79,20 +79,19 @@ void class_insert(sqlite3 *db, char *c) {
     sqlite3_finalize(s);
 }
 
-int class_id_furnish(char *c) {
-    char *errmsg;
+int db_class_id_furnish(char *c) {
     int x;
     sqlite3 *db = db_db();
 
     db_begin();
 
     x = 0;
-    if (class_id_fetch(db, c, &x))
+    if (db_class_id_fetch(db, c, &x))
         goto done;
 
-    class_insert(db, c);
+    db_class_insert(db, c);
 
-    if (!class_id_fetch(db, c, &x))
+    if (!db_class_id_fetch(db, c, &x))
         fatal4("failed to insert class `", c, "': ", sqlite3_errmsg(db));
 
 done:
@@ -100,7 +99,7 @@ done:
     return x;
 }
 
-void class_update(int cid, int nd, int nt) {
+void db_class_update(int cid, int nd, int nt) {
     int r;
     sqlite3 *db = db_db();
     sqlite3_stmt *s;
@@ -125,21 +124,4 @@ void class_update(int cid, int nd, int nt) {
     if (r != SQLITE_DONE)
         fatal4("cannot step stmt `", sql_update, "': ", sqlite3_errmsg(db));
     sqlite3_finalize(s);
-
-#if 0
-    r = sqlite3_prepare_v2(db, update_class, strlen(update_class), &stmt, 0);
-    if (r != SQLITE_OK)
-        fatal2("cannot prepare statement: ", sqlite3_errmsg(db));
-
-    r = sqlite3_bind_int(stmt, 1, nemails);
-    if (r != SQLITE_OK) fatal2("cannot bind value: ", sqlite3_errmsg(db));
-    r = sqlite3_bind_int(stmt, 2, ntermsall);
-    if (r != SQLITE_OK) fatal2("cannot bind value: ", sqlite3_errmsg(db));
-    r = sqlite3_bind_text(stmt, 3, cclass, strlen(cclass), 0);
-    if (r != SQLITE_OK) fatal2("cannot bind value: ", sqlite3_errmsg(db));
-
-    r = sqlite3_step(stmt);
-    if (r != SQLITE_DONE)
-        fatal2("cannot update: ", sqlite3_errmsg(db));
-#endif
 }
