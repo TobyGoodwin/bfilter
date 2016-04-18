@@ -60,6 +60,7 @@ struct bayes_result *bayes(skiplist tokens, int *n) {
     struct bayes_result *r;
     uint32_t *p_ui32, t_total;
    
+#if 0
     if (n) *n = 0;
 
     //classes = class_fetch();
@@ -132,5 +133,6 @@ struct bayes_result *bayes(skiplist tokens, int *n) {
     }
 
     sort(r, n_class);
+#endif
     return r;
 }
