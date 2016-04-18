@@ -31,6 +31,10 @@
 /* add n to the count for token t of size t_sz and class (code) c, return true
  * if this was a new term */
 _Bool count_add(uint8_t *t, size_t t_sz, int c, int n) {
+    return 0;
+}
+
+#if 0
     _Bool gotit = 0;
     uint32_t *is, *x;
     unsigned int i, n_is;
@@ -62,3 +66,4 @@ _Bool count_add(uint8_t *t, size_t t_sz, int c, int n) {
     db_set_intlist(t, t_sz, x, n_is);
     return 0;
 }
+#endif

@@ -19,44 +19,15 @@
 #include <time.h>
 #include <unistd.h>
 
-#include <openssl/md5.h>
-#include <netinet/in.h>
 #include <sqlite3.h>
-#include <sys/fcntl.h>
-#include <sys/stat.h>
 
 #include "bfilter.h"
-#include "class.h"
 #include "db.h"
 #include "error.h"
-#include "line.h"
 #include "settings.h"
 #include "util.h"
 
-/* These macros are ugly, but not as ugly as the #ifdef shenanigans to portably
- * include <endian.h> (Linux) or <sys/endian.h> (some of *BSD). Because
- * balkanization makes everything better for everyone! No, wait, the other
- * thing... :-( */
-#define htonll(x) ((1==htonl(1)) ? (x) : \
-        ((uint64_t)htonl((x) & 0xFFFFFFFF) << 32) | htonl((x) >> 32))
-#define ntohll(x) ((1==ntohl(1)) ? (x) : \
-        ((uint64_t)ntohl((x) & 0xFFFFFFFF) << 32) | ntohl((x) >> 32))
-
 static sqlite3 *db;
-static size_t dbsize;
-
-/* HASHLEN
- * Length, in bytes, of the hash of a term we use as a key in the database. We
- * use the first HASHLEN bytes of the MD5 checksum of the term. */
-#define HASHLEN 8
-
-/* make_hash TERM LENGTH HASH
- * Save in HASH the hash of the LENGTH-byte TERM. */
-static void make_hash(const uint8_t *term, const size_t len, uint8_t hash[8]) {
-    uint8_t md5[16];
-    MD5(term, len, md5);
-    memcpy(hash, md5, HASHLEN);
-}
 
 struct sqlite3 *db_db(void) {
     return db;
@@ -84,7 +55,7 @@ static char *dbfilename(const char *suffix) {
     return name;
 }
 
-static const char *create = "\
+static const char create[] = "\
 CREATE TABLE class ( \
   id INTEGER PRIMARY KEY, \
   name TEXT NOT NULL, \
@@ -164,7 +135,6 @@ void db_check_version(void) {
 int db_open(void) {
     char *name;
     int err, flags;
-    struct stat st;
 
     name = dbfilename(NULL);
 
@@ -186,17 +156,6 @@ int db_open(void) {
 
     db_check_version();
 
-    /*
-    if (0 == stat(name, &st))
-        dbsize = st.st_size;
-    
-    xfree(name);
-
-    if (db)
-        return 1;
-    else
-        return 0;
-        */
     return 1;
 }
 
@@ -206,437 +165,20 @@ void db_close(void) {
     sqlite3_close_v2(db);
 }
 
-#if 0
-/* db_set_pair NAME A B
- * Save under NAME the pair A, B, also setting the timestamp. */
-void db_set_pair(const char *name, unsigned int a, unsigned int b) {
-    TDB_DATA k, d;
-    uint32_t u;
-    unsigned char key[HASHLEN], data[12];     /* a, b, time of last use. */
+static const char sql_begin[] = "BEGIN TRANSACTION";
 
-    make_hash(name, strlen(name), key);
-    k.dptr = key;
-    k.dsize = HASHLEN;
+void db_begin(void) {
+    char *errmsg;
 
-    u = htonl(a);
-    memcpy(data, &u, 4);
-    u = htonl(b);
-    memcpy(data + 4, &u, 4);
-    u = htonl((uint32_t)time(NULL));     /* XXX 2038 bug */
-    memcpy(data + 8, &u, 4);
-    d.dptr = data;
-    d.dsize = 12;
-
-    tdb_store(db, k, d, TDB_REPLACE);
+    sqlite3_exec(db, sql_begin, 0, 0, &errmsg);
+    if (errmsg) fatal2("cannot begin transaction: ", errmsg);
 }
 
-/* db_get_pair NAME A B
- * Save in *A and *B the elements of the pair identified by NAME, returning 1
- * and updating the timestamp if the pair is found, else returning 0. */
-int db_get_pair(const char *name, unsigned int *a, unsigned int *b) {
-    TDB_DATA k, d;
-    unsigned char key[HASHLEN];
-    
-    make_hash(name, strlen(name), key);
-    k.dptr = key;
-    k.dsize = HASHLEN;
-    
-    d = tdb_fetch(db, k);
-    if (!d.dptr || (d.dsize != 8 && d.dsize != 12))
-        return 0;
-    else {
-        uint32_t u;
-        
-        memcpy(&u, d.dptr, 4);
-        *a = ntohl(u);
-        memcpy(&u, d.dptr + 4, 4);
-        *b = ntohl(u);
-        xfree(d.dptr);
+static const char sql_commit[] = "COMMIT";
 
-        /* Update record with current time. */
-        db_set_pair(name, *a, *b);
-        
-        return 1;
-    }
+void db_commit(void) {
+    char *errmsg;
+
+    sqlite3_exec(db, sql_commit, 0, 0, &errmsg);
+    if (errmsg) fatal2("cannot commit transaction: ", errmsg);
 }
-#endif
-
-/* store an integer list x of size n under key k of size k_sz */
-void db_set_intlist(const uint8_t *k, size_t k_sz,
-        uint32_t *x, unsigned int n) {
-    TDB_DATA key, d;
-#if 0
-    unsigned char h[HASHLEN];
-
-    make_hash(k, k_sz, h);
-    key.dptr = h;
-    key.dsize = HASHLEN;
-#endif
-    key.dptr = (unsigned char *)k;
-    key.dsize = k_sz;
-
-    d.dptr = (void *)x;
-    d.dsize = 4 * n;
-
-    tdb_store(db, key, d, 0);
-}
-
-/* retrieve an integer list of size n from key k of size k_sz */
-uint32_t *db_get_intlist(const uint8_t *k, size_t k_sz, unsigned int *n) {
-    TDB_DATA key, d;
-#if 0
-    unsigned char h[HASHLEN];
-
-    make_hash(k, k_sz, h);
-    key.dptr = h;
-    key.dsize = HASHLEN;
-#endif
-    key.dptr = (unsigned char *)k;
-    key.dsize = k_sz;
-
-    d = tdb_fetch(db, key);
-    if (!d.dptr || d.dsize % sizeof(uint32_t) != 0)
-        return 0;
-    *n = d.dsize / sizeof(uint32_t);
-    return (uint32_t *)d.dptr;
-}
-
-uint8_t *db_hash_fetch(uint8_t *k, size_t k_sz, size_t *d_sz) {
-    TDB_DATA key, d;
-#if 0
-    unsigned char h[HASHLEN];
-
-    make_hash(k, k_sz, h);
-    key.dptr = h;
-    key.dsize = HASHLEN;
-#endif
-    key.dptr = k;
-    key.dsize = k_sz;
-
-    d = tdb_fetch(db, key);
-    *d_sz = d.dsize;
-    return d.dptr;
-}
-
-_Bool db_hash_store(uint8_t *k, size_t k_sz, uint8_t *d, size_t d_sz) {
-    TDB_DATA key, dat;
-#if 0
-    unsigned char h[HASHLEN];
-
-    make_hash(k, k_sz, h);
-    key.dptr = h;
-    key.dsize = HASHLEN;
-#endif
-    key.dptr = k;
-    key.dsize = k_sz;
-
-    dat.dptr = d;
-    dat.dsize = d_sz;
-
-    return tdb_store(db, key, dat, 0) == 0;
-}
-
-/* returns a pointer to a uint32, which caller must free; may return NULL */
-uint32_t *db_hash_fetch_uint32(uint8_t *k, size_t k_sz) {
-    size_t s;
-    uint32_t *x;
-    
-    x = (uint32_t *)db_hash_fetch(k, k_sz, &s);
-    if (!x || s != sizeof *x)
-        return 0;
-    *x = ntohl(*x);
-    return x;
-}
-
-_Bool db_hash_store_uint32(uint8_t *k, size_t k_sz, uint32_t d) {
-    d = htonl(d);
-    return db_hash_store(k, k_sz, (uint8_t *)&d, sizeof d);
-}
-
-
-struct class *db_get_classes(void) {
-    TDB_DATA k, v;
-    uint8_t key[HASHLEN], *p;
-    struct class *cs = 0;
-    int csa = 0, csn = 0;
-
-    make_hash((uint8_t *)KEY_CLASSES, sizeof KEY_CLASSES - 1, key);
-    k.dptr = key;
-    k.dsize = HASHLEN;
-
-    v = tdb_fetch(db, k);
-    if (v.dptr) {
-        /* note that the cs array we build here contains pointers into the data
-         * v returned from the database; tdb specifies that the caller is
-         * responsible for freeing this data, so obviously in this case we
-         * don't */
-        for (p = v.dptr; p < v.dptr + v.dsize; ++csn) {
-            uint32_t nc;
-            if (csn == csa)
-                cs = xrealloc(cs, (csa = csa * 2 + 1) * sizeof *cs);
-            cs[csn].name = p;
-            while (*p++)
-                ;
-            memcpy(&nc, p, sizeof nc);
-            p += sizeof nc;
-            cs[csn].code = ntohl(nc);
-        }
-    } else
-        csa = csn = 0;
-        
-    /* add a sentinel */
-    if (csn == csa)
-        cs = xrealloc(cs, (csa = csa * 2 + 1) * sizeof *cs);
-    cs[csn].name = 0;
-    cs[csn].code = 0;
-
-    return cs;
-}
-
-void db_set_classes(struct class *cs) {
-    TDB_DATA k, v;
-    struct class *p;
-    struct line csl = { 0 };
-    uint8_t key[HASHLEN];
-
-    make_hash((uint8_t *)KEY_CLASSES, sizeof KEY_CLASSES - 1, key);
-    k.dptr = key;
-    k.dsize = HASHLEN;
-
-    for (p = cs; p->code; ++p) {
-        struct line c = { 0 };
-        uint32_t nc;
-
-        c.x = p->name;
-        c.l = strlen((char *)p->name) + 1; /* including \0 */
-        line_cat(&csl, &c);
-        nc = htonl(p->code);
-        c.x = (uint8_t *)&nc;
-        c.l = 4;
-        line_cat(&csl, &c);
-    }
-    v.dptr = csl.x; v.dsize = csl.l;
-    tdb_store(db, k, v, 0); /* XXX return value? */
-}
-
-#if 0
-struct cleanparam {
-    TDB_CONTEXT *cp_db;
-    time_t cp_maxage;
-    unsigned int cp_nkept, cp_ndiscarded, cp_ntotal;
-};
-
-/* copy_items DB KEY VALUE P
- * Copy data from old to new database, if it is new enough. */
-static int copy_items(TDB_CONTEXT *db, TDB_DATA key, TDB_DATA val, void *p) {
-    static unsigned char h[HASHLEN];
-    static int have_h;
-    static time_t now;
-    uint32_t u;
-    struct cleanparam *c;
-    time_t when;
-    
-    if (!have_h) {
-        make_hash("__emails__", sizeof("__emails__") - 1, h);
-        have_h = 1;
-        time(&now);
-    }
-    
-    c = (struct cleanparam*)p;
-
-    if (key.dsize != 8 || val.dsize != 12)
-        return 0;
-
-    memcpy(&u, val.dptr + 8, 4);
-    when = (time_t)ntohl(u);
-
-    if (when > now - c->cp_maxage || 0 == memcmp(h, key.dptr, HASHLEN)) {
-        tdb_store(c->cp_db, key, val, TDB_REPLACE);
-        ++c->cp_nkept;
-    } else
-        ++c->cp_ndiscarded;
-
-    if (isatty(2) && (0 == ((c->cp_nkept + c->cp_ndiscarded) % 1000) || c->cp_nkept + c->cp_ndiscarded == c->cp_ntotal)) {
-        fprintf(stderr, "\rCleaning: kept %8u / discarded %8u; done %5.1f%%",
-                c->cp_nkept, c->cp_ndiscarded, 100. * (c->cp_nkept + c->cp_ndiscarded) / (float)c->cp_ntotal);
-    }
-
-    return 0;
-}
-
-/* db_clean DAYS
- * Delete from the database elements which have not been used in the past
- * number of DAYS. Returns the number of discarded terms. */
-void db_clean(int ndays) {
-    struct cleanparam c = {0};
-    char *newname = NULL, *name;
-    
-    name = dbfilename(NULL);
-    srand(time(NULL));
-    
-    while (!c.cp_db) {
-        char suffix[32];
-        xfree(newname);
-        sprintf(suffix, ".new.%8u.%8u.%8u", (unsigned)rand(), (unsigned)rand(),
-                (unsigned)time(NULL));
-        newname = dbfilename(suffix);
-        c.cp_db = tdb_open(newname, 0, 0, O_CREAT | O_RDWR | O_EXCL, 0600);
-        if (!c.cp_db && errno != EEXIST)
-            fatal3x("cannot open temp database `", newname, "'");
-    }
-
-    tdb_traverse(db, copy_items, &c);
-    printf("\n");
-
-    tdb_close(c.cp_db);
-    tdb_close(db);
-
-    if (rename(newname, name) == -1)
-        fatal5x("cannot rename `", newname, "' to `", name, "'");
-
-    db_open();
-
-    xfree(newname);
-    xfree(name);
-
-    return;
-}
-
-#define NHISTDAYS       28
-#define NPROBCLASSES    25
-
-struct dbstats {
-    unsigned int ds_nterms, ds_nbogons;
-    unsigned int ds_nterms_by_age[NHISTDAYS + 1];   /* ...[NHISTDAYS] is `older terms' */
-    unsigned int ds_nterms_by_prob[NPROBCLASSES];
-    unsigned int ds_nspamtotal, ds_nrealtotal;      /* # emails in db */
-};
-
-/* gather_stats DB KEY VALUE P
- * Callback for gathering statistics about the database. */
-static int gather_stats(TDB_CONTEXT *db, TDB_DATA key, TDB_DATA val, void *p) {
-    static unsigned char h[HASHLEN];
-    static int have_h;
-    static time_t now;
-    struct dbstats *S;
-    uint32_t u;
-    unsigned int nspam, nreal;
-    time_t when;
-    int ndays;
-    float prob;
-    
-    S = (struct dbstats*)p;
-    if (!have_h) {
-        make_hash("__emails__", sizeof("__emails__") - 1, h);
-        have_h = 1;
-        time(&now);
-    }
-    
-    if (key.dsize != HASHLEN) {
-        ++S->ds_nbogons;
-        return 0;
-    } else if (val.dsize != 12) {
-        ++S->ds_nbogons;
-        return 0;
-    }
-    if (0 == memcmp(key.dptr, h, HASHLEN))
-        return 0;
-    
-    ++S->ds_nterms;
-
-    memcpy(&u, val.dptr, 4);
-    nspam = ntohl(u);
-    memcpy(&u, val.dptr + 4, 4);
-    nreal = ntohl(u);
-    memcpy(&u, val.dptr + 8, 4);
-    when = (time_t)ntohl(u);        /* XXX 2038 bug */
-    
-    /* Compute age in days, update histogram. */
-    ndays = (now - when) / (24 * 3600);
-    if (ndays < 0)
-        ++S->ds_nbogons;
-    else if (ndays < NHISTDAYS)
-        ++S->ds_nterms_by_age[ndays];
-    else
-        ++S->ds_nterms_by_age[NHISTDAYS];
-
-    /* Compute probability. */
-    prob = ((float)nspam / (float)S->ds_nspamtotal) / ((float)nspam / (float)S->ds_nspamtotal + (float)nreal / (float)S->ds_nrealtotal);
-    ++S->ds_nterms_by_prob[(int)(prob * (NPROBCLASSES - 1))];
-
-    return 0;
-}
-
-/* db_print_stats
- * Print some statistics about the database. */
-void db_print_stats(void) {
-    struct dbstats S = {0};
-    size_t ncols = 0;
-    char *c;
-    int i;
-    unsigned int max;
-    char *bar;
-    
-    if ((c = getenv("COLUMNS")))
-        ncols = (size_t)atoi(c);
-    
-    if (!ncols) ncols = 80;
-    if (ncols > 1024) ncols = 1024;
-    if (ncols < 40) ncols = 40;
-    bar = xmalloc(1024);
-    for (i = 0; i < 1024; ++i) bar[i] = '#';
-    
-    if (!(db_get_pair("__emails__", &S.ds_nspamtotal, &S.ds_nrealtotal))) {
-        fprintf(stderr, "bfilter: database seems to be empty; add some spam and nonspam\n");
-        return;
-    }
-    tdb_traverse(db, gather_stats, (void*)&S);
-
-    printf("\n");
-
-    if (dbsize)
-        printf("Total database size:    %8.1f MB (%5.1f%% of data length)\n", (float)dbsize / 1048576., (100. * dbsize) / (20. * S.ds_nterms + 1));
-    else
-        printf("Total database size:    unknown\n");
-            
-    
-    printf("Spams in corpus:        %8u\n"
-           "Real emails in corpus:  %8u\n"
-           "Terms in corpus:        %8u\n"
-           "Bogus database entries: %8u\n",
-           S.ds_nspamtotal, S.ds_nrealtotal, S.ds_nterms, S.ds_nbogons);
-
-    /* Draw histogram of terms by age. */
-    printf("\nNumber of terms, by time since last seen:\n\n");
-
-    for (i = 0, max = 0; i <= NHISTDAYS; ++i)
-        if (S.ds_nterms_by_age[i] > max)
-            max = S.ds_nterms_by_age[i];
-    
-
-    /*      xxxxxxxxxxx xxxxxxxxx   */
-    printf("Age (days)  Number of terms\n"
-           "----------- ---------------\n");
-    printf("     <1     %8u %.*s\n", S.ds_nterms_by_age[0], (int)((ncols - 21.) * (float)S.ds_nterms_by_age[0] / (float)max), bar);
-    for (i = 1; i < NHISTDAYS; ++i)
-        printf("  %3d-%-3d   %8u %.*s\n", i, i + 1, S.ds_nterms_by_age[i], (int)((ncols - 21.) * (float)S.ds_nterms_by_age[i] / (float)max), bar);
-    printf("   >=%3d    %8u %.*s\n", NHISTDAYS, S.ds_nterms_by_age[NHISTDAYS], (int)((ncols - 21.) * (float)S.ds_nterms_by_age[NHISTDAYS] / (float)max), bar);
-
-    /* Draw histogram of terms by spam probability. */
-    printf("\nNumber of terms, by `spam probability':\n\n");
-    
-    for (i = 0, max = 0; i < NPROBCLASSES; ++i)
-        if (S.ds_nterms_by_prob[i] > max)
-            max = S.ds_nterms_by_prob[i];
-
-    printf("Probability Number of terms\n"
-           "----------- ---------------\n");
-    for (i = 0; i < NPROBCLASSES; ++i) {
-        float p;
-        p = (i + 0.5) / (float)NPROBCLASSES;
-        printf("   %.2f     %8u %.*s\n", p, S.ds_nterms_by_prob[i], (int)((ncols - 21.) * (float)S.ds_nterms_by_prob[i] / (float)max), bar);
-    }
-
-    printf("\n");
-}
-#endif

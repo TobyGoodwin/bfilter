@@ -60,6 +60,7 @@ struct class *bayes(skiplist tokens, int *n) {
     uint32_t *p_ui32, t_total;
     skiplist_iterator si;
    
+#if 0
     if (n) *n = 0;
 
     //classes = class_fetch();

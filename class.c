@@ -30,8 +30,6 @@
 #include "db.h"
 #include "error.h"
 
-static const char sql_begin[] = "BEGIN TRANSACTION";
-static const char sql_commit[] = "COMMIT";
 static const char sql_cid[] = "SELECT id FROM class WHERE name = ?";
 static const char sql_insert[] =
     "INSERT INTO class (name, docs, terms) VALUES (?, 0, 0)";
@@ -86,8 +84,7 @@ int class_id_furnish(char *c) {
     int x;
     sqlite3 *db = db_db();
 
-    sqlite3_exec(db, sql_begin, 0, 0, &errmsg);
-    if (errmsg) fatal2("cannot begin transaction: ", errmsg);
+    db_begin();
 
     x = 0;
     if (class_id_fetch(db, c, &x))
@@ -99,9 +96,7 @@ int class_id_furnish(char *c) {
         fatal4("failed to insert class `", c, "': ", sqlite3_errmsg(db));
 
 done:
-    sqlite3_exec(db, sql_commit, 0, 0, &errmsg);
-    if (errmsg) fatal2("cannot commit: ", errmsg);
-
+    db_commit();
     return x;
 }
 

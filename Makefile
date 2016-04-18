@@ -19,9 +19,9 @@ VERSION = 0.4
 
 TXTS = README COPYING bfilter.1 CHANGES tokeniser-states.dot migrate-0.2-to-0.3
 SRCS = bayes.c class.c compose.c cook.c count.c db.c error.c fdump.c line.c main.c pool.c \
-       read.c skiplist.c submit.c token.c train.c utf8.c util.c
+       read.c skiplist.c submit.c term.c token.c train.c utf8.c util.c
 HDRS = bayes.h class.h compose.h cook.h count.h db.h error.h fdump.h line.h pool.h \
-       read.h skiplist.h submit.h token.h train.h utf8.h util.h
+       read.h skiplist.h submit.h term.h token.h train.h utf8.h util.h
 OBJS = $(SRCS:.c=.o)
 
 CFLAGS += -DBFILTER_VERSION=\"$(VERSION)\"

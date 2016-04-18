@@ -33,7 +33,9 @@
 sqlite3 *db_db(void);
 int db_open(void);
 void db_close(void);
-int db_class(const char *);
+
+void db_begin(void);
+void db_commit(void);
 
 uint8_t *db_hash_fetch(uint8_t *k, size_t k_sz, size_t *d_sz);
 _Bool db_hash_store(uint8_t *k, size_t k_sz, uint8_t *d, size_t d_sz);

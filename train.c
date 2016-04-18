@@ -82,7 +82,6 @@ void train_update(char *cclass) {
 
     int r, v;
 
-
     cid = class_id_furnish(cclass);
 
 fprintf(stderr, "cid is %d\n", cid);
@@ -99,6 +98,7 @@ fprintf(stderr, "cid is %d\n", cid);
         k = skiplist_itr_key(token_list, si, &kl);
         p = skiplist_itr_value(token_list, si);
 if (0) fprintf(stderr, "term %.*s: %d\n", (int)kl, k, *p);
+        //if (term_add( m 
         // if (count_add(k, kl, tclass->code, *p))
         //    ++ntermsnew;
         ntermsall += *p;
