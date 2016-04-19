@@ -104,12 +104,8 @@ if (0) fprintf(stderr, "term %.*s: %d\n", (int)kl, k, *p);
         tid = db_term_id_furnish(k, kl);
 fprintf(stderr, "tid is %d\n", tid);
 
-        clid = db_count_id_furnish(cid, tid);
-        db_count_update(clid, *p);
-
-        //if (term_add( m 
-        // if (count_add(k, kl, tclass->code, *p))
-        //    ++ntermsnew;
+        if (db_count_update(cid, tid, *p))
+            ++ntermsnew;
         ntermsall += *p;
 
         if (isatty(1) && (ntermswr % 500) == 0)
