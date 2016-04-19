@@ -75,7 +75,7 @@ void train_update(char *cclass) {
     /* Update total number of emails and the data for each word. */
     char *t;
     struct class *classes, *tclass;
-    int cid;
+    int cid, tid, clid;
     uint32_t Ndb, *pNdb;
     uint32_t nvocab, *pnvocab;
     skiplist_iterator si;
@@ -101,7 +101,12 @@ fprintf(stderr, "cid is %d\n", cid);
         k = skiplist_itr_key(token_list, si, &kl);
         p = skiplist_itr_value(token_list, si);
 if (0) fprintf(stderr, "term %.*s: %d\n", (int)kl, k, *p);
-fprintf(stderr, "tid is %d\n", db_term_id_furnish(k, kl));
+        tid = db_term_id_furnish(k, kl);
+fprintf(stderr, "tid is %d\n", tid);
+
+        clid = db_count_id_furnish(cid, tid);
+        db_count_update(clid, *p);
+
         //if (term_add( m 
         // if (count_add(k, kl, tclass->code, *p))
         //    ++ntermsnew;
