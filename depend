@@ -17,7 +17,7 @@ read.o: read.c bfilter.h skiplist.h cook.h line.h read.h token.h util.h
 skiplist.o: skiplist.c pool.h skiplist.h util.h
 submit.o: submit.c settings.h submit.h skiplist.h
 token.o: token.c compose.h settings.h submit.h skiplist.h token.h util.h
-train.o: train.c bfilter.h skiplist.h count.h db.h db-class.h db-term.h \
- error.h read.h submit.h train.h util.h
+train.o: train.c bfilter.h skiplist.h count.h db.h db-class.h db-count.h \
+ db-term.h error.h read.h submit.h train.h util.h
 utf8.o: utf8.c utf8.h
 util.o: util.c error.h util.h

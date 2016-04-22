@@ -35,6 +35,9 @@ void db_close(void);
 void db_begin(void);
 void db_commit(void);
 
+int db_documents(void);
+int db_vocabulary(void);
+
 uint8_t *db_hash_fetch(uint8_t *k, size_t k_sz, size_t *d_sz);
 _Bool db_hash_store(uint8_t *k, size_t k_sz, uint8_t *d, size_t d_sz);
 

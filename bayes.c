@@ -37,7 +37,7 @@
 #include "settings.h"
 #include "util.h"
 
-#define TRACE if (0)
+#define TRACE if (1)
 
 static int cmp(const void *x, const void *y) {
     const struct class *a = x;
@@ -55,12 +55,19 @@ static struct class *sort(struct class *x, int n) {
 }
 
 struct class *bayes(skiplist tokens, int *n) {
+    int docs = db_documents();
+    int vocab = db_vocabulary();
+
+    TRACE fprintf(stderr, "documents: %d\n", docs);
+    TRACE fprintf(stderr, "vocabulary: %d\n", vocab);
+
+    return 0;
+#if 0
     struct class *class, *classes;
     int c, i, n_class = 0, n_total;
     uint32_t *p_ui32, t_total;
     skiplist_iterator si;
    
-#if 0
     if (n) *n = 0;
 
     //classes = class_fetch();

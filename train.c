@@ -33,6 +33,7 @@
 #include "count.h"
 #include "db.h"
 #include "db-class.h"
+#include "db-count.h"
 #include "db-term.h"
 #include "error.h"
 #include "read.h"
@@ -72,22 +73,15 @@ UPDATE class \
 ";
 
 void train_update(char *cclass) {
-    /* Update total number of emails and the data for each word. */
-    char *t;
-    struct class *classes, *tclass;
-    int cid, tid, clid;
-    uint32_t Ndb, *pNdb;
-    uint32_t nvocab, *pnvocab;
+    /* Update database from our skiplist */
+    int cid, tid;
     skiplist_iterator si;
     unsigned int nterms, ntermswr, ntermsnew, ntermsall;
-    _Bool inserted = 0;
-
-    int r, v;
 
     db_begin();
     cid = db_class_id_furnish(cclass);
 
-fprintf(stderr, "cid is %d\n", cid);
+    TRACE fprintf(stderr, "cid is %d\n", cid);
 
     nterms = skiplist_size(token_list); /* distinct terms */
     ntermsall = 0; /* terms including dups */
@@ -100,9 +94,9 @@ fprintf(stderr, "cid is %d\n", cid);
 
         k = skiplist_itr_key(token_list, si, &kl);
         p = skiplist_itr_value(token_list, si);
-if (0) fprintf(stderr, "term %.*s: %d\n", (int)kl, k, *p);
+        TRACE fprintf(stderr, "term %.*s: %d\n", (int)kl, k, *p);
         tid = db_term_id_furnish(k, kl);
-fprintf(stderr, "tid is %d\n", tid);
+        TRACE fprintf(stderr, "tid is %d\n", tid);
 
         if (db_count_update(cid, tid, *p))
             ++ntermsnew;

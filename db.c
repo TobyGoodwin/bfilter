@@ -99,22 +99,29 @@ void db_init(void) {
     sqlite3_finalize(stmt);
 }
 
+int db_int_query(const char *q, size_t qn) {
+    int r, x;
+    sqlite3_stmt *stmt;
+
+    r = sqlite3_prepare_v2(db, q, qn, &stmt, 0);
+    if (r != SQLITE_OK)
+        fatal4("cannot prepare statement `", q, "': ", sqlite3_errmsg(db));
+    r = sqlite3_step(stmt);
+    if (r != SQLITE_ROW)
+        fatal4("cannot step statement `", q, "': ", sqlite3_errmsg(db));
+    if (sqlite3_column_type(stmt, 0) != SQLITE_INTEGER)
+        fatal3("result of `", q, "' has non-integer type");
+    x = sqlite3_column_int(stmt, 0);
+    sqlite3_finalize(stmt);
+    return x;
+}
+
 static const char get_version[] = "SELECT version FROM version;";
 
 void db_check_version(void) {
-    int r, v;
-    sqlite3_stmt *stmt;
+    int v;
 
-    r = sqlite3_prepare_v2(db, get_version, sizeof get_version, &stmt, 0);
-    if (r != SQLITE_OK)
-        fatal2("cannot prepare statement: ", sqlite3_errmsg(db));
-    r = sqlite3_step(stmt);
-    if (r != SQLITE_ROW)
-        fatal2("cannot step statement: ", sqlite3_errmsg(db));
-    if (sqlite3_column_type(stmt, 0) != SQLITE_INTEGER)
-        fatal1("version.version has non-integer type");
-    v = sqlite3_column_int(stmt, 0);
-    sqlite3_finalize(stmt);
+    v = db_int_query(get_version, sizeof get_version);
     if (v < MIN_VERSION || v > VERSION) {
         char vs[25];
         snprintf(vs, 25, "%d", v);
@@ -181,4 +188,15 @@ void db_commit(void) {
 
     sqlite3_exec(db, sql_commit, 0, 0, &errmsg);
     if (errmsg) fatal2("cannot commit transaction: ", errmsg);
+}
+
+
+int db_documents(void) {
+    static const char q[] = "SELECT SUM(docs) FROM class";
+    return db_int_query(q, sizeof q);
+}
+
+int db_vocabulary(void) {
+    static const char q[] = "SELECT SUM(terms) FROM class";
+    return db_int_query(q, sizeof q);
 }
