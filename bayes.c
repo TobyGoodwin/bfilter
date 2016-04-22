@@ -37,7 +37,7 @@
 #include "settings.h"
 #include "util.h"
 
-#define TRACE if (0)
+#define TRACE if (1)
 
 static int cmp(const void *x, const void *y) {
     const struct bayes_result *a = x;
@@ -55,12 +55,19 @@ static struct bayes_result *sort(struct bayes_result *x, int n) {
 }
 
 struct bayes_result *bayes(skiplist tokens, int *n) {
+    int docs = db_documents();
+    int vocab = db_vocabulary();
+
+    TRACE fprintf(stderr, "documents: %d\n", docs);
+    TRACE fprintf(stderr, "vocabulary: %d\n", vocab);
+
+    return 0;
+#if 0
     struct class *class, *classes;
     int c, i, n_class = 0, n_total;
     struct bayes_result *r;
     uint32_t *p_ui32, t_total;
    
-#if 0
     if (n) *n = 0;
 
     //classes = class_fetch();
@@ -133,6 +140,6 @@ struct bayes_result *bayes(skiplist tokens, int *n) {
     }
 
     sort(r, n_class);
-#endif
     return r;
+#endif
 }
