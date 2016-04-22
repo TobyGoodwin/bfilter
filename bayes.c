@@ -34,6 +34,7 @@
 #include "bfilter.h"
 #include "count.h"
 #include "db.h"
+#include "error.h"
 #include "settings.h"
 #include "util.h"
 
@@ -57,9 +58,45 @@ static struct class *sort(struct class *x, int n) {
 struct class *bayes(skiplist tokens, int *n) {
     int docs = db_documents();
     int vocab = db_vocabulary();
+    static const char q[] = "SELECT id, name, docs, terms FROM class";
+    int r;
+    int docs, vocab, classes;
+    sqlite3 *db = db_db();
+    sqlite3_stmt *stmt;
+    struct bayes_result *result;
 
+    classes = db_classes();
+    if (n) *n = classes;
+    TRACE fprintf(stderr, "classes: %d\n", classes);
+    docs = db_documents();
     TRACE fprintf(stderr, "documents: %d\n", docs);
+    vocab = db_vocabulary();
     TRACE fprintf(stderr, "vocabulary: %d\n", vocab);
+
+    result = xmalloc(classes * sizeof *result);
+
+    r = sqlite3_prepare_v2(db, q, sizeof q, &stmt, 0);
+    if (r != SQLITE_OK)
+        fatal4("cannot prepare statement `", q, "': ", sqlite3_errmsg(db));
+    while ((r = sqlite3_step(stmt)) == SQLITE_ROW) {
+        const uint8_t *c_name;
+        int c_id, c_docs, c_terms;
+
+        assert(sqlite3_column_type(stmt, 0) == SQLITE_INTEGER);
+        assert(sqlite3_column_type(stmt, 1) == SQLITE_TEXT);
+        assert(sqlite3_column_type(stmt, 2) == SQLITE_INTEGER);
+        assert(sqlite3_column_type(stmt, 3) == SQLITE_INTEGER);
+
+        c_id = sqlite3_column_int(stmt, 0);
+        c_name = sqlite3_column_text(stmt, 1);
+        c_docs = sqlite3_column_int(stmt, 2);
+        c_terms = sqlite3_column_int(stmt, 3);
+
+        fprintf(stderr, "%d %s %d %d\n", c_id, c_name, c_docs, c_terms);
+    }
+    if (r != SQLITE_DONE)
+        fatal4("cannot step statement `", q, "': ", sqlite3_errmsg(db));
+    sqlite3_finalize(stmt);
 
     return 0;
 #if 0

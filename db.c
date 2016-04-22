@@ -191,6 +191,11 @@ void db_commit(void) {
 }
 
 
+int db_classes(void) {
+    static const char q[] = "SELECT COUNT(1) FROM class";
+    return db_int_query(q, sizeof q);
+}
+
 int db_documents(void) {
     static const char q[] = "SELECT SUM(docs) FROM class";
     return db_int_query(q, sizeof q);
