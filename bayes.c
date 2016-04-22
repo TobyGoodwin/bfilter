@@ -58,8 +58,8 @@ static struct bayes_result *sort(struct bayes_result *x, int n) {
 
 struct bayes_result *bayes(skiplist tokens, int *n) {
     static const char q[] = "SELECT id, name, docs, terms FROM class";
-    int r;
-    int docs, vocab, classes;
+    int i, r;
+    int classes, docs, vocab;
     sqlite3 *db = db_db();
     sqlite3_stmt *stmt;
     struct bayes_result *result;
@@ -77,9 +77,11 @@ struct bayes_result *bayes(skiplist tokens, int *n) {
     r = sqlite3_prepare_v2(db, q, sizeof q, &stmt, 0);
     if (r != SQLITE_OK)
         fatal4("cannot prepare statement `", q, "': ", sqlite3_errmsg(db));
-    while ((r = sqlite3_step(stmt)) == SQLITE_ROW) {
+    for (i = 0; (r = sqlite3_step(stmt)) == SQLITE_ROW; ++i) {
         const uint8_t *c_name;
+        double lp;
         int c_id, c_docs, c_terms;
+        skiplist_iterator si;
 
         assert(sqlite3_column_type(stmt, 0) == SQLITE_INTEGER);
         assert(sqlite3_column_type(stmt, 1) == SQLITE_TEXT);
@@ -91,13 +93,49 @@ struct bayes_result *bayes(skiplist tokens, int *n) {
         c_docs = sqlite3_column_int(stmt, 2);
         c_terms = sqlite3_column_int(stmt, 3);
 
-        fprintf(stderr, "%d %s %d %d\n", c_id, c_name, c_docs, c_terms);
+        TRACE fprintf(stderr, "%d %s %d %d\n", c_id, c_name, c_docs, c_terms);
+
+        result[i].category = xstrdup(c_name);
+        lp = log((double)c_docs / (double)docs);
+        for (si = skiplist_itr_first(tokens); si;
+                si = skiplist_itr_next(tokens, si)) {
+            double p;
+            uint8_t *t;
+            size_t t_len;
+            uint32_t *cnts;
+            unsigned int ncnts, Tct;
+            int occurs; /* number of occurences of this term in test text */
+
+            t = skiplist_itr_key(tokens, si, &t_len);
+            occurs = *(int *)skiplist_itr_value(tokens, si);
+
+            /* ok, so we need something that takes a class id, a token name + length, and performs the lookup */
+#if 0
+            cnts = db_get_intlist(t, t_len, &ncnts);
+            if (!cnts) continue; /* not in training vocabulary */
+            Tct = 0;
+            for (i = 0; i < ncnts; i += 2)
+                if (cnts[i] == class->code) {
+                    Tct = cnts[i + 1];
+                    break;
+                }
+#endif
+            Tct = 7;
+            TRACE fprintf(stderr, "Tct = %d\n", Tct);
+            p = (Tct + 1.) / (c_terms + vocab);
+            //TRACE fprintf(stderr, "condprob[%s][%.*s] = %g\n",
+                    //class->name, (int)t_len, t, p);
+            lp += occurs * log(p);
+        }
+        result[i].logprob = lp;
     }
     if (r != SQLITE_DONE)
         fatal4("cannot step statement `", q, "': ", sqlite3_errmsg(db));
+    assert(i == classes);
     sqlite3_finalize(stmt);
 
-    return 0;
+    sort(result, classes);
+    return result;
 #if 0
     struct class *class, *classes;
     int c, i, n_class = 0, n_total;

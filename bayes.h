@@ -26,7 +26,7 @@
 #include "skiplist.h"
 
 struct bayes_result {
-    uint8_t *category;
+    const uint8_t *category;
     double logprob;
 };
 
