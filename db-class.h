@@ -1,7 +1,7 @@
 /*
 
     Copyright (c) 2003 Chris Lightfoot. All rights reserved.
-    Copyright (c) 2015 Toby Goodwin.
+    Copyright (c) 2015 - 2016 Toby Goodwin.
     toby@paccrat.org
     https://github.com/TobyGoodwin/bfilter
 
@@ -24,6 +24,7 @@
 
 #include <stdint.h>
 
+struct class *class_fetch(void);
 int class_id_furnish(char *);
 void class_update(int, int, int);
 
@@ -34,7 +35,3 @@ struct class {
     uint32_t terms; /* total number of terms (inc dups) in docs in class */
     double logprob; /* log(p) for this class when testing */
 };
-
-struct class *class_fetch(void);
-struct class *class_lookup(struct class *, char *);
-_Bool class_store(struct class *);
