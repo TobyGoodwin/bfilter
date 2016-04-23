@@ -72,7 +72,7 @@ uint32_t *db_hash_fetch_uint32(uint8_t *k, size_t k_sz) {
 int main(void) {
     double gap;
     int p_n;
-    struct bayes_result *p;
+    struct class *p;
 
     printf("1..4\n");
 
@@ -88,15 +88,15 @@ int main(void) {
     submit("spamword", 8);
     submit("spamword", 8);
     p = bayes(token_list, &p_n);
-    if (!streq(p[0].category, "spam") || p_n != 1) printf("not ");
-    printf("ok 2 single class: %s\n", p[0].category);
+    if (!streq(p[0].name, "spam") || p_n != 1) printf("not ");
+    printf("ok 2 single class: %s\n", p[0].name);
 
     // two classes, spam message => spam
     test = 3;
     p = bayes(token_list, &p_n);
     gap = p[0].logprob - p[1].logprob;
-    if (!streq(p[0].category, "spam") || p_n != 2) printf("not ");
-    printf("ok 3 spam: %s (%.1f)\n", p[0].category, gap);
+    if (!streq(p[0].name, "spam") || p_n != 2) printf("not ");
+    printf("ok 3 spam: %s (%.1f)\n", p[0].name, gap);
 
     // ham message => ham
     token_list = skiplist_new(0);
@@ -104,8 +104,8 @@ int main(void) {
     submit("hamword", 7);
     p = bayes(token_list, &p_n);
     gap = p[0].logprob - p[1].logprob;
-    if (!streq(p[0].category, "ham")) printf("not ");
-    printf("ok 4 ham: %s (%.1f)\n", p[0].category, gap);
+    if (!streq(p[0].name, "ham")) printf("not ");
+    printf("ok 4 ham: %s (%.1f)\n", p[0].name, gap);
 
     // balanced message => zero range
     submit("spamword", 8);
@@ -113,7 +113,7 @@ int main(void) {
     p = bayes(token_list, &p_n);
     gap = p[0].logprob - p[1].logprob;
     if (gap > 0.1) printf("not ");
-    printf("ok 5 balanced: %s (%.1f)\n", p[0].category, gap);
+    printf("ok 5 balanced: %s (%.1f)\n", p[0].name, gap);
 
     return 0;
 }

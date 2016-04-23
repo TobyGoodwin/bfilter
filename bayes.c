@@ -40,8 +40,8 @@
 #define TRACE if (0)
 
 static int cmp(const void *x, const void *y) {
-    const struct bayes_result *a = x;
-    const struct bayes_result *b = y;
+    const struct class *a = x;
+    const struct class *b = y;
     const double c = a->logprob;
     const double d = b->logprob;
     if (c > d) return -1;
@@ -49,15 +49,14 @@ static int cmp(const void *x, const void *y) {
     return 0;
 }
 
-static struct bayes_result *sort(struct bayes_result *x, int n) {
+static struct class *sort(struct class *x, int n) {
     qsort(x, n, sizeof *x, cmp);
     return x;
 }
 
-struct bayes_result *bayes(skiplist tokens, int *n) {
+struct class *bayes(skiplist tokens, int *n) {
     struct class *class, *classes;
     int c, i, n_class = 0, n_total;
-    struct bayes_result *r;
     uint32_t *p_ui32, t_total;
    
     if (n) *n = 0;
@@ -85,7 +84,6 @@ struct bayes_result *bayes(skiplist tokens, int *n) {
         ++n_class;
 
     if (n) *n = n_class;
-    r = xmalloc(n_class * sizeof *r);
 
     for (c = 0, class = classes; class->code; ++c, ++class) {
         double lp;
@@ -96,7 +94,6 @@ struct bayes_result *bayes(skiplist tokens, int *n) {
                 class->name, class->docs);
         TRACE fprintf(stderr, "prior(%s): %f\n",
                 class->name, (double)class->docs / n_total);
-        r[c].category = class->name;
         lp = log((double)class->docs / (double)n_total);
 
         TRACE fprintf(stderr, "t_%s = %d, t_total = %d\n",
@@ -128,9 +125,9 @@ struct bayes_result *bayes(skiplist tokens, int *n) {
                     class->name, (int)t_len, t, p);
             lp += occurs * log(p);
         }
-        r[c].logprob = lp;
+        class->logprob = lp;
     }
 
-    sort(r, n_class);
-    return r;
+    sort(classes, n_class);
+    return classes;
 }

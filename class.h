@@ -32,6 +32,7 @@ struct class {
     uint32_t code; /* unique id for "foreign key" */
     uint32_t docs; /* number of documents in this class */
     uint32_t terms; /* total number of terms (inc dups) in docs in class */
+    double logprob; /* log(p) for this class when testing */
 };
 
 struct class *class_fetch(void);

@@ -22,12 +22,6 @@
 
 */
 
-#include <stdint.h>
 #include "skiplist.h"
 
-struct bayes_result {
-    uint8_t *category;
-    double logprob;
-};
-
-struct bayes_result *bayes(skiplist, int *);
+struct class *bayes(skiplist, int *);
