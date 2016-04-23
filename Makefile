@@ -80,7 +80,7 @@ check:
 	cd test; ./run.sh
 
 clean:
-	rm -f $(OBJS) bfilter core *~ depend
+	rm -f $(OBJS) bfilter core *~ depend test/*/*.o
 
 tokeniser-states.ps: tokeniser-states.dot
 	dot -Tps tokeniser-states.dot > tokeniser-states.ps
