@@ -1,3 +1,39 @@
+2016-04-23
+==========
+
+I haven't been paying much attention to performance, but whilst
+converting ``bayes.c`` to sqlite, I noticed that the loops are nested
+the wrong way round. I decided to invert them.
+
+Before inversion (f26cdc7)::
+
+    ham: 99.50% correct, 0% unsure; spam: 62.60% correct, 0% unsure
+    -rw-------. 1 toby toby 2162688 Apr 23 13:08 /tmp/tmp.OPmqBhqxtd
+    36.37user 7.22system 0:43.47elapsed 100%CPU (5596maxresident)k
+
+After invesion (e2ea118)::
+
+    ham: 99.50% correct, 0% unsure; spam: 62.60% correct, 0% unsure
+    -rw-------. 1 toby toby 2162688 Apr 23 13:06 /tmp/tmp.691DTCUUb6
+    25.44user 5.82system 0:31.10elapsed 100%CPU (5784maxresident)k
+
+So that's a useful improvement of 28% (whilst still getting the same
+results!) However, for ``corpus-test`` there are only two categories. I
+think the savings will be more dramatic as the number of categories
+increases. Let me try to test that.
+
+Wow! I tested my current store (6188 messages) against my current
+database (5 categories, 379 documents). Versions before and after
+inversion both produced exactly the same results, but one was rather
+quicker than the other::
+
+    1044.69user 72.04system 19:15.26elapsed
+    
+    240.41user 29.80system 4:36.21elapsed
+
+That's over 4 times quicker! Not too surprising, since it should be
+doing about 1/5th of the number of database lookups.
+
 2016-03-28
 ==========
 
