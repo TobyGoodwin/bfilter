@@ -58,6 +58,7 @@ struct class *bayes(skiplist tokens, int *n) {
     struct class *class, *classes;
     int c, i, n_class = 0, n_total;
     uint32_t *p_ui32, t_total;
+    skiplist_iterator si;
    
     if (n) *n = 0;
 
@@ -85,6 +86,46 @@ struct class *bayes(skiplist tokens, int *n) {
 
     if (n) *n = n_class;
 
+    /* establish priors */
+    for (c = 0, class = classes; class->code; ++c, ++class) {
+        TRACE fprintf(stderr, "class %s (%d)\n", class->name, class->code);
+        TRACE fprintf(stderr, "emails in class %s: %d\n",
+                class->name, class->docs);
+        TRACE fprintf(stderr, "prior(%s): %f\n",
+                class->name, (double)class->docs / n_total);
+        class->logprob = log((double)class->docs / (double)n_total);
+    }
+
+    for (si = skiplist_itr_first(tokens); si;
+            si = skiplist_itr_next(tokens, si)) {
+        double p;
+        uint8_t *t;
+        size_t t_len;
+        uint32_t *cnts;
+        unsigned int ncnts, Tct;
+        int occurs; /* number of occurences of this term in test text */
+
+        t = skiplist_itr_key(tokens, si, &t_len);
+        occurs = *(int *)skiplist_itr_value(tokens, si);
+        cnts = db_get_intlist(t, t_len, &ncnts);
+        if (!cnts) continue; /* not in training vocabulary */
+
+        for (c = 0, class = classes; class->code; ++c, ++class) {
+            Tct = 0;
+            for (i = 0; i < ncnts; i += 2)
+                if (cnts[i] == class->code) {
+                    Tct = cnts[i + 1];
+                    break;
+                }
+            TRACE fprintf(stderr, "Tct = %d\n", Tct);
+            p = (Tct + 1.) / (class->terms + t_total);
+            TRACE fprintf(stderr, "condprob[%s][%.*s] = %g\n",
+                    class->name, (int)t_len, t, p);
+            class->logprob += occurs * log(p);
+        }
+    }
+
+#if 0
     for (c = 0, class = classes; class->code; ++c, ++class) {
         double lp;
         skiplist_iterator si;
@@ -127,6 +168,7 @@ struct class *bayes(skiplist tokens, int *n) {
         }
         class->logprob = lp;
     }
+#endif
 
     sort(classes, n_class);
     return classes;
