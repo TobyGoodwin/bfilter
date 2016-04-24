@@ -67,10 +67,15 @@ void *xrealloc(void *w, size_t n) {
  * As above. */
 char *xstrdup(const char *s) {
     char *t;
-    t = strdup(s);
+    t = strdup((char *)s);
     if (!t) nomem();
     return t;
 }
+
+uint8_t *u8_xstrdup(const uint8_t *s) {
+    return (uint8_t *)xstrdup((const char *)s);
+}
+
 
 /* xfree:
  * Free, ignoring a passed NULL value. */

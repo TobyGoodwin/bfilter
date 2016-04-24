@@ -30,7 +30,7 @@ void class_update(int, int, int);
 
 struct class {
     int id; /* unique id */
-    const char *name; /* nul terminated */
+    const uint8_t *name; /* nul terminated */
     int docs; /* number of documents in this class */
     int terms; /* total number of terms (inc dups) in docs in class */
     double logprob; /* log(p) for this class when testing */

@@ -198,11 +198,11 @@ int run(enum mode mode, char *cclass) {
                 double gap;
                 int r_n;
                 const struct class *r;
-                const char *cat;
+                const uint8_t *cat;
 
                 r = bayes(token_list, &r_n);
                 if (r_n > 0) cat = r[0].name;
-                else cat = "UNKNOWN";
+                else cat = (uint8_t *)"UNKNOWN";
                 if (r_n > 1) gap = r[0].logprob - r[1].logprob;
                 else gap = 0.0;
 

@@ -5,6 +5,7 @@ tap
 
 #include <assert.h>
 #include <math.h>
+#include <sqlite3.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -26,14 +27,13 @@ _Bool strneq(const uint8_t *s, const char *s0, size_t n) {
     return strncmp((char *)s, s0, l) == 0;
 }
 
-#define c_sent { 0 }
-#define c_spam { (uint8_t *)"spam", 1, 5, 5 }
-#define c_ham { (uint8_t *)"ham", 2, 5, 5 }
-struct class empty[] = { c_sent, c_sent };
-struct class spam[] = { c_spam, c_sent, c_sent };
-struct class both[] = { c_spam, c_ham, c_sent, c_sent };
+#define c_spam { 1, (uint8_t *)"spam", 5, 5, 0.0 }
+#define c_ham { 2, (uint8_t *)"ham", 5, 5, 0.0 }
+struct class empty[] = { };
+struct class spam[] = { c_spam };
+struct class both[] = { c_spam, c_ham };
 
-struct class *class_fetch(void) {
+struct class *class_fetch(int *x) {
     switch (test) {
         case 1:
             return empty;
@@ -68,6 +68,19 @@ uint32_t *db_hash_fetch_uint32(uint8_t *k, size_t k_sz) {
     if (strneq(k, "--vocabulary--", k_sz)) return &ten;
     return 0;
 }
+
+sqlite3 *db_db(void) {
+    return 0;
+}
+
+int db_documents(void) {
+    return 5;
+}
+
+int db_vocabulary(void) {
+    return 10;
+}
+
 
 int main(void) {
     double gap;

@@ -52,6 +52,7 @@ void *xmalloc(size_t n);
 void *xcalloc(size_t n, size_t m);
 void *xrealloc(void *w, size_t n);
 char *xstrdup(const char *s);
+uint8_t *u8_xstrdup(const uint8_t *s);
 void xfree(void *v);
 ssize_t xread(int fd, void *buf, size_t count);
 const uint8_t *memstr(const uint8_t *haystack, const size_t hlen,

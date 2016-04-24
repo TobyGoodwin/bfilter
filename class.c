@@ -150,7 +150,7 @@ struct class *class_fetch(int *n) {
 
         if (sqlite3_column_type(stmt, 1) != SQLITE_TEXT)
             fatal1("class.name has non-text type");
-        c->name = xstrdup((const char *)sqlite3_column_text(stmt, 1));
+        c->name = u8_xstrdup(sqlite3_column_text(stmt, 1));
 
         if (sqlite3_column_type(stmt, 2) != SQLITE_INTEGER)
             fatal1("class.docs has non-integer type");
