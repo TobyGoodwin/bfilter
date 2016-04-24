@@ -24,14 +24,14 @@
 
 #include <stdint.h>
 
-struct class *class_fetch(void);
+struct class *class_fetch(int *);
 int class_id_furnish(char *);
 void class_update(int, int, int);
 
 struct class {
-    const uint8_t *name; /* nul terminated */
-    uint32_t code; /* unique id */
-    uint32_t docs; /* number of documents in this class */
-    uint32_t terms; /* total number of terms (inc dups) in docs in class */
+    int id; /* unique id */
+    const char *name; /* nul terminated */
+    int docs; /* number of documents in this class */
+    int terms; /* total number of terms (inc dups) in docs in class */
     double logprob; /* log(p) for this class when testing */
 };

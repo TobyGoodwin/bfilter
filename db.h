@@ -35,7 +35,7 @@ void db_close(void);
 void db_begin(void);
 void db_commit(void);
 
-int db_classes(void);
+struct class *db_classes(int *);
 int db_documents(void);
 int db_vocabulary(void);
 

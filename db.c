@@ -190,11 +190,12 @@ void db_commit(void) {
     if (errmsg) fatal2("cannot commit transaction: ", errmsg);
 }
 
-
+#if 0
 int db_classes(void) {
     static const char q[] = "SELECT COUNT(1) FROM class";
     return db_int_query(q, sizeof q);
 }
+#endif
 
 int db_documents(void) {
     static const char q[] = "SELECT SUM(docs) FROM class";

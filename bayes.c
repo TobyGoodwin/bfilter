@@ -32,6 +32,7 @@
 
 #include "bayes.h"
 #include "bfilter.h"
+#include "class.h"
 #include "count.h"
 #include "db.h"
 #include "error.h"
@@ -56,28 +57,95 @@ static struct class *sort(struct class *x, int n) {
 }
 
 struct class *bayes(skiplist tokens, int *n) {
-    int docs = db_documents();
-    int vocab = db_vocabulary();
-    static const char q[] = "SELECT id, name, docs, terms FROM class";
+    static const char q[] = "\
+SELECT count.class, count.count \
+  FROM count join term \
+  ON count.term = term.id \
+  WHERE term.term = ? \
+";
     int i, r;
-    int classes, docs, vocab;
+    int n_class, docs, vocab;
+    skiplist_iterator si;
     sqlite3 *db = db_db();
     sqlite3_stmt *stmt;
-    struct bayes_result *result;
+    struct class *classes;
 
-    classes = db_classes();
-    if (n) *n = classes;
-    TRACE fprintf(stderr, "classes: %d\n", classes);
     docs = db_documents();
     TRACE fprintf(stderr, "documents: %d\n", docs);
     vocab = db_vocabulary();
     TRACE fprintf(stderr, "vocabulary: %d\n", vocab);
 
-    result = xmalloc(classes * sizeof *result);
+    classes = class_fetch(&n_class);
+    if (n) *n = n_class;
+    TRACE fprintf(stderr, "classes: %d\n", n_class);
+
+    /* establish priors */
+    for (i = 0; i < n_class; ++i) {
+        struct class *c = classes + i;
+        TRACE fprintf(stderr, "class %s (%d)\n", c->name, c->id);
+        TRACE fprintf(stderr, "emails in class %s: %d\n", c->name, c->docs);
+        TRACE fprintf(stderr, "prior(%s): %f\n",
+                c->name, (double)c->docs / vocab);
+        c->logprob = log((double)c->docs / (double)vocab);
+    }
 
     r = sqlite3_prepare_v2(db, q, sizeof q, &stmt, 0);
     if (r != SQLITE_OK)
         fatal4("cannot prepare statement `", q, "': ", sqlite3_errmsg(db));
+
+    for (si = skiplist_itr_first(tokens); si;
+            si = skiplist_itr_next(tokens, si)) {
+        double p;
+        uint8_t *t;
+        size_t t_len;
+        int occurs; /* number of occurences of this term in test text */
+
+        t = skiplist_itr_key(tokens, si, &t_len);
+        occurs = *(int *)skiplist_itr_value(tokens, si);
+
+	r = sqlite3_bind_text(stmt, 1, (char *)t, t_len, 0);
+        if (r != SQLITE_OK)
+            fatal4("cannot bind in `", q, "': ", sqlite3_errmsg(db));
+        TRACE fprintf(stderr, "token %.*s\n", (int)t_len, t);
+
+        while ((r = sqlite3_step(stmt)) == SQLITE_ROW) {
+            int i;
+            int clss;
+
+            if (sqlite3_column_type(stmt, 0) != SQLITE_INTEGER)
+                fatal3("result of `", q, "' has non-integer type");
+            clss = sqlite3_column_int(stmt, 0);
+
+            // XXX this could be slightly more efficient if everything were
+            // ordered. alternatively, we could arrange that classes[i].id ==
+            // i, at the minor risk of wasting some space if ids are sparse
+            for (i = 0; i < n_class; ++i) {
+                struct class *c = classes + i;
+                if (c->id == clss) {
+                    int x;
+
+                    if (sqlite3_column_type(stmt, 0) != SQLITE_INTEGER)
+                        fatal3("result of `", q, "' has non-integer type");
+                    x = sqlite3_column_int(stmt, 0);
+
+                    TRACE fprintf(stderr, "x = %d\n", x);
+                    p = (x + 1.) / (c->terms + vocab);
+                    TRACE fprintf(stderr, "p = %g\n", p);
+                    c->logprob += occurs * log(p);
+                    break;
+                }
+            }
+        }
+
+        sqlite3_reset(stmt);
+
+    }
+
+    sort(classes, n_class);
+    return classes;
+}
+
+#if 0
     for (i = 0; (r = sqlite3_step(stmt)) == SQLITE_ROW; ++i) {
         const uint8_t *c_name;
         double lp;
@@ -96,7 +164,7 @@ struct class *bayes(skiplist tokens, int *n) {
 
         TRACE fprintf(stderr, "%d %s %d %d\n", c_id, c_name, c_docs, c_terms);
 
-        result[i].category = xstrdup(c_name);
+        classes[i].name = xstrdup(c_name);
         lp = log((double)c_docs / (double)docs);
         for (si = skiplist_itr_first(tokens); si;
                 si = skiplist_itr_next(tokens, si)) {
@@ -132,11 +200,12 @@ struct class *bayes(skiplist tokens, int *n) {
     }
     if (r != SQLITE_DONE)
         fatal4("cannot step statement `", q, "': ", sqlite3_errmsg(db));
-    assert(i == classes);
+    assert(i == n_class);
     sqlite3_finalize(stmt);
 
-    sort(result, classes);
+    sort(result, n_class);
     return result;
+#endif
 #if 0
     struct class *class, *classes;
     int c, i, n_class = 0, n_total;
@@ -208,7 +277,6 @@ struct class *bayes(skiplist tokens, int *n) {
         }
     }
 
-#if 0
     for (c = 0, class = classes; class->code; ++c, ++class) {
         double lp;
         skiplist_iterator si;
@@ -252,7 +320,3 @@ struct class *bayes(skiplist tokens, int *n) {
         class->logprob = lp;
     }
 #endif
-
-    sort(classes, n_class);
-    return classes;
-}

@@ -29,6 +29,7 @@
 
 #include "bayes.h"
 #include "bfilter.h"
+#include "class.h"
 #include "db.h"
 #include "fdump.h"
 #include "read.h"
@@ -196,12 +197,12 @@ int run(enum mode mode, char *cclass) {
             {
                 double gap;
                 int r_n;
-                struct class *r;
-                uint8_t *cat;
+                const struct class *r;
+                const char *cat;
 
                 r = bayes(token_list, &r_n);
                 if (r_n > 0) cat = r[0].name;
-                else cat = (uint8_t *)"UNKNOWN";
+                else cat = "UNKNOWN";
                 if (r_n > 1) gap = r[0].logprob - r[1].logprob;
                 else gap = 0.0;
 

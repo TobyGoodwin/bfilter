@@ -30,9 +30,9 @@
 #include <unistd.h>
 
 #include "bfilter.h"
+#include "class.h"
 #include "count.h"
 #include "db.h"
-#include "db-class.h"
 #include "db-count.h"
 #include "db-term.h"
 #include "error.h"
@@ -79,7 +79,7 @@ void train_update(char *cclass) {
     unsigned int nterms, ntermswr, ntermsnew, ntermsall;
 
     db_begin();
-    cid = db_class_id_furnish(cclass);
+    cid = class_id_furnish(cclass);
 
     TRACE fprintf(stderr, "cid is %d\n", cid);
 
@@ -111,6 +111,6 @@ void train_update(char *cclass) {
         fprintf(stderr, "Writing: %u / %u terms (%u new)\n",
                 ntermswr, nterms, ntermsnew);
 
-    db_class_update(cid, nemails, ntermsall);
+    class_update(cid, nemails, ntermsall);
     db_commit();
 }
