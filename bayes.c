@@ -39,7 +39,7 @@
 #include "settings.h"
 #include "util.h"
 
-#define TRACE if (1)
+#define TRACE if (0)
 
 static int cmp(const void *x, const void *y) {
     const struct class *a = x;

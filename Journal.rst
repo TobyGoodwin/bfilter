@@ -1,3 +1,13 @@
+2016-04-25
+==========
+
+Eek! I now have a potential sqlite-based bfilter... unfortunately a lot
+of the tests will need tweaking to work properly, so my confidence in it
+is not vast. But I thought I could chuck it at the corpus test anyway.
+
+And it's *really slow* at training. Oh, I bet it's because I prepare the
+statement every time. Let me see if I can quickly fix that.
+
 2016-04-23
 ==========
 
