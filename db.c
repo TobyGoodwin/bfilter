@@ -203,6 +203,6 @@ int db_documents(void) {
 }
 
 int db_vocabulary(void) {
-    static const char q[] = "SELECT SUM(terms) FROM class";
+    static const char q[] = "SELECT COUNT(1) FROM term";
     return db_int_query(q, sizeof q);
 }

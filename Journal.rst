@@ -1,3 +1,33 @@
+2016-04-29
+==========
+
+Well this is annoyingly difficult. Obviously the first thing to tackle
+is why the sqlite version gets the wrong answers... being correct is
+more important than being quick.
+
+First, I realised that we were simply skipping doing anything to logprob
+if the term-class combination is missing. That's wrong: we need to take
+the count as 0 for that case (and then do the add-one thing). That led
+me to this query::
+
+    select class.id, (select count.count from count join term on count.term = term.id where class.id = count.class and term.term = ?) from class order by class.id
+
+I'm not keen on the sub-select there, but at the moment I don't see how
+to do it just with joins. The query as written returns nulls, but that
+can easily be fixed with ``coalesce((select ...), 0)``
+
+But that's no good! If the term is entirely missing from the vocabulary,
+we skip it, rather than treating it as 0. It's probably simplest to
+implement this with 2 queries: first fetch (not furnish) the term id, if
+that's NULL skip the term altogether. If we get a term id, plug it
+into::
+
+    select class.id, coalesce((select count.count from count where class.id = count.class and count.term = ?), 0) from class
+
+If we do stick with sqlite, this_ is useful.
+
+.. _this: https://wiki.mozilla.org/Performance/Avoid_SQLite_In_Your_Next_Firefox_Feature
+
 2016-04-25
 ==========
 
@@ -5,8 +35,13 @@ Eek! I now have a potential sqlite-based bfilter... unfortunately a lot
 of the tests will need tweaking to work properly, so my confidence in it
 is not vast. But I thought I could chuck it at the corpus test anyway.
 
-And it's *really slow* at training. Oh, I bet it's because I prepare the
-statement every time. Let me see if I can quickly fix that.
+And it's *really slow* at training. And testing. And getting the right
+answer. Ouchie mama! (c7f78cb)::
+
+    ham: 13.80% correct, 0% unsure; spam: 4.60% correct, 0% unsure
+    -rw-r--r--. 1 toby toby 1912832 Apr 26 08:47 /tmp/tmp.IxtJyDLw9Q
+    27457.00user 50.73system 7:38:54elapsed 99%CPU (7116maxresident)k
+
 
 2016-04-23
 ==========
@@ -21,7 +56,7 @@ Before inversion (f26cdc7)::
     -rw-------. 1 toby toby 2162688 Apr 23 13:08 /tmp/tmp.OPmqBhqxtd
     36.37user 7.22system 0:43.47elapsed 100%CPU (5596maxresident)k
 
-After invesion (e2ea118)::
+After inversion (e2ea118)::
 
     ham: 99.50% correct, 0% unsure; spam: 62.60% correct, 0% unsure
     -rw-------. 1 toby toby 2162688 Apr 23 13:06 /tmp/tmp.691DTCUUb6

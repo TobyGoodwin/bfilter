@@ -39,7 +39,7 @@
 #include "settings.h"
 #include "util.h"
 
-#define TRACE if (0)
+#define TRACE if (1)
 
 static int cmp(const void *x, const void *y) {
     const struct class *a = x;
@@ -57,12 +57,17 @@ static struct class *sort(struct class *x, int n) {
 }
 
 struct class *bayes(skiplist tokens, int *n) {
-    static const char q[] = "\
-SELECT count.class, count.count \
+    // eww
+    // order is (currently) only there so trace output is predictable and
+    // comparable with tdb version
+    static const char q[] = "select class.id, (select count.count from count join term on count.term = term.id where class.id = count.class and term.term = ?) from class order by class.id";
+#if 0
+"SELECT count.class, count.count \
   FROM count join term \
   ON count.term = term.id \
   WHERE term.term = ? \
 ";
+#endif
     int i, r;
     int n_class, docs, vocab;
     skiplist_iterator si;
@@ -85,8 +90,8 @@ SELECT count.class, count.count \
         TRACE fprintf(stderr, "class %s (%d)\n", c->name, c->id);
         TRACE fprintf(stderr, "emails in class %s: %d\n", c->name, c->docs);
         TRACE fprintf(stderr, "prior(%s): %f\n",
-                c->name, (double)c->docs / vocab);
-        c->logprob = log((double)c->docs / (double)vocab);
+                c->name, (double)c->docs / docs);
+        c->logprob = log((double)c->docs / (double)docs);
     }
 
     r = sqlite3_prepare_v2(db, q, sizeof q, &stmt, 0);
@@ -106,35 +111,36 @@ SELECT count.class, count.count \
 	r = sqlite3_bind_text(stmt, 1, (char *)t, t_len, 0);
         if (r != SQLITE_OK)
             fatal4("cannot bind in `", q, "': ", sqlite3_errmsg(db));
-        TRACE fprintf(stderr, "token %.*s\n", (int)t_len, t);
+        // TRACE fprintf(stderr, "token %.*s\n", (int)t_len, t);
 
         while ((r = sqlite3_step(stmt)) == SQLITE_ROW) {
-            int i;
-            int clss;
+            struct class *c;
+            int dbc, x = 0;
 
             if (sqlite3_column_type(stmt, 0) != SQLITE_INTEGER)
-                fatal3("result of `", q, "' has non-integer type");
-            clss = sqlite3_column_int(stmt, 0);
+                fatal3("col 0 of `", q, "' has non-integer type");
+            dbc = sqlite3_column_int(stmt, 0);
 
             // XXX this could be slightly more efficient if everything were
             // ordered. alternatively, we could arrange that classes[i].id ==
             // i, at the minor risk of wasting some space if ids are sparse
-            for (i = 0; i < n_class; ++i) {
-                struct class *c = classes + i;
-                if (c->id == clss) {
-                    int x;
-
-                    if (sqlite3_column_type(stmt, 0) != SQLITE_INTEGER)
-                        fatal3("result of `", q, "' has non-integer type");
-                    x = sqlite3_column_int(stmt, 0);
-
-                    TRACE fprintf(stderr, "x = %d\n", x);
-                    p = (x + 1.) / (c->terms + vocab);
-                    TRACE fprintf(stderr, "p = %g\n", p);
-                    c->logprob += occurs * log(p);
+            //for (i = 0; i < n_class; ++i) {
+            for (c = classes; c < classes + n_class; ++c) {
+                if (c->id == dbc) {
+                    if (sqlite3_column_type(stmt, 1) == SQLITE_NULL)
+                        break;
+                    if (sqlite3_column_type(stmt, 1) != SQLITE_INTEGER)
+                        fatal3("col 1 of `", q, "' has non-integer type");
+                    x = sqlite3_column_int(stmt, 1);
                     break;
                 }
             }
+
+            TRACE fprintf(stderr, "Tct = %d\n", x);
+            p = (x + 1.) / (c->terms + vocab);
+            TRACE fprintf(stderr, "condprob[%s][%.*s] = %g\n", c->name, (int)t_len, t, p);
+            c->logprob += occurs * log(p);
+            TRACE fprintf(stderr, "class prob: %g\n", c->logprob);
         }
 
         sqlite3_reset(stmt);

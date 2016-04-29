@@ -35,7 +35,8 @@ static const char sql_insert[] = "INSERT INTO term (term) VALUES (?)";
 static const char sql_update[] =
     "UPDATE term SET docs = docs + ?, terms = terms + ? WHERE id = ?";
 
-static _Bool db_term_id_fetch(sqlite3 *db, uint8_t *t, int tl, int *x) {
+_Bool db_term_id_fetch(uint8_t *t, int tl, int *x) {
+    sqlite3 *db = db_db();
     int r;
     sqlite3_stmt *s;
 
@@ -84,12 +85,12 @@ int db_term_id_furnish(uint8_t *t, int tl) {
     sqlite3 *db = db_db();
 
     x = 0;
-    if (db_term_id_fetch(db, t, tl, &x))
+    if (db_term_id_fetch(t, tl, &x))
         return x;
 
     db_term_insert(db, t, tl);
 
-    if (!db_term_id_fetch(db, t, tl, &x))
+    if (!db_term_id_fetch(t, tl, &x))
         fatal2("failed to insert term: ", sqlite3_errmsg(db));
 
     return x;
