@@ -35,6 +35,7 @@
 #include "class.h"
 #include "count.h"
 #include "db.h"
+#include "db-term.h"
 #include "error.h"
 #include "settings.h"
 #include "util.h"
@@ -60,8 +61,9 @@ struct class *bayes(skiplist tokens, int *n) {
     // eww
     // order is (currently) only there so trace output is predictable and
     // comparable with tdb version
-    static const char q[] = "select class.id, (select count.count from count join term on count.term = term.id where class.id = count.class and term.term = ?) from class order by class.id";
+    static const char q[] = "select class.id, coalesce((select count.count from count where class.id = count.class and count.term = ?), 0) from class order by class.id";
 #if 0
+    static const char q[] = "select class.id, (select count.count from count join term on count.term = term.id where class.id = count.class and term.term = ?) from class order by class.id";
 "SELECT count.class, count.count \
   FROM count join term \
   ON count.term = term.id \
@@ -104,11 +106,16 @@ struct class *bayes(skiplist tokens, int *n) {
         uint8_t *t;
         size_t t_len;
         int occurs; /* number of occurences of this term in test text */
+        int tid = 0;
 
         t = skiplist_itr_key(tokens, si, &t_len);
         occurs = *(int *)skiplist_itr_value(tokens, si);
 
-	r = sqlite3_bind_text(stmt, 1, (char *)t, t_len, 0);
+        if (!db_term_id_fetch(t, t_len, &tid))
+            continue;
+
+	//r = sqlite3_bind_text(stmt, 1, (char *)t, t_len, 0);
+	r = sqlite3_bind_int(stmt, 1, tid);
         if (r != SQLITE_OK)
             fatal4("cannot bind in `", q, "': ", sqlite3_errmsg(db));
         // TRACE fprintf(stderr, "token %.*s\n", (int)t_len, t);

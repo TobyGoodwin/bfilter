@@ -24,6 +24,7 @@ into::
 
     select class.id, coalesce((select count.count from count where class.id = count.class and count.term = ?), 0) from class
 
+OK, that seems to work. 
 If we do stick with sqlite, this_ is useful.
 
 .. _this: https://wiki.mozilla.org/Performance/Avoid_SQLite_In_Your_Next_Firefox_Feature
