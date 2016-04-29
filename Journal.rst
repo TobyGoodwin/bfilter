@@ -24,7 +24,17 @@ into::
 
     select class.id, coalesce((select count.count from count where class.id = count.class and count.term = ?), 0) from class
 
-OK, that seems to work. 
+OK, that seems to work. I might try it on the corpus test with a smaller
+number of test documents, to see if it is really good. The tdb version
+gets this::
+
+    ham: 98.00% correct, 0% unsure; spam: 46.00% correct, 0% unsure
+    -rw-------. 1 toby toby 2162688 Apr 29 07:01 /tmp/tmp.W4T9Q8elpO
+    2.80user 0.75system 0:05.06elapsed 70%CPU (5672maxresident)k
+
+And sqlite this ()::
+
+
 If we do stick with sqlite, this_ is useful.
 
 .. _this: https://wiki.mozilla.org/Performance/Avoid_SQLite_In_Your_Next_Firefox_Feature

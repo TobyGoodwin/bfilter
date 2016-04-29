@@ -41,7 +41,7 @@ done
 
 cd $corpus/spam
 out=$(mktemp)
-for m in $(ls); do
+for m in $(ls | sed 50q); do
     $bf test < $m # 2>/dev/null
 done > $out
 right=$(grep -c spam $out)
@@ -56,7 +56,7 @@ rm $out
 
 cd $corpus/ham
 out=$(mktemp)
-for m in $(ls); do
+for m in $(ls | sed 50q); do
     $bf test < $m # 2>/dev/null
 done > $out
 right=$(grep -c real $out)
