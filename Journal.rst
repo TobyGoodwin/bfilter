@@ -11,6 +11,29 @@ helped (a3fa49e)::
     -rw-r--r--. 1 toby toby 1912832 Apr 30 12:24 /tmp/tmp.9UeXcxcjRM
     396.43user 1.84system 6:41.21elapsed 99%CPU (5960maxresident)k
 
+Ah! How about this (0ad4eb2)::
+
+    ham: 98.00% correct, 0% unsure; spam: 46.00% correct, 0% unsure
+    -rw-r--r--. 1 toby toby 2772992 Apr 30 12:40 /tmp/tmp.2kcL8k1i9l
+    5.49user 1.37system 0:06.84elapsed 100%CPU (6476maxresident)k
+
+All I did was add a ``UNIQUE`` constraint to ``term.term`` (which of
+course causes an index to be created). That's absolutely staggering,
+we're very nearly back to tdb speeds with just that change. How does the
+full test do? Here's our tdb target::
+
+    ham: 99.50% correct, 0% unsure; spam: 62.60% correct, 0% unsure
+    -rw-------. 1 toby toby 2162688 Apr 23 13:06 /tmp/tmp.691DTCUUb6
+    25.44user 5.82system 0:31.10elapsed 100%CPU (5784maxresident)k
+
+And this is how sqlite manages::
+
+    ham: 99.50% correct, 0% unsure; spam: 62.60% correct, 0% unsure
+    -rw-r--r--. 1 toby toby 2772992 Apr 30 12:44 /tmp/tmp.y8Oak4cMck
+    29.05user 17.80system 0:52.27elapsed 89%CPU (6984maxresident)k
+
+So that all looks very very encouraging indeed!
+
 2016-04-29
 ==========
 
