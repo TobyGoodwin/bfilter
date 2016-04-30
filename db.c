@@ -190,6 +190,15 @@ void db_commit(void) {
     if (errmsg) fatal2("cannot commit transaction: ", errmsg);
 }
 
+static const char sql_vacuum[] = "VACUUM";
+
+void db_vacuum(void) {
+    char *errmsg;
+
+    sqlite3_exec(db, sql_vacuum, 0, 0, &errmsg);
+    if (errmsg) fatal2("cannot vacuum: ", errmsg);
+}
+
 #if 0
 int db_classes(void) {
     static const char q[] = "SELECT COUNT(1) FROM class";

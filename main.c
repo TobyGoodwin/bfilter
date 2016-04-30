@@ -190,6 +190,8 @@ int run(enum mode mode, char *cclass) {
 
         case train:
             train_update(cclass);
+            if (db_documents() % 100 == 0)
+                db_vacuum();
             break;
 
         case test:

@@ -32,7 +32,12 @@ And this is how sqlite manages::
     -rw-r--r--. 1 toby toby 2772992 Apr 30 12:44 /tmp/tmp.y8Oak4cMck
     29.05user 17.80system 0:52.27elapsed 89%CPU (6984maxresident)k
 
-So that all looks very very encouraging indeed!
+So that all looks very very encouraging indeed! If we only compile the
+count update statement once, that shaves a useful bit more off::
+
+    ham: 99.50% correct, 0% unsure; spam: 62.60% correct, 0% unsure
+    -rw-r--r--. 1 toby toby 2772992 Apr 30 14:04 /tmp/tmp.jdRICf1ZFz
+    27.60user 17.16system 0:44.64elapsed 100%CPU (7004maxresident)k
 
 2016-04-29
 ==========
