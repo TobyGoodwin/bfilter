@@ -64,7 +64,7 @@ CREATE TABLE class ( \
    UNIQUE (name) ); \
 CREATE TABLE term ( \
   id INTEGER PRIMARY KEY, \
-  term TEXT NOT NULL ); \
+  term TEXT NOT NULL UNIQUE ); \
 CREATE TABLE count ( \
   class INTEGER NOT NULL, \
   term INTEGER NOT NULL, \

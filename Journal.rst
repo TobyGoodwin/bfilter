@@ -1,3 +1,16 @@
+2016-04-30
+==========
+
+So I thought the main thing was going to be not preparing statements all
+the time. For ``test``, we already do this for the main statement that
+fetches counts, but the statement that fetches the term ID was being
+recompiled every time. However, fixing this doesn't appear to have
+helped (a3fa49e)::
+
+    ham: 98.00% correct, 0% unsure; spam: 46.00% correct, 0% unsure
+    -rw-r--r--. 1 toby toby 1912832 Apr 30 12:24 /tmp/tmp.9UeXcxcjRM
+    396.43user 1.84system 6:41.21elapsed 99%CPU (5960maxresident)k
+
 2016-04-29
 ==========
 
