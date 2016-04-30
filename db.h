@@ -34,25 +34,10 @@ void db_close(void);
 
 void db_begin(void);
 void db_commit(void);
+void db_vacuum(void);
 
 struct class *db_classes(int *);
 int db_documents(void);
 int db_vocabulary(void);
-
-uint8_t *db_hash_fetch(uint8_t *k, size_t k_sz, size_t *d_sz);
-_Bool db_hash_store(uint8_t *k, size_t k_sz, uint8_t *d, size_t d_sz);
-
-uint32_t *db_hash_fetch_uint32(uint8_t *k, size_t k_sz);
-_Bool db_hash_store_uint32(uint8_t *k, size_t k_sz, uint32_t d);
-
-#if 0
-void db_set_pair(const char *name, unsint a, int b);
-int db_get_pair(const char *name, int *a, int *b);
-#endif
-
-void db_set_intlist(const uint8_t *, size_t, uint32_t *, unsigned int);
-uint32_t *db_get_intlist(const uint8_t *, size_t, unsigned int *);
-void db_clean(int ndays);
-void db_print_stats(void);
 
 #endif /* __DB_H_ */
