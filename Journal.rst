@@ -32,8 +32,15 @@ gets this::
     -rw-------. 1 toby toby 2162688 Apr 29 07:01 /tmp/tmp.W4T9Q8elpO
     2.80user 0.75system 0:05.06elapsed 70%CPU (5672maxresident)k
 
-And sqlite this ()::
+And sqlite this (e27e0fe0)::
 
+    ham: 98.00% correct, 0% unsure; spam: 46.00% correct, 0% unsure
+    -rw-r--r--. 1 toby toby 1912832 Apr 29 07:10 /tmp/tmp.iVuAZ5wjj5
+    398.93user 2.02system 6:41.33elapsed 99%CPU (5880maxresident)k
+
+Yay! Right answers!! Also, the database is slightly smaller, which is
+encouraging. So all I need to do now is make it go about 100 times
+faster.
 
 If we do stick with sqlite, this_ is useful.
 
