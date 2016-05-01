@@ -34,11 +34,6 @@ static const char sql_exists[] =
     "SELECT 0 FROM count WHERE class = ? AND term = ?";
 static const char sql_insert[] =
     "INSERT INTO count (class, term, count) VALUES (?, ?, 0)";
-#if 0
-static const char sql_update[] =
-    "UPDATE count SET count = count + ? WHERE class = ? AND term = ?";
-static sqlite3_stmt *update = 0;
-#endif
 
 static const char sql_update[] =
     "UPDATE count SET count = count + ? WHERE class = ? AND term = ?";
@@ -50,17 +45,13 @@ static _Bool db_count_exists(sqlite3 *db, int c, int t) {
     sqlite3_stmt *s;
 
     r = sqlite3_prepare_v2(db, sql_exists, sizeof sql_exists, &s, 0);
-    if (r != SQLITE_OK)
-        fatal4("cannot prepare statement `", sql_exists, "': ",
-                sqlite3_errmsg(db));
+    if (r != SQLITE_OK) db_fatal("prepare", sql_exists);
 
     r = sqlite3_bind_int(s, 1, c);
-    if (r != SQLITE_OK)
-        fatal2("cannot bind first value: ", sqlite3_errmsg(db));
+    if (r != SQLITE_OK) db_fatal("bind first", sql_exists);
 
     r = sqlite3_bind_int(s, 2, t);
-    if (r != SQLITE_OK)
-        fatal2("cannot bind second value: ", sqlite3_errmsg(db));
+    if (r != SQLITE_OK) db_fatal("bind second", sql_exists);
 
     r = sqlite3_step(s);
     if (r == SQLITE_ROW) {
@@ -68,7 +59,8 @@ static _Bool db_count_exists(sqlite3 *db, int c, int t) {
         return 1;
     } else if (r == SQLITE_DONE) {
     } else
-        fatal2("cannot step statement: ", sqlite3_errmsg(db));
+        db_fatal("step", sql_exists);
+
     sqlite3_finalize(s);
     return 0;
 }
@@ -78,17 +70,17 @@ static void db_count_insert(sqlite3 *db, int c, int t) {
     sqlite3_stmt *s;
 
     r = sqlite3_prepare_v2(db, sql_insert, sizeof sql_insert, &s, 0);
-    if (r != SQLITE_OK)
-        fatal4("cannot prepare stmt `", sql_insert, "': ", sqlite3_errmsg(db));
+    if (r != SQLITE_OK) db_fatal("prepare", sql_insert);
+
     r = sqlite3_bind_int(s, 1, c);
-    if (r != SQLITE_OK)
-        fatal2("cannot bind first value: ", sqlite3_errmsg(db));
+    if (r != SQLITE_OK) db_fatal("bind first", sql_insert);
+
     r = sqlite3_bind_int(s, 2, t);
-    if (r != SQLITE_OK)
-        fatal2("cannot bind second value: ", sqlite3_errmsg(db));
+    if (r != SQLITE_OK) db_fatal("bind second", sql_insert);
+
     r = sqlite3_step(s);
-    if (r != SQLITE_DONE)
-        fatal4("cannot step stmt `", sql_insert, "': ", sqlite3_errmsg(db));
+    if (r != SQLITE_DONE) db_fatal("step", sql_insert);
+
     sqlite3_finalize(s);
 }
 
@@ -110,26 +102,21 @@ _Bool db_count_update(int c, int t, int n) {
         r = sqlite3_reset(update.x);
     else
         r = sqlite3_prepare_v2(db, update.s, update.n, &update.x, 0);
-    if (r != SQLITE_OK)
-        fatal4("cannot prepare stmt `", update.s, "': ", sqlite3_errmsg(db));
+    if (r != SQLITE_OK) db_fatal("prepare", update.s);
 
     x = db_count_furnish(db, c, t);
 
     r = sqlite3_bind_int(update.x, 1, n);
-    if (r != SQLITE_OK)
-        fatal2("cannot bind first value: ", sqlite3_errmsg(db));
+    if (r != SQLITE_OK) db_fatal("bind first", update.s);
 
     r = sqlite3_bind_int(update.x, 2, c);
-    if (r != SQLITE_OK)
-        fatal2("cannot bind second value: ", sqlite3_errmsg(db));
+    if (r != SQLITE_OK) db_fatal("bind second", update.s);
 
     r = sqlite3_bind_int(update.x, 3, t);
-    if (r != SQLITE_OK)
-        fatal2("cannot bind third value: ", sqlite3_errmsg(db));
+    if (r != SQLITE_OK) db_fatal("bind third", update.s);
 
     r = sqlite3_step(update.x);
-    if (r != SQLITE_DONE)
-        fatal4("cannot step stmt `", update.s, "': ", sqlite3_errmsg(db));
+    if (r != SQLITE_DONE) db_fatal("step", update.s);
 
     return x;
 }

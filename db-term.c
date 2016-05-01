@@ -47,23 +47,25 @@ _Bool db_term_id_fetch(uint8_t *t, int tl, int *x) {
     else
         r = sqlite3_prepare_v2(db, fetch.s, fetch.n, &fetch.x, 0);
 
-    if (r != SQLITE_OK)
-        fatal4("cannot prep / reset statement `", fetch.s, "': ",
-                sqlite3_errmsg(db));
+    if (r != SQLITE_OK) db_fatal("prepare / reset", fetch.s);
 
     r = sqlite3_bind_text(fetch.x, 1, (char *)t, tl, 0);
-    if (r != SQLITE_OK)
-        fatal2("cannot bind value: ", sqlite3_errmsg(db));
+    if (r != SQLITE_OK) db_fatal("bind first", fetch.s);
 
     r = sqlite3_step(fetch.x);
-    if (r == SQLITE_ROW) {
-        if (sqlite3_column_type(fetch.x, 0) != SQLITE_INTEGER)
-            fatal1("term.id has non-integer type");
-        *x = sqlite3_column_int(fetch.x, 0);
-        return 1;
-    } else if (r == SQLITE_DONE) {
-    } else
-        fatal2("cannot step statement: ", sqlite3_errmsg(db));
+    switch (r) {
+        case SQLITE_ROW:
+            if (sqlite3_column_type(fetch.x, 0) != SQLITE_INTEGER)
+                fatal1("term.id has non-integer type");
+            *x = sqlite3_column_int(fetch.x, 0);
+            return 1;
+
+        case SQLITE_DONE:
+            break;
+
+        default:
+            db_fatal("step", fetch.s);
+    }
 
     return 0;
 }
@@ -73,14 +75,14 @@ static void db_term_insert(sqlite3 *db, uint8_t *t, int tl) {
     sqlite3_stmt *s;
 
     r = sqlite3_prepare_v2(db, sql_insert, sizeof sql_insert, &s, 0);
-    if (r != SQLITE_OK)
-        fatal4("cannot prepare stmt `", sql_insert, "': ", sqlite3_errmsg(db));
+    if (r != SQLITE_OK) db_fatal("prepare", sql_insert);
+
     r = sqlite3_bind_text(s, 1, (char *)t, tl, 0);
-    if (r != SQLITE_OK)
-        fatal2("cannot bind value: ", sqlite3_errmsg(db));
+    if (r != SQLITE_OK) db_fatal("bind first", sql_insert);
+
     r = sqlite3_step(s);
-    if (r != SQLITE_DONE)
-        fatal4("cannot step stmt `", sql_insert, "': ", sqlite3_errmsg(db));
+    if (r != SQLITE_DONE) db_fatal("step", sql_insert);
+
     sqlite3_finalize(s);
 }
 
@@ -107,24 +109,20 @@ void db_term_update(int cid, int nd, int nt) {
     sqlite3_stmt *s;
 
     r = sqlite3_prepare_v2(db, sql_update, sizeof sql_update, &s, 0);
-    if (r != SQLITE_OK)
-        fatal4("cannot prepare stmt `", sql_update, "': ", sqlite3_errmsg(db));
+    if (r != SQLITE_OK) db_fatal("prepare", sql_update);
 
     r = sqlite3_bind_int(s, 1, nd);
-    if (r != SQLITE_OK)
-        fatal2("cannot bind first value: ", sqlite3_errmsg(db));
+    if (r != SQLITE_OK) db_fatal("bind first", sql_update);
 
     r = sqlite3_bind_int(s, 2, nt);
-    if (r != SQLITE_OK)
-        fatal2("cannot bind second value: ", sqlite3_errmsg(db));
+    if (r != SQLITE_OK) db_fatal("bind second", sql_update);
 
     r = sqlite3_bind_int(s, 3, cid);
-    if (r != SQLITE_OK)
-        fatal2("cannot bind third value: ", sqlite3_errmsg(db));
+    if (r != SQLITE_OK) db_fatal("bind third", sql_update);
 
     r = sqlite3_step(s);
-    if (r != SQLITE_DONE)
-        fatal4("cannot step stmt `", sql_update, "': ", sqlite3_errmsg(db));
+    if (r != SQLITE_DONE) db_fatal("step", sql_update);
+
     sqlite3_finalize(s);
 }
 

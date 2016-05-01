@@ -33,6 +33,10 @@ struct sqlite3 *db_db(void) {
     return db;
 }
 
+void db_fatal(const char *verb, const char *query) {
+    fatal6("failed to ", verb, " `", query, "': ", sqlite3_errmsg(db_db()));
+}
+
 static char *dbfilename(const char *suffix) {
     char *name, *home;
     if ((home = getenv("BFILTER_DB")))
@@ -88,14 +92,14 @@ void db_init(void) {
         fatal2("cannot initialize database: ", errmsg);
 
     r = sqlite3_prepare_v2(db, set_version, sizeof set_version, &stmt, 0);
-    if (r != SQLITE_OK)
-        fatal2("cannot prepare statement: ", sqlite3_errmsg(db));
+    if (r != SQLITE_OK) db_fatal("prepare", set_version);
+
     r = sqlite3_bind_int(stmt, 1, VERSION);
-    if (r != SQLITE_OK)
-        fatal2("cannot bind value: ", sqlite3_errmsg(db));
+    if (r != SQLITE_OK) db_fatal("bind", set_version);
+
     r = sqlite3_step(stmt);
-    if (r != SQLITE_DONE)
-        fatal2("cannot step statement: ", sqlite3_errmsg(db));
+    if (r != SQLITE_DONE) db_fatal("step", set_version);
+
     sqlite3_finalize(stmt);
 }
 
@@ -104,13 +108,14 @@ int db_int_query(const char *q, size_t qn) {
     sqlite3_stmt *stmt;
 
     r = sqlite3_prepare_v2(db, q, qn, &stmt, 0);
-    if (r != SQLITE_OK)
-        fatal4("cannot prepare statement `", q, "': ", sqlite3_errmsg(db));
+    if (r != SQLITE_OK) db_fatal("prepare", q);
+
     r = sqlite3_step(stmt);
-    if (r != SQLITE_ROW)
-        fatal4("cannot step statement `", q, "': ", sqlite3_errmsg(db));
+    if (r != SQLITE_ROW) db_fatal("step", q);
+
     if (sqlite3_column_type(stmt, 0) != SQLITE_INTEGER)
         fatal3("result of `", q, "' has non-integer type");
+
     x = sqlite3_column_int(stmt, 0);
     sqlite3_finalize(stmt);
     return x;
@@ -123,12 +128,12 @@ void db_stmt_finalize(struct db_stmt *s) {
     }
 }
 
-static const char get_version[] = "SELECT version FROM version;";
 
 void db_check_version(void) {
+    static const char q[] = "SELECT version FROM version";
     int v;
 
-    v = db_int_query(get_version, sizeof get_version);
+    v = db_int_query(q, sizeof q);
     if (v < MIN_VERSION || v > VERSION) {
         char vs[25];
         snprintf(vs, 25, "%d", v);

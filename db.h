@@ -28,6 +28,8 @@
 #include <sqlite3.h>
 
 sqlite3 *db_db(void);
+void db_fatal(const char *, const char *);
+
 int db_open(void);
 void db_close(void);
 

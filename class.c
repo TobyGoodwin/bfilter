@@ -42,24 +42,27 @@ static _Bool db_class_id_fetch(sqlite3 *db, char *c, int *x) {
     sqlite3_stmt *s;
 
     r = sqlite3_prepare_v2(db, sql_cid, sizeof sql_cid, &s, 0);
-    if (r != SQLITE_OK)
-        fatal4("cannot prepare statement `", sql_cid, "': ",
-                sqlite3_errmsg(db));
+    if (r != SQLITE_OK) db_fatal("prepare", sql_cid);
 
     r = sqlite3_bind_text(s, 1, c, strlen(c), 0);
-    if (r != SQLITE_OK)
-        fatal4("cannot bind value `", c, "': ", sqlite3_errmsg(db));
+    if (r != SQLITE_OK) db_fatal("bind first", sql_cid);
 
     r = sqlite3_step(s);
-    if (r == SQLITE_ROW) {
-        if (sqlite3_column_type(s, 0) != SQLITE_INTEGER)
-            fatal1("class.name has non-integer type");
-        *x = sqlite3_column_int(s, 0);
-        sqlite3_finalize(s);
-        return 1;
-    } else if (r == SQLITE_DONE) {
-    } else
-        fatal2("cannot step statement: ", sqlite3_errmsg(db));
+    switch (r) {
+        case SQLITE_ROW:
+            if (sqlite3_column_type(s, 0) != SQLITE_INTEGER)
+                fatal1("class.name has non-integer type");
+            *x = sqlite3_column_int(s, 0);
+            sqlite3_finalize(s);
+            return 1;
+
+        case SQLITE_DONE:
+            break;
+
+        default:
+            db_fatal("step", sql_cid);
+    }
+
     sqlite3_finalize(s);
     return 0;
 }
@@ -69,14 +72,14 @@ static void db_class_insert(sqlite3 *db, char *c) {
     sqlite3_stmt *s;
 
     r = sqlite3_prepare_v2(db, sql_insert, sizeof sql_insert, &s, 0);
-    if (r != SQLITE_OK)
-        fatal4("cannot prepare stmt `", sql_insert, "': ", sqlite3_errmsg(db));
+    if (r != SQLITE_OK) db_fatal("prepare", sql_insert);
+
     r = sqlite3_bind_text(s, 1, c, strlen(c), 0);
-    if (r != SQLITE_OK)
-        fatal4("cannot bind value `", c, "': ", sqlite3_errmsg(db));
+    if (r != SQLITE_OK) db_fatal("bind first", sql_insert);
+
     r = sqlite3_step(s);
-    if (r != SQLITE_DONE)
-        fatal4("cannot step stmt `", sql_insert, "': ", sqlite3_errmsg(db));
+    if (r != SQLITE_DONE) db_fatal("step", sql_insert);
+
     sqlite3_finalize(s);
 }
 
@@ -103,24 +106,20 @@ void class_update(int cid, int nd, int nt) {
     sqlite3_stmt *s;
 
     r = sqlite3_prepare_v2(db, sql_update, sizeof sql_update, &s, 0);
-    if (r != SQLITE_OK)
-        fatal4("cannot prepare stmt `", sql_update, "': ", sqlite3_errmsg(db));
+    if (r != SQLITE_OK) db_fatal("prepare", sql_update);
 
     r = sqlite3_bind_int(s, 1, nd);
-    if (r != SQLITE_OK)
-        fatal2("cannot bind first value: ", sqlite3_errmsg(db));
+    if (r != SQLITE_OK) db_fatal("bind first", sql_update);
 
     r = sqlite3_bind_int(s, 2, nt);
-    if (r != SQLITE_OK)
-        fatal2("cannot bind second value: ", sqlite3_errmsg(db));
+    if (r != SQLITE_OK) db_fatal("bind second", sql_update);
 
     r = sqlite3_bind_int(s, 3, cid);
-    if (r != SQLITE_OK)
-        fatal2("cannot bind third value: ", sqlite3_errmsg(db));
+    if (r != SQLITE_OK) db_fatal("bind third", sql_update);
 
     r = sqlite3_step(s);
-    if (r != SQLITE_DONE)
-        fatal4("cannot step stmt `", sql_update, "': ", sqlite3_errmsg(db));
+    if (r != SQLITE_DONE) db_fatal("step", sql_update);
+
     sqlite3_finalize(s);
 }
 
@@ -133,8 +132,8 @@ struct class *class_fetch(int *n) {
         "SELECT id, name, docs, terms FROM class ORDER BY id";
 
     r = sqlite3_prepare_v2(db, q, sizeof q, &stmt, 0);
-    if (r != SQLITE_OK)
-        fatal4("cannot prepare statement `", q, "': ", sqlite3_errmsg(db));
+    if (r != SQLITE_OK) db_fatal("prepare", q);
+
     csa = 0;
     for (csn = 0; (r = sqlite3_step(stmt)) == SQLITE_ROW; ++csn) {
         struct class *c;
@@ -162,6 +161,9 @@ struct class *class_fetch(int *n) {
 
         c->logprob = 0.0;
     }
+
+    if (r != SQLITE_DONE) db_fatal("step", q);
+
     sqlite3_finalize(stmt);
 
     if (n) *n = csn;

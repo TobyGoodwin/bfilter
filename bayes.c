@@ -94,8 +94,7 @@ struct class *bayes(skiplist tokens, int *n) {
     }
 
     r = sqlite3_prepare_v2(db, sel.s, sel.n, &sel.x, 0);
-    if (r != SQLITE_OK)
-        fatal4("cannot prepare statement `", q, "': ", sqlite3_errmsg(db));
+    if (r != SQLITE_OK) db_fatal("prepare", q);
 
     for (si = skiplist_itr_first(tokens); si;
             si = skiplist_itr_next(tokens, si)) {
@@ -111,10 +110,9 @@ struct class *bayes(skiplist tokens, int *n) {
         if (!db_term_id_fetch(t, t_len, &tid))
             continue;
 
-	//r = sqlite3_bind_text(stmt, 1, (char *)t, t_len, 0);
 	r = sqlite3_bind_int(sel.x, 1, tid);
-        if (r != SQLITE_OK)
-            fatal4("cannot bind in `", q, "': ", sqlite3_errmsg(db));
+        if (r != SQLITE_OK) db_fatal("bind first", q);
+
         // TRACE fprintf(stderr, "token %.*s\n", (int)t_len, t);
 
         while ((r = sqlite3_step(sel.x)) == SQLITE_ROW) {

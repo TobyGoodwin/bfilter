@@ -4,6 +4,8 @@ void fatal3(const char *, const char *, const char *);
 void fatal4(const char *, const char *, const char *, const char *);
 void fatal5(const char *, const char *, const char *,
 	const char *, const char *);
+void fatal6(const char *, const char *, const char *,
+	const char *, const char *, const char *);
 void fatal9(const char *, const char *, const char *,
 	const char *, const char *, const char *,
         const char *, const char *, const char *);
