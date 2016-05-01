@@ -20,6 +20,11 @@ Right Thing, but it's not actually buying us much. After applying the
 magic to the remaining term queries (``insert`` and ``update``), we get
 no discernible improvement, even though 38k terms have been inserted.
 
+And tidying things up so we construct an array mapping database ids to
+offset in the class array makes ``bayes()`` rather neater, and avoids a
+triply nested loop. But we're still in the noise with actual speed
+improvements ()::
+
 2016-04-30
 ==========
 

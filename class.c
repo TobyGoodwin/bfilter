@@ -123,50 +123,61 @@ void class_update(int cid, int nd, int nt) {
     sqlite3_finalize(s);
 }
 
-struct class *class_fetch(int *n) {
-    int csa, csn, r;
-    sqlite3 *db = db_db();
-    sqlite3_stmt *stmt;
+static int class_count(void) {
+    static const char q[] = "SELECT COUNT(1) FROM class";
+    return db_int_query(q, sizeof q);
+}
+
+static int class_max(void) {
+    static const char q[] = "SELECT MAX(id) FROM class";
+    return db_int_query(q, sizeof q);
+}
+
+struct class *class_fetch(int *n, int **id2ix) {
+    int i, max, num, r;
     struct class *cs = 0;
-    static const char q[] =
-        "SELECT id, name, docs, terms FROM class ORDER BY id";
+    static const char sql[] =
+        "SELECT id, name, docs, terms FROM class";
+    static struct db_stmt q = { sql, sizeof sql }; 
 
-    r = sqlite3_prepare_v2(db, q, sizeof q, &stmt, 0);
-    if (r != SQLITE_OK) db_fatal("prepare", q);
+    db_begin(); // run inside transaction to ensure allocations big enough
+    num = class_count(); // number of classes
+    max = class_max() + 1; // biggest class id for id2ix map
 
-    csa = 0;
-    for (csn = 0; (r = sqlite3_step(stmt)) == SQLITE_ROW; ++csn) {
-        struct class *c;
+    cs = xmalloc(num * sizeof *cs);
+    if (n) *n = num;
+    if (id2ix) *id2ix = xmalloc(max * sizeof **id2ix);
 
-        if (csn == csa)
-            cs = xrealloc(cs, (csa = csa * 2 + 1) * sizeof *cs);
+    r = db_stmt_ready(&q);
+    if (r != SQLITE_OK) db_fatal("prepare", q.s);
 
-        c = cs + csn;
+    for (i = 0; (r = sqlite3_step(q.x)) == SQLITE_ROW; ++i) {
+        struct class *cp = cs + i;
 
-        if (sqlite3_column_type(stmt, 0) != SQLITE_INTEGER)
+        if (sqlite3_column_type(q.x, 0) != SQLITE_INTEGER)
             fatal1("class.id has non-integer type");
-        c->id = sqlite3_column_int(stmt, 0);
+        cp->id = sqlite3_column_int(q.x, 0);
+        if (id2ix) (*id2ix)[cp->id] = i;
 
-        if (sqlite3_column_type(stmt, 1) != SQLITE_TEXT)
+        if (sqlite3_column_type(q.x, 1) != SQLITE_TEXT)
             fatal1("class.name has non-text type");
-        c->name = u8_xstrdup(sqlite3_column_text(stmt, 1));
+        cp->name = u8_xstrdup(sqlite3_column_text(q.x, 1));
 
-        if (sqlite3_column_type(stmt, 2) != SQLITE_INTEGER)
+        if (sqlite3_column_type(q.x, 2) != SQLITE_INTEGER)
             fatal1("class.docs has non-integer type");
-        c->docs = sqlite3_column_int(stmt, 2);
+        cp->docs = sqlite3_column_int(q.x, 2);
 
-        if (sqlite3_column_type(stmt, 3) != SQLITE_INTEGER)
+        if (sqlite3_column_type(q.x, 3) != SQLITE_INTEGER)
             fatal1("class.terms has non-integer type");
-        c->terms = sqlite3_column_int(stmt, 3);
+        cp->terms = sqlite3_column_int(q.x, 3);
 
-        c->logprob = 0.0;
+        cp->logprob = 0.0;
     }
 
-    if (r != SQLITE_DONE) db_fatal("step", q);
+    if (r != SQLITE_DONE) db_fatal("step", q.s);
 
-    sqlite3_finalize(stmt);
-
-    if (n) *n = csn;
+    db_stmt_finalize(&q);
+    db_commit();
 
     return cs;
 }

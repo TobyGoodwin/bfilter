@@ -70,6 +70,7 @@ static void sel_done(void) { db_stmt_finalize(&sel); }
 struct class *bayes(skiplist tokens, int *n) {
     int i, r;
     int n_class, docs, vocab;
+    int *id2ix;
     skiplist_iterator si;
     sqlite3 *db = db_db();
     struct class *classes;
@@ -79,7 +80,7 @@ struct class *bayes(skiplist tokens, int *n) {
     vocab = db_vocabulary();
     TRACE fprintf(stderr, "vocabulary: %d\n", vocab);
 
-    classes = class_fetch(&n_class);
+    classes = class_fetch(&n_class, &id2ix);
     if (n) *n = n_class;
     TRACE fprintf(stderr, "classes: %d\n", n_class);
 
@@ -117,12 +118,19 @@ struct class *bayes(skiplist tokens, int *n) {
 
         while ((r = sqlite3_step(sel.x)) == SQLITE_ROW) {
             struct class *c;
-            int dbc, x = 0;
+            int id, x = 0;
 
             if (sqlite3_column_type(sel.x, 0) != SQLITE_INTEGER)
                 fatal3("col 0 of `", q, "' has non-integer type");
-            dbc = sqlite3_column_int(sel.x, 0);
+            id = sqlite3_column_int(sel.x, 0);
 
+            if (sqlite3_column_type(sel.x, 1) != SQLITE_INTEGER)
+                fatal3("col 1 of `", q, "' has non-integer type");
+            x = sqlite3_column_int(sel.x, 1);
+
+            c = classes + id2ix[id];
+
+#if 0
             // XXX this could be slightly more efficient if everything were
             // ordered. alternatively, we could arrange that classes[i].id ==
             // i, at the minor risk of wasting some space if ids are sparse
@@ -137,6 +145,7 @@ struct class *bayes(skiplist tokens, int *n) {
                     break;
                 }
             }
+#endif
 
             TRACE fprintf(stderr, "Tct = %d\n", x);
             p = (x + 1.) / (c->terms + vocab);

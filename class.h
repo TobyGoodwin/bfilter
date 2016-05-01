@@ -24,7 +24,7 @@
 
 #include <stdint.h>
 
-struct class *class_fetch(int *);
+struct class *class_fetch(int *, int **);
 int class_id_furnish(char *);
 void class_update(int, int, int);
 

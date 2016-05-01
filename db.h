@@ -37,7 +37,7 @@ void db_begin(void);
 void db_commit(void);
 void db_vacuum(void);
 
-struct class *db_classes(int *);
+int db_int_query(const char *, size_t);
 int db_documents(void);
 int db_vocabulary(void);
 
