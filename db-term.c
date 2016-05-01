@@ -30,9 +30,6 @@
 #include "db-term.h"
 #include "error.h"
 
-static const char sql_update[] =
-    "UPDATE term SET docs = docs + ?, terms = terms + ? WHERE id = ?";
-
 static const char sql_fetch[] = "SELECT id FROM term WHERE term = ?";
 struct db_stmt fetch = { sql_fetch, sizeof sql_fetch };
 static void fetch_done(void) { db_stmt_finalize(&fetch); };
@@ -109,30 +106,33 @@ int db_term_id_furnish(uint8_t *t, int tl) {
     return x;
 }
 
+static const char sql_update[] =
+    "UPDATE term SET docs = docs + ?, terms = terms + ? WHERE id = ?";
+static struct db_stmt update = { sql_update, sizeof sql_update };
+void update_done(void) { db_stmt_finalize(&update); }
+
 void db_term_update(int cid, int nd, int nt) {
     int r;
-    sqlite3 *db = db_db();
-    sqlite3_stmt *s;
 
-    r = sqlite3_prepare_v2(db, sql_update, sizeof sql_update, &s, 0);
-    if (r != SQLITE_OK) db_fatal("prepare", sql_update);
+    r = db_stmt_ready(&update);
+    if (r != SQLITE_OK) db_fatal("prepare", update.s);
 
-    r = sqlite3_bind_int(s, 1, nd);
-    if (r != SQLITE_OK) db_fatal("bind first", sql_update);
+    r = sqlite3_bind_int(update.x, 1, nd);
+    if (r != SQLITE_OK) db_fatal("bind first", update.s);
 
-    r = sqlite3_bind_int(s, 2, nt);
-    if (r != SQLITE_OK) db_fatal("bind second", sql_update);
+    r = sqlite3_bind_int(update.x, 2, nt);
+    if (r != SQLITE_OK) db_fatal("bind second", update.s);
 
-    r = sqlite3_bind_int(s, 3, cid);
-    if (r != SQLITE_OK) db_fatal("bind third", sql_update);
+    r = sqlite3_bind_int(update.x, 3, cid);
+    if (r != SQLITE_OK) db_fatal("bind third", update.s);
 
-    r = sqlite3_step(s);
-    if (r != SQLITE_DONE) db_fatal("step", sql_update);
+    r = sqlite3_step(update.x);
+    if (r != SQLITE_DONE) db_fatal("step", update.s);
 
-    sqlite3_finalize(s);
 }
 
 void db_term_done(void) {
     fetch_done();
     insert_done();
+    update_done();
 }

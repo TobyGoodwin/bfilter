@@ -12,7 +12,7 @@
 CC = gcc -std=c99
 CFLAGS += -g -Wall -I/software/include -I.
 LDFLAGS += -g -L/software/lib
-LDLIBS += -lsqlite3 -ltdb -lcrypto -lm #-lefence
+LDLIBS += -lsqlite3 -lm #-lefence
 
 # No user-serviceable parts below this point.
 VERSION = 0.4

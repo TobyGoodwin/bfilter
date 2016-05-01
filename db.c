@@ -121,6 +121,13 @@ int db_int_query(const char *q, size_t qn) {
     return x;
 }
 
+int db_stmt_ready(struct db_stmt *s) {
+    if (s->x)
+        return sqlite3_reset(s->x);
+    else
+        return sqlite3_prepare_v2(db_db(), s->s, s->n, &s->x, 0);
+}
+
 void db_stmt_finalize(struct db_stmt *s) {
     if (s->x) {
         sqlite3_finalize(s->x);

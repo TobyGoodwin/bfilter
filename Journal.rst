@@ -17,8 +17,8 @@ disk space. In fact, we end up with a rather spooky database size
 
 Making more of the repeated queries only prepare once is definitely the
 Right Thing, but it's not actually buying us much. After applying the
-magic to ``INSERT INTO term (term) VALUES (?)``, we get ()::
-
+magic to the remaining term queries (``insert`` and ``update``), we get
+no discernible improvement, even though 38k terms have been inserted.
 
 2016-04-30
 ==========

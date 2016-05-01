@@ -46,6 +46,7 @@ struct db_stmt {
     size_t n;
     sqlite3_stmt *x;
 };
+int db_stmt_ready(struct db_stmt *);
 void db_stmt_finalize(struct db_stmt *);
 
 #endif /* __DB_H_ */
