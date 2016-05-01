@@ -26,3 +26,4 @@
 
 //int db_count_id_furnish(int, int);
 _Bool db_count_update(int, int, int);
+void db_count_done(void);

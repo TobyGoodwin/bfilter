@@ -116,6 +116,13 @@ int db_int_query(const char *q, size_t qn) {
     return x;
 }
 
+void db_stmt_finalize(struct db_stmt *s) {
+    if (s->x) {
+        sqlite3_finalize(s->x);
+        s->x = 0;
+    }
+}
+
 static const char get_version[] = "SELECT version FROM version;";
 
 void db_check_version(void) {

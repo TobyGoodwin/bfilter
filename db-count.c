@@ -34,9 +34,16 @@ static const char sql_exists[] =
     "SELECT 0 FROM count WHERE class = ? AND term = ?";
 static const char sql_insert[] =
     "INSERT INTO count (class, term, count) VALUES (?, ?, 0)";
+#if 0
 static const char sql_update[] =
     "UPDATE count SET count = count + ? WHERE class = ? AND term = ?";
 static sqlite3_stmt *update = 0;
+#endif
+
+static const char sql_update[] =
+    "UPDATE count SET count = count + ? WHERE class = ? AND term = ?";
+struct db_stmt update = { sql_update, sizeof sql_update };
+void db_count_done(void) { db_stmt_finalize(&update); }
 
 static _Bool db_count_exists(sqlite3 *db, int c, int t) {
     int r;
@@ -99,30 +106,30 @@ _Bool db_count_update(int c, int t, int n) {
     int r;
     sqlite3 *db = db_db();
 
-    if (update)
-        r = sqlite3_reset(update);
+    if (update.x)
+        r = sqlite3_reset(update.x);
     else
-        r = sqlite3_prepare_v2(db, sql_update, sizeof sql_update, &update, 0);
+        r = sqlite3_prepare_v2(db, update.s, update.n, &update.x, 0);
     if (r != SQLITE_OK)
-        fatal4("cannot prepare stmt `", sql_update, "': ", sqlite3_errmsg(db));
+        fatal4("cannot prepare stmt `", update.s, "': ", sqlite3_errmsg(db));
 
     x = db_count_furnish(db, c, t);
 
-    r = sqlite3_bind_int(update, 1, n);
+    r = sqlite3_bind_int(update.x, 1, n);
     if (r != SQLITE_OK)
         fatal2("cannot bind first value: ", sqlite3_errmsg(db));
 
-    r = sqlite3_bind_int(update, 2, c);
+    r = sqlite3_bind_int(update.x, 2, c);
     if (r != SQLITE_OK)
         fatal2("cannot bind second value: ", sqlite3_errmsg(db));
 
-    r = sqlite3_bind_int(update, 3, t);
+    r = sqlite3_bind_int(update.x, 3, t);
     if (r != SQLITE_OK)
         fatal2("cannot bind third value: ", sqlite3_errmsg(db));
 
-    r = sqlite3_step(update);
+    r = sqlite3_step(update.x);
     if (r != SQLITE_DONE)
-        fatal4("cannot step stmt `", sql_update, "': ", sqlite3_errmsg(db));
+        fatal4("cannot step stmt `", update.s, "': ", sqlite3_errmsg(db));
 
     return x;
 }

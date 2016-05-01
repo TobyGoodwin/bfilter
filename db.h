@@ -27,7 +27,6 @@
 
 #include <sqlite3.h>
 
-/* db.c */
 sqlite3 *db_db(void);
 int db_open(void);
 void db_close(void);
@@ -39,5 +38,12 @@ void db_vacuum(void);
 struct class *db_classes(int *);
 int db_documents(void);
 int db_vocabulary(void);
+
+struct db_stmt {
+    const char *s;
+    size_t n;
+    sqlite3_stmt *x;
+};
+void db_stmt_finalize(struct db_stmt *);
 
 #endif /* __DB_H_ */

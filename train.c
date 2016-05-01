@@ -66,6 +66,15 @@ _Bool train_read(void) {
     return 1;
 }
 
+static void init(void) {
+    db_begin();
+}
+
+static void done(void) {
+    db_count_done();
+    db_commit();
+}
+
 const char *update_class = "\
 UPDATE class \
   SET docs = docs + ?, terms = terms + ? \
@@ -78,7 +87,7 @@ void train_update(char *cclass) {
     skiplist_iterator si;
     unsigned int nterms, ntermswr, ntermsnew, ntermsall;
 
-    db_begin();
+    init();
     cid = class_id_furnish(cclass);
 
     TRACE fprintf(stderr, "cid is %d\n", cid);
@@ -112,5 +121,6 @@ void train_update(char *cclass) {
                 ntermswr, nterms, ntermsnew);
 
     class_update(cid, nemails, ntermsall);
-    db_commit();
+    
+    done();
 }
