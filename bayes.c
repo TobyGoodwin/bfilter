@@ -52,11 +52,6 @@ static int cmp(const void *x, const void *y) {
     return 0;
 }
 
-static struct class *sort(struct class *x, int n) {
-    qsort(x, n, sizeof *x, cmp);
-    return x;
-}
-
 static const char q[] = "\
     SELECT class.id, COALESCE( \
         (SELECT count.count FROM count \
@@ -65,14 +60,12 @@ static const char q[] = "\
         FROM class \
 ";
 static struct db_stmt sel = { q, sizeof q };
-static void sel_done(void) { db_stmt_finalize(&sel); }
 
 struct class *bayes(skiplist tokens, int *n) {
     int i, r;
     int n_class, docs, vocab;
     int *id2ix;
     skiplist_iterator si;
-    sqlite3 *db = db_db();
     struct class *classes;
 
     docs = db_documents();
@@ -94,12 +87,8 @@ struct class *bayes(skiplist tokens, int *n) {
         c->logprob = log((double)c->docs / (double)docs);
     }
 
-    r = sqlite3_prepare_v2(db, sel.s, sel.n, &sel.x, 0);
-    if (r != SQLITE_OK) db_fatal("prepare", q);
-
     for (si = skiplist_itr_first(tokens); si;
             si = skiplist_itr_next(tokens, si)) {
-        double p;
         uint8_t *t;
         size_t t_len;
         int occurs; /* number of occurences of this term in test text */
@@ -111,14 +100,18 @@ struct class *bayes(skiplist tokens, int *n) {
         if (!db_term_id_fetch(t, t_len, &tid))
             continue;
 
+        r = db_stmt_ready(&sel);
+        if (r != SQLITE_OK) db_fatal("prepare / reset", q);
+
 	r = sqlite3_bind_int(sel.x, 1, tid);
         if (r != SQLITE_OK) db_fatal("bind first", q);
 
         // TRACE fprintf(stderr, "token %.*s\n", (int)t_len, t);
 
         while ((r = sqlite3_step(sel.x)) == SQLITE_ROW) {
+            double p;
+            int id, x;
             struct class *c;
-            int id, x = 0;
 
             if (sqlite3_column_type(sel.x, 0) != SQLITE_INTEGER)
                 fatal3("col 0 of `", q, "' has non-integer type");
@@ -130,35 +123,16 @@ struct class *bayes(skiplist tokens, int *n) {
 
             c = classes + id2ix[id];
 
-#if 0
-            // XXX this could be slightly more efficient if everything were
-            // ordered. alternatively, we could arrange that classes[i].id ==
-            // i, at the minor risk of wasting some space if ids are sparse
-            //for (i = 0; i < n_class; ++i) {
-            for (c = classes; c < classes + n_class; ++c) {
-                if (c->id == dbc) {
-                    if (sqlite3_column_type(sel.x, 1) == SQLITE_NULL)
-                        break;
-                    if (sqlite3_column_type(sel.x, 1) != SQLITE_INTEGER)
-                        fatal3("col 1 of `", q, "' has non-integer type");
-                    x = sqlite3_column_int(sel.x, 1);
-                    break;
-                }
-            }
-#endif
-
             TRACE fprintf(stderr, "Tct = %d\n", x);
             p = (x + 1.) / (c->terms + vocab);
             TRACE fprintf(stderr, "condprob[%s][%.*s] = %g\n", c->name, (int)t_len, t, p);
             c->logprob += occurs * log(p);
             TRACE fprintf(stderr, "class prob: %g\n", c->logprob);
         }
-
-        sqlite3_reset(sel.x);
-
     }
 
-    sel_done();
-    sort(classes, n_class);
+    db_stmt_finalize(&sel);
+
+    qsort(classes, n_class, sizeof *classes, cmp);
     return classes;
 }

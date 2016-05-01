@@ -10,9 +10,9 @@
 
 # Edit these until it compiles.
 CC = gcc -std=c99
-CFLAGS += -g -Wall -I/software/include -I.
-LDFLAGS += -g -L/software/lib
-LDLIBS += -lsqlite3 -lm #-lefence
+CFLAGS += -g -Wall
+LDFLAGS += -g
+LDLIBS += -lsqlite3 -lm
 
 # No user-serviceable parts below this point.
 VERSION = 0.4

@@ -23,7 +23,14 @@ no discernible improvement, even though 38k terms have been inserted.
 And tidying things up so we construct an array mapping database ids to
 offset in the class array makes ``bayes()`` rather neater, and avoids a
 triply nested loop. But we're still in the noise with actual speed
-improvements ()::
+improvements (97c3588)::
+
+    ham: 99.50% correct, 0% unsure; spam: 62.60% correct, 0% unsure
+    -rw-r--r--. 1 toby toby 2560000 May  1 20:44 /tmp/tmp.D1z5HhEflX
+    27.43user 15.78system 0:43.42elapsed 99%CPU (8588maxresident)k
+
+(Compiling with ``-O2`` shaves about 3s off that, but I never did that
+with tdb, so that's cheating really.)
 
 2016-04-30
 ==========
