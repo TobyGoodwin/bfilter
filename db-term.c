@@ -30,7 +30,6 @@
 #include "db-term.h"
 #include "error.h"
 
-static const char sql_insert[] = "INSERT INTO term (term) VALUES (?)";
 static const char sql_update[] =
     "UPDATE term SET docs = docs + ?, terms = terms + ? WHERE id = ?";
 
@@ -70,23 +69,30 @@ _Bool db_term_id_fetch(uint8_t *t, int tl, int *x) {
     return 0;
 }
 
+static const char sql_insert[] = "INSERT INTO term (term) VALUES (?)";
+
+struct db_stmt insert = { sql_insert, sizeof sql_insert };
+void insert_done(void) { db_stmt_finalize(&insert); }
+
 static void db_term_insert(sqlite3 *db, uint8_t *t, int tl) {
     int r;
-    sqlite3_stmt *s;
 
-    r = sqlite3_prepare_v2(db, sql_insert, sizeof sql_insert, &s, 0);
-    if (r != SQLITE_OK) db_fatal("prepare", sql_insert);
+    if (insert.x)
+        r = sqlite3_reset(insert.x);
+    else
+        r = sqlite3_prepare_v2(db, insert.s, insert.n, &insert.x, 0);
 
-    r = sqlite3_bind_text(s, 1, (char *)t, tl, 0);
-    if (r != SQLITE_OK) db_fatal("bind first", sql_insert);
+    if (r != SQLITE_OK) db_fatal("prepare / reset", insert.s);
 
-    r = sqlite3_step(s);
-    if (r != SQLITE_DONE) db_fatal("step", sql_insert);
+    r = sqlite3_bind_text(insert.x, 1, (char *)t, tl, 0);
+    if (r != SQLITE_OK) db_fatal("bind first", insert.s);
 
-    sqlite3_finalize(s);
+    r = sqlite3_step(insert.x);
+    if (r != SQLITE_DONE) db_fatal("step", insert.s);
 }
 
-// needs to run inside a transaction
+// needs to run inside a transaction, so that the insert cannot fail (terms are
+// unique)
 int db_term_id_furnish(uint8_t *t, int tl) {
     int x;
     sqlite3 *db = db_db();
@@ -128,4 +134,5 @@ void db_term_update(int cid, int nd, int nt) {
 
 void db_term_done(void) {
     fetch_done();
+    insert_done();
 }

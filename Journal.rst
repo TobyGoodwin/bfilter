@@ -15,6 +15,10 @@ disk space. In fact, we end up with a rather spooky database size
     -rw-r--r--. 1 toby toby 2560000 May  1 12:59 /tmp/tmp.UlNj82kMlW
     27.78user 16.77system 0:44.58elapsed 99%CPU (9500maxresident)k
 
+Making more of the repeated queries only prepare once is definitely the
+Right Thing, but it's not actually buying us much. After applying the
+magic to ``INSERT INTO term (term) VALUES (?)``, we get ()::
+
 
 2016-04-30
 ==========
