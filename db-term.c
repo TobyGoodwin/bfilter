@@ -31,18 +31,13 @@
 #include "error.h"
 
 static const char sql_fetch[] = "SELECT id FROM term WHERE term = ?";
-struct db_stmt fetch = { sql_fetch, sizeof sql_fetch };
+static struct db_stmt fetch = { sql_fetch, sizeof sql_fetch };
 static void fetch_done(void) { db_stmt_finalize(&fetch); };
 
 _Bool db_term_id_fetch(uint8_t *t, int tl, int *x) {
-    sqlite3 *db = db_db();
     int r;
 
-    if (fetch.x)
-        r = sqlite3_reset(fetch.x);
-    else
-        r = sqlite3_prepare_v2(db, fetch.s, fetch.n, &fetch.x, 0);
-
+    r = db_stmt_ready(&fetch);
     if (r != SQLITE_OK) db_fatal("prepare / reset", fetch.s);
 
     r = sqlite3_bind_text(fetch.x, 1, (char *)t, tl, 0);
@@ -67,18 +62,13 @@ _Bool db_term_id_fetch(uint8_t *t, int tl, int *x) {
 }
 
 static const char sql_insert[] = "INSERT INTO term (term) VALUES (?)";
-
-struct db_stmt insert = { sql_insert, sizeof sql_insert };
-void insert_done(void) { db_stmt_finalize(&insert); }
+static struct db_stmt insert = { sql_insert, sizeof sql_insert };
+static void insert_done(void) { db_stmt_finalize(&insert); }
 
 static void db_term_insert(sqlite3 *db, uint8_t *t, int tl) {
     int r;
 
-    if (insert.x)
-        r = sqlite3_reset(insert.x);
-    else
-        r = sqlite3_prepare_v2(db, insert.s, insert.n, &insert.x, 0);
-
+    r = db_stmt_ready(&insert);
     if (r != SQLITE_OK) db_fatal("prepare / reset", insert.s);
 
     r = sqlite3_bind_text(insert.x, 1, (char *)t, tl, 0);
@@ -106,33 +96,7 @@ int db_term_id_furnish(uint8_t *t, int tl) {
     return x;
 }
 
-static const char sql_update[] =
-    "UPDATE term SET docs = docs + ?, terms = terms + ? WHERE id = ?";
-static struct db_stmt update = { sql_update, sizeof sql_update };
-void update_done(void) { db_stmt_finalize(&update); }
-
-void db_term_update(int cid, int nd, int nt) {
-    int r;
-
-    r = db_stmt_ready(&update);
-    if (r != SQLITE_OK) db_fatal("prepare", update.s);
-
-    r = sqlite3_bind_int(update.x, 1, nd);
-    if (r != SQLITE_OK) db_fatal("bind first", update.s);
-
-    r = sqlite3_bind_int(update.x, 2, nt);
-    if (r != SQLITE_OK) db_fatal("bind second", update.s);
-
-    r = sqlite3_bind_int(update.x, 3, cid);
-    if (r != SQLITE_OK) db_fatal("bind third", update.s);
-
-    r = sqlite3_step(update.x);
-    if (r != SQLITE_DONE) db_fatal("step", update.s);
-
-}
-
 void db_term_done(void) {
     fetch_done();
     insert_done();
-    update_done();
 }
