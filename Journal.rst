@@ -8,7 +8,13 @@ After a bit of tinkering, I came up with a reasonable (if not perfect)
 This makes it saner to finalize all our statements when we're done with
 them, which means that we are allowed to vacuum the database. This
 doesn't appear to help much with performance, but it does save a bit of
-disk space. In fact, we end up with a rather spooky database size ()::
+disk space. In fact, we end up with a rather spooky database size
+(9d9b3bc)::
+
+    ham: 99.50% correct, 0% unsure; spam: 62.60% correct, 0% unsure
+    -rw-r--r--. 1 toby toby 2560000 May  1 12:59 /tmp/tmp.UlNj82kMlW
+    27.78user 16.77system 0:44.58elapsed 99%CPU (9500maxresident)k
+
 
 2016-04-30
 ==========
