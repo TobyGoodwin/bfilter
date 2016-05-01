@@ -30,35 +30,36 @@
 #include "db-term.h"
 #include "error.h"
 
-static const char sql_fetch[] = "SELECT id FROM term WHERE term = ?";
 static const char sql_insert[] = "INSERT INTO term (term) VALUES (?)";
 static const char sql_update[] =
     "UPDATE term SET docs = docs + ?, terms = terms + ? WHERE id = ?";
 
-static sqlite3_stmt *fetch = 0;
+static const char sql_fetch[] = "SELECT id FROM term WHERE term = ?";
+struct db_stmt fetch = { sql_fetch, sizeof sql_fetch };
+static void fetch_done(void) { db_stmt_finalize(&fetch); };
 
 _Bool db_term_id_fetch(uint8_t *t, int tl, int *x) {
     sqlite3 *db = db_db();
     int r;
 
-    if (fetch)
-        r = sqlite3_reset(fetch);
+    if (fetch.x)
+        r = sqlite3_reset(fetch.x);
     else
-        r = sqlite3_prepare_v2(db, sql_fetch, sizeof sql_fetch, &fetch, 0);
+        r = sqlite3_prepare_v2(db, fetch.s, fetch.n, &fetch.x, 0);
 
     if (r != SQLITE_OK)
-        fatal4("cannot prep / reset statement `", sql_fetch, "': ",
+        fatal4("cannot prep / reset statement `", fetch.s, "': ",
                 sqlite3_errmsg(db));
 
-    r = sqlite3_bind_text(fetch, 1, (char *)t, tl, 0);
+    r = sqlite3_bind_text(fetch.x, 1, (char *)t, tl, 0);
     if (r != SQLITE_OK)
         fatal2("cannot bind value: ", sqlite3_errmsg(db));
 
-    r = sqlite3_step(fetch);
+    r = sqlite3_step(fetch.x);
     if (r == SQLITE_ROW) {
-        if (sqlite3_column_type(fetch, 0) != SQLITE_INTEGER)
+        if (sqlite3_column_type(fetch.x, 0) != SQLITE_INTEGER)
             fatal1("term.id has non-integer type");
-        *x = sqlite3_column_int(fetch, 0);
+        *x = sqlite3_column_int(fetch.x, 0);
         return 1;
     } else if (r == SQLITE_DONE) {
     } else
@@ -125,4 +126,8 @@ void db_term_update(int cid, int nd, int nt) {
     if (r != SQLITE_DONE)
         fatal4("cannot step stmt `", sql_update, "': ", sqlite3_errmsg(db));
     sqlite3_finalize(s);
+}
+
+void db_term_done(void) {
+    fetch_done();
 }

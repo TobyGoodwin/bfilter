@@ -1,3 +1,15 @@
+2016-05-01
+==========
+
+After a bit of tinkering, I came up with a reasonable (if not perfect)
+``struct db_stmt`` that ties together embedded SQL with the compiled
+``sqlite3_stmt``. And all without using ``strlen()``.
+
+This makes it saner to finalize all our statements when we're done with
+them, which means that we are allowed to vacuum the database. This
+doesn't appear to help much with performance, but it does save a bit of
+disk space. In fact, we end up with a rather spooky database size ()::
+
 2016-04-30
 ==========
 

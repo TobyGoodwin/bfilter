@@ -27,3 +27,4 @@
 _Bool db_term_id_fetch(uint8_t *, int, int *);
 int db_term_id_furnish(uint8_t *, int);
 void db_term_update(int, int, int);
+void db_term_done(void);

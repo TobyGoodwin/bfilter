@@ -72,6 +72,7 @@ static void init(void) {
 
 static void done(void) {
     db_count_done();
+    db_term_done();
     db_commit();
 }
 
