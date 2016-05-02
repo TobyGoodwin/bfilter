@@ -1,5 +1,8 @@
 /*
 depends test/ubayes
+export BFILTER_DB=$(mktemp -u)
+echo $BFILTER_DB
+testdb $BFILTER_DB
 tap
 */
 
@@ -11,6 +14,7 @@ tap
 
 #include "bayes.h"
 #include "class.h"
+#include "db.h"
 #include "submit.h"
 
 int test = 0;
@@ -27,19 +31,39 @@ _Bool strneq(const uint8_t *s, const char *s0, size_t n) {
     return strncmp((char *)s, s0, l) == 0;
 }
 
+#if 0
 #define c_spam { 1, (uint8_t *)"spam", 5, 5, 0.0 }
 #define c_ham { 2, (uint8_t *)"ham", 5, 5, 0.0 }
 struct class empty[] = { };
 struct class spam[] = { c_spam };
 struct class both[] = { c_spam, c_ham };
 
-struct class *class_fetch(int *x) {
+_Bool db_term_id_fetch(uint8_t *t, int tl, int *x) {
+    if (strneq(t, "spamword", tl)) *x = 4;
+    if (strneq(t, "hamword", tl)) *x = 3;
+    return 1;
+}
+
+void db_stmt_ready(void) {
+}
+
+void db_fatal(char *p, char *q) {
+}
+
+struct db_stmt { int x; };
+void db_stmt_finalize(struct db_stmt *s) {
+}
+
+struct class *class_fetch(int *x, int **y) {
     switch (test) {
         case 1:
+            *x = 0;
             return empty;
         case 2:
+            *x = 1;
             return spam;
         default:
+            *x = 2;
             return both;
     }
 }
@@ -69,10 +93,6 @@ uint32_t *db_hash_fetch_uint32(uint8_t *k, size_t k_sz) {
     return 0;
 }
 
-sqlite3 *db_db(void) {
-    return 0;
-}
-
 int db_documents(void) {
     return 5;
 }
@@ -80,13 +100,15 @@ int db_documents(void) {
 int db_vocabulary(void) {
     return 10;
 }
-
+#endif
 
 int main(void) {
+    char *errmsg;
     double gap;
     int p_n;
     struct class *p;
 
+    db_open();
     printf("1..4\n");
 
     // empty class list => empty result
@@ -98,14 +120,24 @@ int main(void) {
 
     // single class list => that class
     test = 2;
-    submit("spamword", 8);
-    submit("spamword", 8);
+    sqlite3_exec(db_db(), "\
+insert into class (name, docs, terms) values ('spam', 1, 1); \
+", 0, 0, &errmsg);
+    if (errmsg) fprintf(stderr, "%s\n", errmsg);
     p = bayes(token_list, &p_n);
     if (!streq(p[0].name, "spam") || p_n != 1) printf("not ");
     printf("ok 2 single class: %s\n", p[0].name);
 
     // two classes, spam message => spam
     test = 3;
+    sqlite3_exec(db_db(), "\
+insert into class (name, docs, terms) values ('ham', 1, 1); \
+insert into count (class, term, count) values (1, 1, 3); \
+insert into count (class, term, count) values (2, 2, 3); \
+", 0, 0, &errmsg);
+    if (errmsg) fprintf(stderr, "%s\n", errmsg);
+    submit("spamword", 8);
+    submit("spamword", 8);
     p = bayes(token_list, &p_n);
     gap = p[0].logprob - p[1].logprob;
     if (!streq(p[0].name, "spam") || p_n != 2) printf("not ");

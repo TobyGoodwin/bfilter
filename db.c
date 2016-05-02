@@ -103,6 +103,9 @@ void db_init(void) {
     sqlite3_finalize(stmt);
 }
 
+// Perform a query that should return a single integer. If the result is NULL
+// (e.g. "SELECT count(1) FROM ..." on an empty table) we return 0. Any other
+// problem is a fatal error. Does not check that only a single row is returned.
 int db_int_query(const char *q, size_t qn) {
     int r, x;
     sqlite3_stmt *stmt;
@@ -112,11 +115,21 @@ int db_int_query(const char *q, size_t qn) {
 
     r = sqlite3_step(stmt);
     if (r != SQLITE_ROW) db_fatal("step", q);
+    switch (sqlite3_column_type(stmt, 0)) {
+        case SQLITE_NULL:
+            x = 0;
+            break;
 
-    if (sqlite3_column_type(stmt, 0) != SQLITE_INTEGER)
-        fatal3("result of `", q, "' has non-integer type");
+        case SQLITE_INTEGER:
+            x = sqlite3_column_int(stmt, 0);
 
-    x = sqlite3_column_int(stmt, 0);
+            break;
+
+        default:
+            fatal3("result of `", q, "' has non-integer type");
+            break;
+    }
+
     sqlite3_finalize(stmt);
     return x;
 }

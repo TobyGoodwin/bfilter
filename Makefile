@@ -10,7 +10,7 @@
 
 # Edit these until it compiles.
 CC = gcc -std=c99
-CFLAGS += -g -Wall
+CFLAGS += -g -Wall -I.
 LDFLAGS += -g
 LDLIBS += -lsqlite3 -lm
 
@@ -43,7 +43,7 @@ test/itoken: test/token/main.o cook.o error.o line.o read.o token.o utf8.o util.
 	$(CC) $(LDFLAGS) -o $@ $^ $(LDLIBS)
 
 # unit tests
-test/ubayes: test/unit/bayes.o bayes.o error.o line.o pool.o skiplist.o submit.o util.o
+test/ubayes: test/unit/bayes.o bayes.o class.o db.o db-term.o error.o line.o pool.o skiplist.o submit.o util.o
 	$(CC) $(LDFLAGS) -o $@ $^ $(LDLIBS)
 
 test/uclass: test/unit/class.o class.o db.o error.o line.o util.o
