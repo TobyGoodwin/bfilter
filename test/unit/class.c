@@ -2,9 +2,10 @@
 depends test/uclass
 export BFILTER_DB=$(mktemp -u)
 echo $BFILTER_DB
+testdb $BFILTER_DB
 mcheck 'foo:1-4-1,bar:2-5-4,baz:3-6-9,quux:4-7-16,' foo bar baz quux
 mcheck 'foo:1-4-1,bar:2-5-4,baz:3-6-9,quux:4-7-16,'
-mcheck 'foo:3-6-9,bar:2-5-4,baz:3-6-9,quux:4-7-16,red:1-4-1,:2-5-4,' red '' foo
+mcheck 'foo:1-4-1,bar:2-5-4,baz:3-6-9,quux:4-7-16,red:5-4-1,:6-5-4,' red ''
 */
 
 #include <stdint.h>
@@ -15,20 +16,21 @@ mcheck 'foo:3-6-9,bar:2-5-4,baz:3-6-9,quux:4-7-16,red:1-4-1,:2-5-4,' red '' foo
 #include "util.h"
 
 int main(int argc, char **argv) {
-    int i;
-    struct class *c, *cs;
+    char *errmsg, q[100];
+    int i, n;
+    struct class *c;
 
     if (!db_open()) return 1;
     for (i = 1; i < argc; ++i) {
-        cs = class_fetch();
-        c = class_lookup(cs, argv[i]);
-        c->code = i;
-        c->docs = i + 3;
-        c->terms = i * i;
-        class_store(cs);
+        snprintf(q, 100, "\
+insert into class (name, docs, terms) values ('%s', %d, %d); \
+", argv[i], i + 3, i * i);
+        sqlite3_exec(db_db(), q, 0, 0, &errmsg);
+        if (errmsg) fprintf(stderr, "%s\n", errmsg);
     }
 
-    for (c = class_fetch(); c->code; ++c)
-        printf("%s:%d-%d-%d,", c->name, c->code, c->docs, c->terms);
+    c = class_fetch(&n, 0);
+    for (i = 0; i < n; ++i, ++c)
+        printf("%s:%d-%d-%d,", c->name, c->id, c->docs, c->terms);
     printf("\n");
 }

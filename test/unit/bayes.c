@@ -109,7 +109,7 @@ int main(void) {
     struct class *p;
 
     db_open();
-    printf("1..4\n");
+    printf("1..5\n");
 
     // empty class list => empty result
     test = 1;
