@@ -32,76 +32,73 @@
 
 static const char sql_exists[] =
     "SELECT 0 FROM count WHERE class = ? AND term = ?";
-static const char sql_insert[] =
-    "INSERT INTO count (class, term, count) VALUES (?, ?, 0)";
+static struct db_stmt exists = { sql_exists, sizeof sql_exists };
 
-static _Bool db_count_exists(sqlite3 *db, int c, int t) {
+static _Bool db_count_exists(int c, int t) {
     int r;
-    sqlite3_stmt *s;
 
-    r = sqlite3_prepare_v2(db, sql_exists, sizeof sql_exists, &s, 0);
-    if (r != SQLITE_OK) db_fatal("prepare", sql_exists);
+    r = db_stmt_ready(&exists);
+    if (r != SQLITE_OK) db_fatal("prepare / reset", exists.s);
 
-    r = sqlite3_bind_int(s, 1, c);
-    if (r != SQLITE_OK) db_fatal("bind first", sql_exists);
+    r = sqlite3_bind_int(exists.x, 1, c);
+    if (r != SQLITE_OK) db_fatal("bind first", exists.s);
 
-    r = sqlite3_bind_int(s, 2, t);
-    if (r != SQLITE_OK) db_fatal("bind second", sql_exists);
+    r = sqlite3_bind_int(exists.x, 2, t);
+    if (r != SQLITE_OK) db_fatal("bind second", exists.s);
 
-    r = sqlite3_step(s);
-    if (r == SQLITE_ROW) {
-        sqlite3_finalize(s);
-        return 1;
-    } else if (r == SQLITE_DONE) {
-    } else
-        db_fatal("step", sql_exists);
-
-    sqlite3_finalize(s);
+    r = sqlite3_step(exists.x);
+    switch (r) {
+        case SQLITE_ROW:
+            return 1;
+        case SQLITE_DONE:
+            return 0;
+        default:
+            db_fatal("step", exists.s);
+    }
     return 0;
 }
 
-static void db_count_insert(sqlite3 *db, int c, int t) {
+static const char sql_insert[] =
+    "INSERT INTO count (class, term, count) VALUES (?, ?, 0)";
+static struct db_stmt insert = { sql_insert, sizeof sql_insert };
+
+static void db_count_insert(int c, int t) {
     int r;
-    sqlite3_stmt *s;
 
-    r = sqlite3_prepare_v2(db, sql_insert, sizeof sql_insert, &s, 0);
-    if (r != SQLITE_OK) db_fatal("prepare", sql_insert);
+    r = db_stmt_ready(&insert);
+    if (r != SQLITE_OK) db_fatal("prepare / reset", insert.s);
 
-    r = sqlite3_bind_int(s, 1, c);
-    if (r != SQLITE_OK) db_fatal("bind first", sql_insert);
+    r = sqlite3_bind_int(insert.x, 1, c);
+    if (r != SQLITE_OK) db_fatal("bind first", insert.s);
 
-    r = sqlite3_bind_int(s, 2, t);
-    if (r != SQLITE_OK) db_fatal("bind second", sql_insert);
+    r = sqlite3_bind_int(insert.x, 2, t);
+    if (r != SQLITE_OK) db_fatal("bind second", insert.s);
 
-    r = sqlite3_step(s);
-    if (r != SQLITE_DONE) db_fatal("step", sql_insert);
-
-    sqlite3_finalize(s);
+    r = sqlite3_step(insert.x);
+    if (r != SQLITE_DONE) db_fatal("step", insert.s);
 }
 
 // needs to run inside a transaction, so insert cannot fail
-static _Bool db_count_furnish(sqlite3 *db, int c, int t) {
-    if (db_count_exists(db, c, t))
+static _Bool db_count_furnish(int c, int t) {
+    if (db_count_exists(c, t))
         return 0;
 
-    db_count_insert(db, c, t);
+    db_count_insert(c, t);
     return 1;
 }
 
 static const char sql_update[] =
     "UPDATE count SET count = count + ? WHERE class = ? AND term = ?";
 struct db_stmt update = { sql_update, sizeof sql_update };
-void db_count_done(void) { db_stmt_finalize(&update); }
 
 _Bool db_count_update(int c, int t, int n) {
     _Bool x;
     int r;
-    sqlite3 *db = db_db();
 
     r = db_stmt_ready(&update);
     if (r != SQLITE_OK) db_fatal("prepare / reset", update.s);
 
-    x = db_count_furnish(db, c, t);
+    x = db_count_furnish(c, t);
 
     r = sqlite3_bind_int(update.x, 1, n);
     if (r != SQLITE_OK) db_fatal("bind first", update.s);
@@ -116,4 +113,10 @@ _Bool db_count_update(int c, int t, int n) {
     if (r != SQLITE_DONE) db_fatal("step", update.s);
 
     return x;
+}
+
+void db_count_done(void) {
+    db_stmt_finalize(&exists);
+    db_stmt_finalize(&insert);
+    db_stmt_finalize(&update);
 }

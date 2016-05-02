@@ -6,7 +6,14 @@ not... Test suite now runs cleanly again (although at present there are
 no unit tests for ``db-count.c``)
 
 I've noticed that we're re-compiling some statements in ``db-count.c``.
-If we fix that, does it shave anything off this? ()::
+If we fix that, does it shave anything off this? (c21804d)::
+
+    ham: 99.50% correct, 0% unsure; spam: 62.60% correct, 0% unsure
+    -rw-r--r--. 1 toby toby 2560000 May  2 22:32 /tmp/tmp.HKcGcnx0zs
+    27.35user 16.05system 0:43.30elapsed 100%CPU (10676maxresident)k
+
+Using ``struct db_stmt`` throughout, we now get ()::
+
 
 
 2016-05-01
