@@ -1,7 +1,7 @@
 /*
 
-    Copyright (c) 2003 Chris Lightfoot. All rights reserved.
-    Copyright (c) 2015 Toby Goodwin.
+    Copyright (c) 2003 - 2004 Chris Lightfoot. All rights reserved.
+    Copyright (c) 2015 - 2016 Toby Goodwin.
     toby@paccrat.org
     https://github.com/TobyGoodwin/bfilter
 
@@ -56,15 +56,14 @@ void usage(FILE *stream) {
 "    -b          Treat input as Berkeley format mbox file\n"
 "\n"
 "bfilter, version " BFILTER_VERSION "\n"
-"Copyright (c) 2003-4 Chris Lightfoot <chris@ex-parrot.com>\n"
-"Copyright (c) 2015 Toby Goodwin <toby@paccrat.org>\n"
+"Copyright (c) 2003 - 2004 Chris Lightfoot <chris@ex-parrot.com>\n"
+"Copyright (c) 2015 - 2016 Toby Goodwin <toby@paccrat.org>\n"
 "https://github.com/TobyGoodwin/bfilter\n"
         );
 }
 
 _Bool flagb = 0;
 char *flagD = 0;
-
 
 int run(enum mode mode, char *cclass);
 

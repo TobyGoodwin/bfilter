@@ -122,11 +122,11 @@ int db_int_query(const char *q, size_t qn) {
 
         case SQLITE_INTEGER:
             x = sqlite3_column_int(stmt, 0);
-
             break;
 
         default:
             fatal3("result of `", q, "' has non-integer type");
+            x = 0; // silence compiler warning
             break;
     }
 

@@ -12,9 +12,15 @@ If we fix that, does it shave anything off this? (c21804d)::
     -rw-r--r--. 1 toby toby 2560000 May  2 22:32 /tmp/tmp.HKcGcnx0zs
     27.35user 16.05system 0:43.30elapsed 100%CPU (10676maxresident)k
 
-Using ``struct db_stmt`` throughout, we now get ()::
+Using ``struct db_stmt`` throughout, we now get (e2df612)::
 
+    ham: 99.50% correct, 0% unsure; spam: 62.60% correct, 0% unsure
+    -rw-r--r--. 1 toby toby 2560000 May  2 22:40 /tmp/tmp.EQV4044gxh
+    25.42user 15.70system 0:40.97elapsed 100%CPU (8380maxresident)k
 
+which does indeed appear to be a modest improvement. Again, we can use
+``-O2`` to improve matters further, bringing the sqlite version to under
+40s for the first time.
 
 2016-05-01
 ==========

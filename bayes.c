@@ -33,7 +33,6 @@
 #include "bayes.h"
 #include "bfilter.h"
 #include "class.h"
-#include "count.h"
 #include "db.h"
 #include "db-term.h"
 #include "error.h"

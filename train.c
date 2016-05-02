@@ -31,7 +31,6 @@
 
 #include "bfilter.h"
 #include "class.h"
-#include "count.h"
 #include "db.h"
 #include "db-count.h"
 #include "db-term.h"
