@@ -35,11 +35,6 @@ static const char sql_exists[] =
 static const char sql_insert[] =
     "INSERT INTO count (class, term, count) VALUES (?, ?, 0)";
 
-static const char sql_update[] =
-    "UPDATE count SET count = count + ? WHERE class = ? AND term = ?";
-struct db_stmt update = { sql_update, sizeof sql_update };
-void db_count_done(void) { db_stmt_finalize(&update); }
-
 static _Bool db_count_exists(sqlite3 *db, int c, int t) {
     int r;
     sqlite3_stmt *s;
@@ -84,7 +79,7 @@ static void db_count_insert(sqlite3 *db, int c, int t) {
     sqlite3_finalize(s);
 }
 
-// needs to run inside a transaction
+// needs to run inside a transaction, so insert cannot fail
 static _Bool db_count_furnish(sqlite3 *db, int c, int t) {
     if (db_count_exists(db, c, t))
         return 0;
@@ -93,16 +88,18 @@ static _Bool db_count_furnish(sqlite3 *db, int c, int t) {
     return 1;
 }
 
+static const char sql_update[] =
+    "UPDATE count SET count = count + ? WHERE class = ? AND term = ?";
+struct db_stmt update = { sql_update, sizeof sql_update };
+void db_count_done(void) { db_stmt_finalize(&update); }
+
 _Bool db_count_update(int c, int t, int n) {
     _Bool x;
     int r;
     sqlite3 *db = db_db();
 
-    if (update.x)
-        r = sqlite3_reset(update.x);
-    else
-        r = sqlite3_prepare_v2(db, update.s, update.n, &update.x, 0);
-    if (r != SQLITE_OK) db_fatal("prepare", update.s);
+    r = db_stmt_ready(&update);
+    if (r != SQLITE_OK) db_fatal("prepare / reset", update.s);
 
     x = db_count_furnish(db, c, t);
 

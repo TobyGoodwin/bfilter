@@ -1,3 +1,14 @@
+2016-05-02
+==========
+
+So did I use test-driven development for the conversion to sqlite? I did
+not... Test suite now runs cleanly again (although at present there are
+no unit tests for ``db-count.c``)
+
+I've noticed that we're re-compiling some statements in ``db-count.c``.
+If we fix that, does it shave anything off this? ()::
+
+
 2016-05-01
 ==========
 
