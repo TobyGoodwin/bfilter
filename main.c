@@ -168,9 +168,8 @@ int run(enum mode mode, char *cclass) {
             break;
     }
 
-    if (!db_open())
-        return 1;
-    
+    db_open();
+
     if (flagD && strchr(flagD, 't')) token_list_dump(token_list);
     
     switch (mode) {

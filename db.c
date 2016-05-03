@@ -27,10 +27,10 @@
 #include "settings.h"
 #include "util.h"
 
-static sqlite3 *db;
+static sqlite3 *db = 0;
 
 struct sqlite3 *db_db(void) {
-    return db;
+        return db;
 }
 
 void db_fatal(const char *verb, const char *query) {
@@ -168,16 +168,14 @@ void db_check_version(void) {
 */
 
 /* db_open
- * Open the filter database, which lives in ~/.bfildb. Returns 1 on success
- * or 0 on failure. Because we need to save timestamps, the database is opened
- * read/write in all cases. */
-int db_open(void) {
+ * Open the filter database read/write
+ */
+void db_open(void) {
     char *name;
     int err, flags;
 
     name = dbfilename(NULL);
 
-    // db = tdb_open(name, 0, 0, O_RDWR, 0600);
     flags = SQLITE_OPEN_READWRITE;
     err = sqlite3_open_v2(name, &db, flags, 0);
 
@@ -194,8 +192,6 @@ int db_open(void) {
     }
 
     db_check_version();
-
-    return 1;
 }
 
 /* db_close
