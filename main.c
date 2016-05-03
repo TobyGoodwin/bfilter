@@ -168,13 +168,12 @@ int run(enum mode mode, char *cclass) {
             break;
     }
 
-    db_open();
-
     if (flagD && strchr(flagD, 't')) token_list_dump(token_list);
     
     switch (mode) {
 
         case train:
+            db_write();
             train_update(cclass);
             if (db_documents() % 100 == 0)
                 db_vacuum();
@@ -188,6 +187,7 @@ int run(enum mode mode, char *cclass) {
                 const struct class *r;
                 const uint8_t *cat;
 
+                db_read();
                 r = bayes(token_list, &r_n);
                 if (r_n > 0) cat = r[0].name;
                 else cat = (uint8_t *)"UNKNOWN";

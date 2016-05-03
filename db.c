@@ -161,25 +161,20 @@ void db_check_version(void) {
     }
 }
 
-/*
-    v = db_hash_fetch_uint32((uint8_t *)KEY_VERSION, sizeof KEY_VERSION - 1);
-    if (!v || *v < MIN_VERSION || *v > VERSION)
-        fatal1("bad database version");
-*/
-
-/* db_open
- * Open the filter database read/write
- */
-void db_open(void) {
+void db_open(_Bool write) {
     char *name;
     int err, flags;
 
     name = dbfilename(NULL);
 
-    flags = SQLITE_OPEN_READWRITE;
+    if (write)
+        flags = SQLITE_OPEN_READWRITE;
+    else
+        flags = SQLITE_OPEN_READONLY;
+
     err = sqlite3_open_v2(name, &db, flags, 0);
 
-    if (err != SQLITE_OK && errno == ENOENT) {
+    if (err != SQLITE_OK && write && errno == ENOENT) {
         flags |= SQLITE_OPEN_CREATE;
         err = sqlite3_open_v2(name, &db, flags, 0);
         if (err == SQLITE_OK)
@@ -193,6 +188,9 @@ void db_open(void) {
 
     db_check_version();
 }
+
+void db_read(void) { db_open(0); }
+void db_write(void) { db_open(1); }
 
 /* db_close
  * Close the filter database. */

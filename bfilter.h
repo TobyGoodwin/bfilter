@@ -22,8 +22,6 @@
 
 */
 
-#include <stdint.h>
-
 #include "skiplist.h"
 
 enum mode { error, train, test, annotate, cleandb, stats } mode;
