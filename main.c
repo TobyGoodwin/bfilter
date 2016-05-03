@@ -44,16 +44,15 @@ void usage(FILE *stream) {
 "bfilter [FLAGS] COMMAND\n"
 "\n"
 "  Commands:\n"
-"    isspam      Train email as spam\n"
-"    isreal      Train email as real\n"
-"    test        Writes p(spam) for the email read from standard input\n"
-"    annotate    An X-Spam-Probability header is added to the email\n"
-"                read from standard input\n"
-"    cleandb     Discard little-used terms from the database.\n"
-"    stats       Print some statistics about the database.\n"
+"    train CLASS  Train email, classification is CLASS\n"
+"    test         Writes the best class and confidence measure to stdout\n"
+"    annotate     As \"test\" but copy the input email to stdout adding an\n"
+"                 \"X-Bfilter-Class:\" header\n"
 "\n"
 "  Flags:\n"
 "    -b          Treat input as Berkeley format mbox file\n"
+"\n"
+"By default, bfilter reads a single email from standard input.\n"
 "\n"
 "bfilter, version " BFILTER_VERSION "\n"
 "Copyright (c) 2003 - 2004 Chris Lightfoot <chris@ex-parrot.com>\n"
@@ -67,17 +66,6 @@ char *flagD = 0;
 
 int run(enum mode mode, char *cclass);
 
-/* main ARGC ARGV
- * Entry point. Usage:
- *
- *  bfilter isspam      From_ separated emails are read, added to spam corpus
- *          isreal                                                real
- *          test        read from standard input, write p(spam)
- *          annotate    An X-Spam-Probability header is added to the email
- *                      read from standard input
- *          cleandb     Discard terms which have not been used recently.
- *          stats       Print some statistics about the database.
- */
 int main(int argc, char *argv[]) {
     char *cclass = 0;
     enum mode mode = error;
