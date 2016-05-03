@@ -15,7 +15,6 @@ LDFLAGS += -g
 LDLIBS += -lsqlite3 -lm
 
 # No user-serviceable parts below this point.
-VERSION = 0.4
 
 TXTS = README COPYING bfilter.1 CHANGES tokeniser-states.dot migrate-0.2-to-0.3
 SRCS = bayes.c class.c compose.c cook.c db.c db-count.c db-term.c error.c fdump.c line.c main.c pool.c \
@@ -23,8 +22,6 @@ SRCS = bayes.c class.c compose.c cook.c db.c db-count.c db-term.c error.c fdump.
 HDRS = bayes.h class.h compose.h cook.h db.h db-count.h db-term.h error.h fdump.h line.h pool.h \
        read.h skiplist.h submit.h token.h train.h utf8.h util.h
 OBJS = $(SRCS:.c=.o)
-
-CFLAGS += -DBFILTER_VERSION=\"$(VERSION)\"
 
 bfilter: $(OBJS) depend
 	$(CC) $(LDFLAGS) -o $@ $(OBJS) $(LDLIBS)

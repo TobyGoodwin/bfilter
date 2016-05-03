@@ -1,7 +1,7 @@
 /*
 
-    Copyright (c) 2003 Chris Lightfoot. All rights reserved.
-    Copyright (c) 2015 Toby Goodwin.
+    Copyright (c) 2003 - 2004 Chris Lightfoot. All rights reserved.
+    Copyright (c) 2015 - 2016 Toby Goodwin.
     toby@paccrat.org
     https://github.com/TobyGoodwin/bfilter
 
@@ -27,12 +27,6 @@
 #include "skiplist.h"
 
 enum mode { error, train, test, annotate, cleandb, stats } mode;
-
-/* Special keys */
-#define KEY_CLASSES "--classes--"
-#define KEY_DOCUMENTS "--documents--"
-#define KEY_VERSION "--version--"
-#define KEY_VOCABULARY "--vocabulary--"
 
 /* Current database version, and lowest version that this code can use */
 #define VERSION 3
