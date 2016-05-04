@@ -33,6 +33,13 @@ XXX I'm pretty sure this is currently broken for mboxes, and I'm not
 even convinced that mboxes work at all. Need to make some test cases for
 them.
 
+Argh again! Tried to deploy it, but the current behaviour of
+``BFILTER_DB=nonesuch bfilter test`` is to bomb out with an error. The
+old behaviour was to create an empty database. What we *should* do is
+somewhere in between. Don't create anything, but don't treat it as an
+error, respond with ``UNKNOWN 0`` just as if the database existed and
+was empty. Again, this needs test cases.
+
 2016-05-02
 ==========
 
