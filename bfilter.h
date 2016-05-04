@@ -34,6 +34,10 @@ enum mode { error, train, test, annotate, cleandb, stats } mode;
 _Bool flagb;
 char *flagD;
 
-int nemails;
+/* token_list is the list of tokens we find; each key is associated with a
+ * struct wordcount which stores nemail, the highest-numbered email in which
+ * this word was found, and n, the total number of emails in which this word
+ * has been found during this session. */
+int nemails, ntokens_submitted;
 size_t nbytesrd, termlength;
-skiplist wordlist;
+skiplist token_list;

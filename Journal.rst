@@ -1,3 +1,38 @@
+2016-05-04
+==========
+
+Getting close to a stable version, I believe, which I really will
+try to release this time. Polishing up the documentation etc.
+
+I'm also playing with ideas of scaling. Currently I'm saying::
+
+    scaled = gap * 100. / skiplist_size(token_list);
+
+This trims the enormous numbers quite well, I have examples that go from
+1071 to 171, 1186 to 238, 1381 to 244. For some very short message, the
+number increases slightly. So on the whole this looks mildly useful,
+although I think I should probably do a bit more thinking about what I
+actually want. A number between 0 and 100? Or between 0 and 1000?
+
+But argh! I just found a spam message in my ham corpus!! So that updates
+the baseline for the corpus test slightly::
+
+    ham: 99.60% correct, 0% unsure; spam: 65.20% correct, 0% unsure
+    -rw-r--r--. 1 toby toby 2772992 May  4 08:13 /tmp/tmp.ROjBxkZeTH
+    26.65user 16.07system 0:42.62elapsed 100%CPU (8396maxresident)k
+
+(Both percentages have changed, because we're now training on different
+messages.)
+
+So, although this is all voodoo, we really should be scaling by the
+number of tokens submitted, not the number of distinct terms in the
+list. That makes some nice numbers... but the only way to really test it
+is in anger.
+
+XXX I'm pretty sure this is currently broken for mboxes, and I'm not
+even convinced that mboxes work at all. Need to make some test cases for
+them.
+
 2016-05-02
 ==========
 

@@ -193,6 +193,8 @@ int run(enum mode mode, char *cclass) {
                 else cat = (uint8_t *)"UNKNOWN";
                 if (r_n > 1) gap = r[0].logprob - r[1].logprob;
                 else gap = 0.0;
+                // scale by the size of the input
+                gap *= 100. / (ntokens_submitted + 1.);
 
                 if (mode == test) 
                     printf("%s\n%.0f\n", cat, gap);
