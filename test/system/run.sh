@@ -1,1 +1,1 @@
-. $1
+[ $target = system/run.sh ] || . $target

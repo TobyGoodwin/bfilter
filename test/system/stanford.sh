@@ -3,7 +3,7 @@
 
 depends bfilter
 
-export BFILTER_DB=$(mktemp)
+export BFILTER_DB=$(mktemp -u)
 
 ../bfilter -b train China <<EOF
 From nobody
@@ -30,8 +30,15 @@ Tokyo Japan Chinese
 
 EOF
 
-../bfilter test <<EOF
+act=$(mktemp)
+../bfilter test > $act <<EOF
 Dull: header
 
 Chinese Chinese Chinese Tokyo Japan
 EOF
+if [ $(sed 1q $act) = China ]; then
+        pass stanford
+else
+        cat $act
+        fail 'stanford (should classify as China)'
+fi
