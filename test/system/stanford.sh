@@ -31,7 +31,7 @@ Tokyo Japan Chinese
 EOF
 
 act=$(mktemp)
-../bfilter test > $act <<EOF
+../bfilter classify > $act <<EOF
 Dull: header
 
 Chinese Chinese Chinese Tokyo Japan

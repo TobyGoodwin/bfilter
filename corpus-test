@@ -26,7 +26,7 @@ mspam=$(echo $nspam / $ntrain | bc)
 
 for m in $(ls | awk "NR % $mspam == 0 { print }"); do
     echo $m
-    $bf isspam < $m
+    $bf train spam < $m
 done
 
 cd $corpus/ham
@@ -36,13 +36,13 @@ mham=$(echo $nham / $ntrain | bc)
 for m in $(ls | awk "NR % $mham == 0 { print }"); do
     echo $m
     #if [ $m = '1404241811.531.hydrogen.mv6.co.uk' ]; then exit 1; fi
-    $bf isreal < $m
+    $bf train real < $m
 done
 
 cd $corpus/spam
 out=$(mktemp)
 for m in $(ls); do
-    $bf test < $m # 2>/dev/null
+    $bf class < $m # 2>/dev/null
 done > $out
 right=$(grep -c spam $out)
 echo right $right
@@ -57,7 +57,7 @@ rm $out
 cd $corpus/ham
 out=$(mktemp)
 for m in $(ls); do
-    $bf test < $m # 2>/dev/null
+    $bf class < $m # 2>/dev/null
 done > $out
 right=$(grep -c real $out)
 echo right $right

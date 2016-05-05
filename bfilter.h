@@ -24,7 +24,7 @@
 
 #include "skiplist.h"
 
-enum mode { error, train, test, annotate, cleandb, stats } mode;
+enum mode { error, train, classify, annotate } mode;
 
 /* Current database version, and lowest version that this code can use */
 #define VERSION 3

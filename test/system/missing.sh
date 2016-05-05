@@ -3,7 +3,7 @@ BFILTER_DB=$(mktemp -u)
 act=$(mktemp)
 target=system/missing.in
 exp=$(echo $target | sed 's,.in$,.out,')
-../bfilter test < $target > $act
+../bfilter classify < $target > $act
 if diff -q $exp $act; then
         pass missing database
 else

@@ -118,3 +118,7 @@ const uint8_t *memstr(const uint8_t *haystack, const size_t hlen,
 
     return NULL;
 }
+
+_Bool prefix(const char *x, const char *y) {
+    return strncmp(x, y, strlen(x)) == 0;
+}

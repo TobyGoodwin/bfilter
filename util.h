@@ -57,5 +57,6 @@ void xfree(void *v);
 ssize_t xread(int fd, void *buf, size_t count);
 const uint8_t *memstr(const uint8_t *haystack, const size_t hlen,
 	const uint8_t *needle, const size_t nlen);
+_Bool prefix(const char *, const char *);
 
 #endif /* __UTIL_H_ */

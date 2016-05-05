@@ -36,6 +36,7 @@
 #include "settings.h"
 #include "submit.h"
 #include "train.h"
+#include "util.h"
 
 /* usage STREAM
  * Print a usage message to STREAM. */
@@ -45,12 +46,12 @@ void usage(FILE *stream) {
 "\n"
 "  Commands:\n"
 "    train CLASS  Train email, classification is CLASS\n"
-"    test         Writes the best class and confidence measure to stdout\n"
-"    annotate     As \"test\" but copy the input email to stdout adding an\n"
-"                 \"X-Bfilter-Class:\" header\n"
+"    classify     Writes the best class and confidence measure to stdout\n"
+"    annotate     As \"classify\" but copy the input email to stdout\n"
+"                 adding an \"X-Bfilter-Class:\" header\n"
 "\n"
 "  Flags:\n"
-"    -b          Treat input as Berkeley format mbox file\n"
+"    -b           Treat input as Berkeley format mbox file\n"
 "\n"
 "By default, bfilter reads a single email from standard input.\n"
 "\n"
@@ -87,33 +88,20 @@ next_arg:
 
     switch (argc - arg) {
         case 1:
-            if (strcmp(argv[arg], "isspam") == 0) {
-                mode = train;
-                cclass = "spam";
-            } else if (strcmp(argv[arg], "isreal") == 0) {
-                mode = train;
-                cclass = "real";
-            } else if (strcmp(argv[arg], "test") == 0)
-                mode = test;
-            else if (strcmp(argv[arg], "annotate") == 0)
+            if (prefix(argv[arg], "classify"))
+                mode = classify;
+            else if (prefix(argv[arg], "annotate"))
                 mode = annotate;
-#if 0
-            else if (strcmp(argv[arg], "cleandb") == 0)
-                mode = cleandb;
-            else if (strcmp(argv[arg], "stats") == 0)
-                mode = stats;
-#endif
             break;
 
         case 2:
-            if (strcmp(argv[arg], "train") == 0) {
+            if (prefix(argv[arg], "train")) {
                 mode = train;
                 cclass = argv[arg + 1];
             }
             break;
 
         default:
-            mode = error;
             break;
     }
 
@@ -152,7 +140,7 @@ int run(enum mode mode, char *cclass) {
                 return 1;
             break;
 
-        case test:
+        case classify:
         case annotate:
             /* Read a single email. */
             errno = 0;
@@ -161,10 +149,6 @@ int run(enum mode mode, char *cclass) {
                         errno ? strerror(errno) : "no system error");
                 return 1;
             }
-            break;
-
-        case cleandb:
-        case stats:
             break;
     }
 
@@ -176,7 +160,7 @@ int run(enum mode mode, char *cclass) {
             train_update(cclass);
             break;
 
-        case test:
+        case classify:
         case annotate:
             {
                 double gap;
@@ -192,7 +176,7 @@ int run(enum mode mode, char *cclass) {
                 // scale by the size of the input
                 gap *= 100. / (ntokens_submitted + 1.);
 
-                if (mode == test) 
+                if (mode == classify) 
                     printf("%s\n%.0f\n", cat, gap);
                 else {
                     /* Headers of the email have already been written, and
@@ -203,15 +187,6 @@ int run(enum mode mode, char *cclass) {
                 }
                 break;
             }
-
-        case cleandb:
-            /* Copy recent data to new database, replace old one. */
-            //db_clean(28);
-            break;
-
-        case stats:
-            //db_print_stats();
-            break;
 
         case error:
             /* cannot possibly get here, but keep compiler quiet */

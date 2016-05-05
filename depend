@@ -10,7 +10,7 @@ error.o: error.c error.h
 fdump.o: fdump.c fdump.h
 line.o: line.c line.h util.h
 main.o: main.c bayes.h skiplist.h bfilter.h class.h db.h fdump.h read.h \
- settings.h submit.h train.h
+ settings.h submit.h train.h util.h
 pool.o: pool.c pool.h util.h
 read.o: read.c bfilter.h skiplist.h cook.h line.h read.h token.h util.h
 skiplist.o: skiplist.c pool.h skiplist.h util.h
