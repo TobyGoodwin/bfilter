@@ -20,7 +20,7 @@ int main(int argc, char **argv) {
     int i, n;
     struct class *c;
 
-    if (!db_open()) return 1;
+    db_write();
     for (i = 1; i < argc; ++i) {
         snprintf(q, 100, "\
 insert into class (name, docs, terms) values ('%s', %d, %d); \

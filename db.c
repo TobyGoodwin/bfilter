@@ -161,7 +161,9 @@ void db_check_version(void) {
     }
 }
 
-void db_open(_Bool write) {
+// open the database, read-only or read/write as specified by the flag. if the
+// database is missing: create in write mode, return 0 in read mode.
+static int db_open(_Bool write) {
     char *name;
     int err, flags;
 
@@ -174,7 +176,8 @@ void db_open(_Bool write) {
 
     err = sqlite3_open_v2(name, &db, flags, 0);
 
-    if (err != SQLITE_OK && write && errno == ENOENT) {
+    if (err != SQLITE_OK && errno == ENOENT) {
+        if (!write) return 0;
         flags |= SQLITE_OPEN_CREATE;
         err = sqlite3_open_v2(name, &db, flags, 0);
         if (err == SQLITE_OK)
@@ -187,9 +190,10 @@ void db_open(_Bool write) {
     }
 
     db_check_version();
+    return 1;
 }
 
-void db_read(void) { db_open(0); }
+int db_read(void) { return db_open(0); }
 void db_write(void) { db_open(1); }
 
 /* db_close

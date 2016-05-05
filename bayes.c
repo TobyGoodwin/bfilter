@@ -67,6 +67,10 @@ struct class *bayes(skiplist tokens, int *n) {
     skiplist_iterator si;
     struct class *classes;
 
+    if (n) *n = 0;
+    if (!db_read()) // missing database
+        return 0;
+
     docs = db_documents();
     TRACE fprintf(stderr, "documents: %d\n", docs);
     vocab = db_vocabulary();

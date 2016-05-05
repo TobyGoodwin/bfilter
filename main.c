@@ -173,10 +173,7 @@ int run(enum mode mode, char *cclass) {
     switch (mode) {
 
         case train:
-            db_write();
             train_update(cclass);
-            if (db_documents() % 100 == 0)
-                db_vacuum();
             break;
 
         case test:
@@ -187,7 +184,6 @@ int run(enum mode mode, char *cclass) {
                 const struct class *r;
                 const uint8_t *cat;
 
-                db_read();
                 r = bayes(token_list, &r_n);
                 if (r_n > 0) cat = r[0].name;
                 else cat = (uint8_t *)"UNKNOWN";
@@ -223,7 +219,6 @@ int run(enum mode mode, char *cclass) {
             break;
     }
 
-    db_close();
 
     skiplist_delete(token_list);
 

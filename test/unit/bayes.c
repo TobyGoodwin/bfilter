@@ -108,7 +108,6 @@ int main(void) {
     int p_n;
     struct class *p;
 
-    db_open();
     printf("1..5\n");
 
     // empty class list => empty result
@@ -120,22 +119,26 @@ int main(void) {
 
     // single class list => that class
     test = 2;
+    db_write();
     sqlite3_exec(db_db(), "\
 insert into class (name, docs, terms) values ('spam', 1, 1); \
 ", 0, 0, &errmsg);
     if (errmsg) fprintf(stderr, "%s\n", errmsg);
+    db_close();
     p = bayes(token_list, &p_n);
     if (!streq(p[0].name, "spam") || p_n != 1) printf("not ");
     printf("ok 2 single class: %s\n", p[0].name);
 
     // two classes, spam message => spam
     test = 3;
+    db_write();
     sqlite3_exec(db_db(), "\
 insert into class (name, docs, terms) values ('ham', 1, 1); \
 insert into count (class, term, count) values (1, 1, 3); \
 insert into count (class, term, count) values (2, 2, 3); \
 ", 0, 0, &errmsg);
     if (errmsg) fprintf(stderr, "%s\n", errmsg);
+    db_close();
     submit("spamword", 8);
     submit("spamword", 8);
     p = bayes(token_list, &p_n);

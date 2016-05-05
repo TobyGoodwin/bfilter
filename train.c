@@ -66,6 +66,7 @@ _Bool train_read(void) {
 }
 
 static void init(void) {
+    db_write();
     db_begin();
 }
 
@@ -73,6 +74,9 @@ static void done(void) {
     db_count_done();
     db_term_done();
     db_commit();
+    if (db_documents() % 100 == 0)
+        db_vacuum();
+    db_close();
 }
 
 const char *update_class = "\
