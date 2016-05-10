@@ -1,6 +1,7 @@
 depends bfilter
 
 export BFILTER_DB=$(mktemp -u)
+echo $BFILTER_DB
 
 ../bfilter -b train spam <<EOF
 From nobody

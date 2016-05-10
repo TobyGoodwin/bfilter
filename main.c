@@ -65,10 +65,13 @@ void usage(FILE *stream) {
 _Bool flagb = 0;
 char *flagD = 0;
 
-int run(enum mode mode, char *cclass);
+// how dare stdio have a function called rename()? we'll use "redub" instead
+enum mode { error, train, classify, annotate, redub } mode;
+
+int run(enum mode, char *, char *);
 
 int main(int argc, char *argv[]) {
-    char *cclass = 0;
+    char *cclass = 0, *oclass = 0;
     enum mode mode = error;
     int arg = 1;
 
@@ -101,11 +104,19 @@ next_arg:
             }
             break;
 
+        case 3:
+            if (prefix(argv[arg], "rename")) {
+                mode = redub;
+                oclass = argv[arg + 1];
+                cclass = argv[arg + 2];
+            }
+            break;
+
         default:
             break;
     }
 
-    return run(mode, cclass);
+    return run(mode, cclass, oclass);
 }
 
 static void token_list_dump(skiplist s) {
@@ -121,7 +132,7 @@ static void token_list_dump(skiplist s) {
     }
 }
 
-int run(enum mode mode, char *cclass) {
+int run(enum mode mode, char *cclass, char *oclass) {
     int retval = 0;
     FILE *tempfile;
 
@@ -150,6 +161,11 @@ int run(enum mode mode, char *cclass) {
                 return 1;
             }
             break;
+
+        case redub:
+            db_class_rename(oclass, cclass);
+            return 0;
+
     }
 
     if (flagD && strchr(flagD, 't')) token_list_dump(token_list);
@@ -188,6 +204,7 @@ int run(enum mode mode, char *cclass) {
                 break;
             }
 
+        case redub:
         case error:
             /* cannot possibly get here, but keep compiler quiet */
             assert(0);

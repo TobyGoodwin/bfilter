@@ -245,3 +245,25 @@ int db_vocabulary(void) {
     static const char q[] = "SELECT COUNT(1) FROM term";
     return db_int_query(q, sizeof q);
 }
+
+void db_class_rename(const char *old, const char *new) {
+    int r;
+    sqlite3_stmt* stmt;
+    static const char q[] = "UPDATE class SET name = ? WHERE name = ?";
+
+    db_write();
+
+    r = sqlite3_prepare_v2(db, q, sizeof q, &stmt, 0);
+    if (r != SQLITE_OK) db_fatal("prepare", q);
+
+    r = sqlite3_bind_text(stmt, 1, new, strlen(new), 0);
+    if (r != SQLITE_OK) db_fatal("bind 1", q);
+
+    r = sqlite3_bind_text(stmt, 2, old, strlen(old), 0);
+    if (r != SQLITE_OK) db_fatal("bind 2", q);
+
+    r = sqlite3_step(stmt);
+    if (r != SQLITE_DONE) db_fatal("step", q);
+
+    sqlite3_finalize(stmt);
+}

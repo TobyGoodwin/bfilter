@@ -49,4 +49,6 @@ struct db_stmt {
 int db_stmt_ready(struct db_stmt *);
 void db_stmt_finalize(struct db_stmt *);
 
+void db_class_rename(const char *, const char *);
+
 #endif /* __DB_H_ */
