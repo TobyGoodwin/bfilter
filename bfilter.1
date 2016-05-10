@@ -1,17 +1,26 @@
-.TH BFILTER "1" "January 2003" "bfilter"
+.TH BFILTER "1" "May 2016" "bfilter"
 
 .SH NAME
-bfilter \- simple Bayesian spam filter
+bfilter \- multinomial Bayesian classifier for emails
 .SH SYNOPSIS
-\fBbfilter\fP (\fBisspam\fP|\fBisreal\fP|\fBtest\fP) < \fIemail\fP
+\fBbfilter\fP \fBtrain\fP \fIclass\fP < \fIknown-email\fP
 
-\fBbfilter\fP (\fBcleandb\fP|\fBstats\fP)
+\fBbfilter\fP ( \fBclassify\fP | \fBannotate\fP ) < \fIunknown-email\fP
+
 .SH DESCRIPTION
 
 \fBbfilter\fP maintains a dictionary of `terms' (words, email addresses, URL
-fragments and so forth) and their occurences in sample spam and non-spam emails
-and uses these to estimate the probability that a given test email is spam. It
-has four modes:
+fragments and so forth) and their occurences in sample emails which have been
+separated into classes. It can then use these to judge which class an unknown
+email is most likely to belong to.
+.TP
+One application of \fBbfilter\fP is to classify messages as \fIspam\fP
+or \fIreal\fP. However, \fBbfilter\fP has no particular knowledge of spam
+characteristics. It can equally well be used to sort email into \fIbusiness\fP
+and \fIpersonal\fP categories, it all depends on the training. Nor is it
+limited to a two-way classification. Unless you already have a good spam
+solution, you might well want to classify emails
+as \fIbusiness\fP, \fIpersonal\fP, or \fIspam\fP.
 .TP
 \fBisspam\fP, \fBisreal\fP
 In these modes, \fBbfilter\fP reads emails from standard input in Berkeley
