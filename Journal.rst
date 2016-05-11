@@ -1,3 +1,11 @@
+2016-05-11
+==========
+
+Last night I implemented the ``rename`` command. Oh, it's just occurred
+to me that we should test what happens if you try to rename to an
+existing class. I believe the SQL constraints should stop you, but let's
+see.
+
 2016-05-04
 ==========
 

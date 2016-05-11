@@ -40,13 +40,26 @@ EOF
 
 act=$(mktemp)
 input=$(echo $target | sed 's,.sh$,.in,')
-exp=$(echo $target | sed 's,.sh$,.exp,')
+exps=$(echo $target | sed 's,.sh$,.exp,')
+exp=${exps}0
 ../bfilter classify < $input > $act
 ../bfilter rename ham real >> $act
 ../bfilter classify < $input >> $act
 if diff -q $exp $act; then
-        pass rename
+        pass rename0
 else
         diff -u $exp $act
-        fail rename
+        fail rename0
+fi
+
+act=$(mktemp)
+exp=${exps}1
+../bfilter classify < $input > $act
+../bfilter rename real spam >> $act 2>&1
+../bfilter classify < $input >> $act
+if diff -q $exp $act; then
+        pass rename1
+else
+        diff -u $exp $act
+        fail rename1
 fi
