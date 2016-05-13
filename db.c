@@ -34,7 +34,7 @@ struct sqlite3 *db_db(void) {
 }
 
 void db_fatal(const char *verb, const char *query) {
-    fatal6("failed to ", verb, " `", query, "': ", sqlite3_errmsg(db_db()));
+    fatal6("failed to ", verb, " `", query, "': ", sqlite3_errmsg(db));
 }
 
 static char *dbfilename(const char *suffix) {
@@ -138,7 +138,7 @@ int db_stmt_ready(struct db_stmt *s) {
     if (s->x)
         return sqlite3_reset(s->x);
     else
-        return sqlite3_prepare_v2(db_db(), s->s, s->n, &s->x, 0);
+        return sqlite3_prepare_v2(db, s->s, s->n, &s->x, 0);
 }
 
 void db_stmt_finalize(struct db_stmt *s) {
@@ -147,7 +147,6 @@ void db_stmt_finalize(struct db_stmt *s) {
         s->x = 0;
     }
 }
-
 
 void db_check_version(void) {
     static const char q[] = "SELECT version FROM version";
@@ -188,6 +187,8 @@ static int db_open(_Bool write) {
         fatal4("cannot open database `", name, "': ", sqlite3_errmsg(db));
         sqlite3_close(db);
     }
+
+    sqlite3_extended_result_codes(db, 1);
 
     db_check_version();
     return 1;
@@ -263,6 +264,8 @@ void db_class_rename(const char *old, const char *new) {
     if (r != SQLITE_OK) db_fatal("bind 2", q);
 
     r = sqlite3_step(stmt);
+    if (r == SQLITE_CONSTRAINT_UNIQUE)
+        fatal3("class ‘", new, "’ already exists");
     if (r != SQLITE_DONE) db_fatal("step", q);
 
     sqlite3_finalize(stmt);

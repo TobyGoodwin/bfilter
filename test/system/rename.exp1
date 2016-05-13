@@ -1,5 +1,5 @@
 real
 13
-bfilter: fatal: failed to step `UPDATE class SET name = ? WHERE name = ?': UNIQUE constraint failed: class.name
+bfilter: fatal: class ‘spam’ already exists
 real
 13

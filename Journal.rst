@@ -6,6 +6,15 @@ to me that we should test what happens if you try to rename to an
 existing class. I believe the SQL constraints should stop you, but let's
 see.
 
+Hmm... yes, they do, but this isn't too nice::
+
+    bfilter: fatal: failed to step `UPDATE class SET name = ? WHERE name = ?': UNIQUE constraint failed: class.name
+
+Let's see if we can improve on that a bit. Ah yes, easily done:
+
+    if (r == SQLITE_CONSTRAINT_UNIQUE)
+        fatal3("class ‘", new, "’ already exists");
+
 2016-05-04
 ==========
 
