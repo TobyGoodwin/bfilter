@@ -7,8 +7,6 @@
  *
  */
 
-static const char rcsid[] = "$Id: pool.c,v 1.2 2003/01/16 22:46:53 chris Exp $";
-
 #include <stdlib.h>
 #include <string.h>
 

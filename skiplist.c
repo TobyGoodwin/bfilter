@@ -7,8 +7,6 @@
  *
  */
 
-static const char rcsid[] = "$Id: skiplist.c,v 1.3 2003/02/18 15:06:16 chris Exp $";
-
 #include <sys/types.h>
 
 #include <stdlib.h>
