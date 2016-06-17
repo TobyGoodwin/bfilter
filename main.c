@@ -65,12 +65,12 @@ void usage(FILE *stream) {
 _Bool flagb = 0;
 char *flagD = 0;
 
-enum mode { error, train, classify, annotate, move } mode;
+enum mode { error, train, classify, annotate, move, untrain, retrain } mode;
 
 int run(enum mode, char *, char *);
 
 int main(int argc, char *argv[]) {
-    char *cclass = 0, *oclass = 0;
+    char *class0 = 0, *class1 = 0;
     enum mode mode = error;
     int arg = 1;
 
@@ -97,25 +97,27 @@ next_arg:
             break;
 
         case 2:
-            if (prefix(argv[arg], "train")) {
+	    class0 = argv[arg + 1];
+            if (prefix(argv[arg], "train"))
                 mode = train;
-                cclass = argv[arg + 1];
-            }
+            else if (prefix(argv[arg], "untrain"))
+                mode = untrain;
             break;
 
         case 3:
-            if (prefix(argv[arg], "move")) {
+	    class0 = argv[arg + 1];
+	    class1 = argv[arg + 2];
+            if (prefix(argv[arg], "move"))
                 mode = move;
-                oclass = argv[arg + 1];
-                cclass = argv[arg + 2];
-            }
+            else if (prefix(argv[arg], "retrain"))
+                mode = retrain;
             break;
 
         default:
             break;
     }
 
-    return run(mode, cclass, oclass);
+    return run(mode, class0, class1);
 }
 
 static void token_list_dump(skiplist s) {
@@ -131,7 +133,7 @@ static void token_list_dump(skiplist s) {
     }
 }
 
-int run(enum mode mode, char *cclass, char *oclass) {
+int run(enum mode mode, char *class0, char *class1) {
     int retval = 0;
     FILE *tempfile;
 
@@ -162,7 +164,7 @@ int run(enum mode mode, char *cclass, char *oclass) {
             break;
 
         case move:
-            db_class_rename(oclass, cclass);
+            db_class_rename(class0, class1);
             return 0;
 
     }
@@ -172,7 +174,7 @@ int run(enum mode mode, char *cclass, char *oclass) {
     switch (mode) {
 
         case train:
-            train_update(cclass);
+            train_update(class0);
             break;
 
         case classify:
