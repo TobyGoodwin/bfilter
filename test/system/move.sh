@@ -43,7 +43,7 @@ input=$(echo $target | sed 's,.sh$,.in,')
 exps=$(echo $target | sed 's,.sh$,.exp,')
 exp=${exps}0
 ../bfilter classify < $input > $act
-../bfilter rename ham real >> $act
+../bfilter move ham real >> $act
 ../bfilter classify < $input >> $act
 if diff -q $exp $act; then
         pass rename0
@@ -55,7 +55,7 @@ fi
 act=$(mktemp)
 exp=${exps}1
 ../bfilter classify < $input > $act
-../bfilter rename real spam >> $act 2>&1
+../bfilter move real spam >> $act 2>&1
 ../bfilter classify < $input >> $act
 if diff -q $exp $act; then
         pass rename1

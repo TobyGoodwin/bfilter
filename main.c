@@ -65,8 +65,7 @@ void usage(FILE *stream) {
 _Bool flagb = 0;
 char *flagD = 0;
 
-// how dare stdio have a function called rename()? we'll use "redub" instead
-enum mode { error, train, classify, annotate, redub } mode;
+enum mode { error, train, classify, annotate, move } mode;
 
 int run(enum mode, char *, char *);
 
@@ -105,8 +104,8 @@ next_arg:
             break;
 
         case 3:
-            if (prefix(argv[arg], "rename")) {
-                mode = redub;
+            if (prefix(argv[arg], "move")) {
+                mode = move;
                 oclass = argv[arg + 1];
                 cclass = argv[arg + 2];
             }
@@ -162,7 +161,7 @@ int run(enum mode mode, char *cclass, char *oclass) {
             }
             break;
 
-        case redub:
+        case move:
             db_class_rename(oclass, cclass);
             return 0;
 
@@ -204,7 +203,7 @@ int run(enum mode mode, char *cclass, char *oclass) {
                 break;
             }
 
-        case redub:
+        case move:
         case error:
             /* cannot possibly get here, but keep compiler quiet */
             assert(0);
