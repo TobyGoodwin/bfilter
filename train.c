@@ -85,8 +85,8 @@ UPDATE class \
   WHERE name = ?; \
 ";
 
-void train_update(char *cclass) {
-    /* Update database from our skiplist */
+/* Update database from our skiplist. */
+void train_update(char *cclass, _Bool untrain) {
     int cid, tid;
     skiplist_iterator si;
     unsigned int nterms, ntermswr, ntermsnew, ntermsall;
@@ -108,6 +108,7 @@ void train_update(char *cclass) {
         k = skiplist_itr_key(token_list, si, &kl);
         p = skiplist_itr_value(token_list, si);
         TRACE fprintf(stderr, "term %.*s: %d\n", (int)kl, k, *p);
+        if (untrain) *p *= -1;
         tid = db_term_id_furnish(k, kl);
         TRACE fprintf(stderr, "tid is %d\n", tid);
 
@@ -124,6 +125,7 @@ void train_update(char *cclass) {
         fprintf(stderr, "Writing: %u / %u terms (%u new)\n",
                 ntermswr, nterms, ntermsnew);
 
+    if (untrain) nemails *= -1;
     class_update(cid, nemails, ntermsall);
     
     done();

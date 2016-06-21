@@ -1,3 +1,22 @@
+2016-06-21
+==========
+
+I have a test case for ``untrain``, although I'd be the first to admit
+it's not terribly probing. Now I just have to implement it.  What would
+need to change in ``train_update()`` ?
+
+* negate ``*p`` before calling ``db_count_update()``, and add the
+  negated quantity to ``ntermsall``.
+* negate ``nemails`` before calling ``class_update()``
+
+The update will always be an actual update, never an insert, so
+``ntermsnew`` will remain zero. However, we may end up with zero counts
+in the database, and if you untrain a message that wasn't trained to the
+given class in the first place, we may end up with negative counts.
+Hopefully that won't cause too many problems... will probably need to
+ignore negative counts in bayes, or perhaps remove them from the db
+after untrain.
+
 2016-05-11
 ==========
 
