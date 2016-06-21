@@ -17,6 +17,32 @@ Hopefully that won't cause too many problems... will probably need to
 ignore negative counts in bayes, or perhaps remove them from the db
 after untrain.
 
+Hmm. That largely works, but we get a different surety value after
+untraining. Checking the database, it looks like everything has worked,
+except that there are some extra zero values in the count table. It's
+not immediately obvious to me why this is a problem, since we use
+``COALESCE`` to return zeroes for missing terms anyway.
+
+OK. So on the first classification, the only term found is ``blue``.
+After training and untraining, additional terms ``collie`` and
+``terrier`` are present. Although the counts for both of those terms are
+zero, the total term counts for the the two classes are different, and
+we have that laplacian smoothing thingie, so zero contributes slightly
+differently.
+
+I'm minded to say that we shouldn't worry about this. The classification
+is right, and the surety is only supposed to be approximate.
+
+It is a bit disconcerting though. I think the only way to fix it is to
+run an extra query or two after untraining, that will remove rows ``FROM
+count WHERE count <= 0`` and then cascade to remove any rows ``FROM term
+t where (select sum(count) from count c where c.term = t.id) isnull``
+(i.e. they're not referenced from ``count``).
+
+For the sake of two more queries, I should do it. It also means we don't
+need to worry about negative counts, as we'll remove them the moment
+they're created.
+
 2016-05-11
 ==========
 
