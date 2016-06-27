@@ -1,7 +1,7 @@
 /*
 
     Copyright (c) 2004 Chris Lightfoot. All rights reserved.
-    Copyright (c) 2015 Toby Goodwin.
+    Copyright (c) 2015 - 2016 Toby Goodwin.
     toby@paccrat.org
     https://github.com/TobyGoodwin/bfilter
 
@@ -50,5 +50,7 @@ int db_stmt_ready(struct db_stmt *);
 void db_stmt_finalize(struct db_stmt *);
 
 void db_class_rename(const char *, const char *);
+
+void db_purge(void);
 
 #endif /* __DB_H_ */

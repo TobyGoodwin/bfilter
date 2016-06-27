@@ -24,3 +24,4 @@
 
 _Bool train_read(void);
 void train_update(char *, _Bool);
+void train_purge(void);

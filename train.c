@@ -127,6 +127,13 @@ void train_update(char *cclass, _Bool untrain) {
 
     if (untrain) nemails *= -1;
     class_update(cid, nemails, ntermsall);
-    
+
+
+    if (untrain) train_purge();
     done();
+}
+
+// call after untrain
+void train_purge(void) {
+    db_count_purge();
 }

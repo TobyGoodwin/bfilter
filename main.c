@@ -175,8 +175,11 @@ int run(enum mode mode, char *class0, char *class1) {
     switch (mode) {
 
         case train:
+            train_update(class0, 0);
+            break;
+
 	case untrain:
-            train_update(class0, mode == untrain);
+            train_update(class0, 1);
             break;
 
         case classify:

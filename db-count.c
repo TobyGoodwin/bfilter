@@ -115,6 +115,21 @@ _Bool db_count_update(int c, int t, int n) {
     return x;
 }
 
+static const char sql_purge[] = "DELETE FROM count WHERE count <= 0";
+static struct db_stmt purge = { sql_purge, sizeof sql_purge };
+
+void db_count_purge(void) {
+    int r;
+
+    r = db_stmt_ready(&purge);
+    if (r != SQLITE_OK) db_fatal("prepare / reset", purge.s);
+
+    r = sqlite3_step(purge.x);
+    if (r != SQLITE_DONE) db_fatal("step", purge.s);
+
+    db_stmt_finalize(&purge);
+}
+
 void db_count_done(void) {
     db_stmt_finalize(&exists);
     db_stmt_finalize(&insert);
