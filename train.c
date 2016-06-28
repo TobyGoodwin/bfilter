@@ -136,4 +136,5 @@ void train_update(char *cclass, _Bool untrain) {
 // call after untrain
 void train_purge(void) {
     db_count_purge();
+    db_term_purge();
 }

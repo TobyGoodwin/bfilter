@@ -96,6 +96,26 @@ int db_term_id_furnish(uint8_t *t, int tl) {
     return x;
 }
 
+static const char sql_purge[] = "\
+    DELETE FROM term \
+        WHERE (SELECT SUM(count) FROM count c WHERE c.term = id) ISNULL \
+";
+
+static struct db_stmt purge = { sql_purge, sizeof sql_purge };
+
+void db_term_purge(void) {
+    int r;
+
+    r = db_stmt_ready(&purge);
+    if (r != SQLITE_OK) db_fatal("prepare / reset", purge.s);
+
+    r = sqlite3_step(purge.x);
+    if (r != SQLITE_DONE) db_fatal("step", purge.s);
+
+    db_stmt_finalize(&purge);
+}
+
+
 void db_term_done(void) {
     fetch_done();
     insert_done();

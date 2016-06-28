@@ -1,7 +1,7 @@
 /*
 
     Copyright (c) 2003 Chris Lightfoot. All rights reserved.
-    Copyright (c) 2015 Toby Goodwin.
+    Copyright (c) 2015 - 2016 Toby Goodwin.
     toby@paccrat.org
     https://github.com/TobyGoodwin/bfilter
 
@@ -28,3 +28,4 @@ _Bool db_term_id_fetch(uint8_t *, int, int *);
 int db_term_id_furnish(uint8_t *, int);
 void db_term_update(int, int, int);
 void db_term_done(void);
+void db_term_purge(void);
