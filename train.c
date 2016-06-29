@@ -88,6 +88,7 @@ UPDATE class \
 /* Update database from our skiplist. */
 void train_update(char *cclass, _Bool untrain) {
     int cid, tid;
+    int signum = untrain ? -1 : 1;
     skiplist_iterator si;
     unsigned int nterms, ntermswr, ntermsnew, ntermsall;
 
@@ -102,19 +103,19 @@ void train_update(char *cclass, _Bool untrain) {
     for (si = skiplist_itr_first(token_list), ntermswr = 0, ntermsnew = 0; si;
             si = skiplist_itr_next(token_list, si), ++ntermswr) {
         uint8_t *k;
-        int *p;
+        int n, *p;
         size_t kl;
 
         k = skiplist_itr_key(token_list, si, &kl);
         p = skiplist_itr_value(token_list, si);
-        TRACE fprintf(stderr, "term %.*s: %d\n", (int)kl, k, *p);
-        if (untrain) *p *= -1;
+        n = *p * signum; // copy, to avoid damaging token list for retrain case
+        TRACE fprintf(stderr, "term %.*s: %d\n", (int)kl, k, n);
         tid = db_term_id_furnish(k, kl);
         TRACE fprintf(stderr, "tid is %d\n", tid);
 
-        if (db_count_update(cid, tid, *p))
+        if (db_count_update(cid, tid, n))
             ++ntermsnew;
-        ntermsall += *p;
+        ntermsall += n;
 
         if (isatty(1) && (ntermswr % 500) == 0)
             fprintf(stderr, "Writing: %u / %u terms (%u new)\r",
@@ -125,9 +126,7 @@ void train_update(char *cclass, _Bool untrain) {
         fprintf(stderr, "Writing: %u / %u terms (%u new)\n",
                 ntermswr, nterms, ntermsnew);
 
-    if (untrain) nemails *= -1;
-    class_update(cid, nemails, ntermsall);
-
+    class_update(cid, nemails * signum, ntermsall);
 
     if (untrain) train_purge();
     done();

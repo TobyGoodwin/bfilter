@@ -147,6 +147,7 @@ int run(enum mode mode, char *class0, char *class1) {
             return 1;
             break;
 
+        case retrain:
         case train:
         case untrain:
             if (!train_read())
@@ -173,6 +174,11 @@ int run(enum mode mode, char *class0, char *class1) {
     if (flagD && strchr(flagD, 't')) token_list_dump(token_list);
     
     switch (mode) {
+
+        case retrain:
+            train_update(class0, 1);
+            train_update(class1, 0);
+            break;
 
         case train:
             train_update(class0, 0);

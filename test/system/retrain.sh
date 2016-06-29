@@ -29,6 +29,8 @@ input=$(echo $target | sed 's,.sh$,.in,')
 ../bfilter classify < ${input}0 > $act
 ../bfilter train cats < ${input}1
 ../bfilter classify < ${input}0 >> $act
+#echo ../bfilter retrain cats dogs '<' ${input}1
+#gdb ../bfilter # retrain cats dogs < ${input}1
 ../bfilter retrain cats dogs < ${input}1
 ../bfilter classify < ${input}0 >> $act
 
