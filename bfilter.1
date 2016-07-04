@@ -1,95 +1,153 @@
-.TH BFILTER "1" "May 2016" "bfilter"
+.TH BFILTER "1" "June 2016" "bfilter"
 
 .SH NAME
 bfilter \- multinomial Bayesian classifier for emails
-.SH SYNOPSIS
-\fBbfilter\fP \fBtrain\fP \fIclass\fP < \fIknown-email\fP
 
-\fBbfilter\fP ( \fBclassify\fP | \fBannotate\fP ) < \fIunknown-email\fP
+.SH SYNOPSIS
+\fBbfilter\fP [\fB-b\fP] \fBtrain\fP \fIclass\fP < \fIknown-email\fP
+
+\fBbfilter\fP [\fB-b\fP] ( \fBclassify\fP | \fBannotate\fP ) < \fIunknown-email\fP
+
+\fBbfilter\fP [\fB-b\fP] \fBuntrain\fP \fIclass\fP < \fIpreviously-trained-email\fP
+
+\fBbfilter\fP [\fB-b\fP] \fBretrain\fP \fIold-class\fP \fInew-class\fP < \fIpreviously-trained-email\fP
+
+\fBbfilter move\fP \fIold-class-name\fP \fInew-class-name\fP
 
 .SH DESCRIPTION
-
-\fBbfilter\fP maintains a dictionary of `terms' (words, email addresses, URL
-fragments and so forth) and their occurences in sample emails which have been
-separated into classes. It can then use these to judge which class an unknown
-email is most likely to belong to.
+.B Bfilter
+is a document classifier for email messages. First it must be trained on
+sample messages from different classes. Then it can evaluate new
+messages and decide which class they are most likely to belong to.
+.PP
+One typical application of
+.B bfilter
+is to classify messages as \fIspam\fP
+or \fIreal\fP. However,
+.B bfilter
+has no inherent knowledge of spam characteristics. It could equally well
+be used to sort email into, for example, \fIbusiness\fP and
+\fIpersonal\fP classes, provided those were the classes used in
+training.
+.PP
+Nor is \fBbfilter\fP limited to a two-way classification. A
+typical application will use \fBbfilter\fP both to identify spam
+messages, and to sort the real messages, for example by training
+messages from \fI3\fP classes: \fIbusiness\fP, \fIpersonal\fP, and
+\fIspam\fP.
+.SS Modes
+.PP
+The
+.B bfilter
+command has several operation modes. The first command line argument (apart
+from options) specifies the mode. The mode may be abbreviated to any
+unambiguous prefix, thus you can write
+.B bfilter classify
+or
+.B bfilter class
+or just
+.BR "bfilter c" ,
+all have the same meaning.
+.PP
+Most operation modes read a single email message from standard input. If the
+\fB-b\fP flag is given, they instead read multiple messages in Berkeley
+mailspool format.
 .TP
-One application of \fBbfilter\fP is to classify messages as \fIspam\fP
-or \fIreal\fP. However, \fBbfilter\fP has no particular knowledge of spam
-characteristics. It can equally well be used to sort email into \fIbusiness\fP
-and \fIpersonal\fP categories, it all depends on the training. Nor is it
-limited to a two-way classification. Unless you already have a good spam
-solution, you might well want to classify emails
-as \fIbusiness\fP, \fIpersonal\fP, or \fIspam\fP.
+\fBtrain\fP \fIclass\fP
+In \fBtrain\fP mode, you are asserting that the input email is an instance of
+the given class.
+.B Bfilter
+updates its database accordingly. There is no output.
 .TP
-\fBisspam\fP, \fBisreal\fP
-In these modes, \fBbfilter\fP reads emails from standard input in Berkeley
-mailspool format (with individual mails separated by `\\n\\nFrom ') and adds the
-terms in them to the dictionary, assuming that they are either spam
-(\fBisspam\fP) or non-spam (\fBisreal\fP).
+.B classify
+In this mode,
+.B bfilter
+reads a single email from standard input, and evaluates which class it is most
+likely to belong to. It writes two lines of output: the first is the name of
+the deduced class; the second is an integer representing
+.BR bfilter 's
+confidence in the classification.
+See
+.I Confidence Estimates
+below for more details.
 .TP
-\fBtest\fP
-In this mode, \fBbfilter\fP reads a single email from standard input, and forms
-an estimate of the probability that it is spam; it then writes the email to
-standard output with added \fBX-Spam-Probability:\fP and \fBX-Spam-Words:\fP
-headers.
+.B annotate
+The
+.B annotate
+mode is similar to
+.B classify
+mode, except that
+.B bfilter
+copies the email to standard output, adding an
+.B \f(CWX-Bfilter-Class:\fP
+header line at the end of the header. The new header line again contains the
+deduced class, and the confidence estimate in parentheses.
 .TP
-\fBcleandb\fP
-In this mode, \fBbfilter\fP will discard from its database terms which have not
-been referenced by any email during the past four weeks. Since the bfilter
-database grows large quite quickly, you should run this every so often.
+\fBuntrain\fP \fIclass\fP
+The \fBuntrain\fP mode undoes the effect of a previous \fBtrain\fP command. See 
+.I Untraining
+below for more information.
+The intended use of
+\fBuntrain \fIclass\fP is for the case where you have previous trained a
+message as belonging to \fIclass\P, and have since changed your mind and
+decided that it does not in fact belong to \fIclass\fP. Currently,
+\fBbfilter\fP makes no attempt to ensure that the message had, in fact, been trained 
 .TP
-\fBstats\fP
-In this mode, \fBbfilter\fP will print some statistics about its database.
-These are mainly of general interest.
-
-.SH USAGE
-Assemble a corpus of spam and of non-spam. The latter should include mail that
-you've sent. Feed them into \fBbfilter\fP with the appropriate options. Test
-the filter on some existing emails to satisfy yourself that it's working. Then
-you can feed new emails through \fBbfilter test\fP, and filter on the presence
-of a header of the form
-
-.nf
-  \fBX-Spam-Probability: YES (p=...)\fP
-.fi
-.Sp
-
-By default, \fBbfilter\fP uses the file \fB~/.bfildb2\fP for its database of
-spam and non-spam terms. You can use the environment variable BFILTER_DB to
-specify an alternative database file. (Older versions used \fB~/.bfildb\fP,
-which was a database in a different format.)
-
+\fBretrain\fP \fIold-class new-class\fP
+This is equivalent to \fBuntrain \fIold-class\fP followed by \fBtrain
+\fInew-class\fP.
+.TP
+\fBmove\fP \fIold-name new-name\fP
+The \fBmove\fP mode can be used to rename an existing class.
 .SH FILES
-.TP
-\fB~/.bfildb2\fP
-A \fBtdb\fP(3) database which stores the dictionary of terms. You can use an
-alternative database by specifying a filename in the environment variable
-BFILTER_DB.
+The default database is \fB.bfilter.sqlite\fP in \fB$HOME\fP. An alternate
+database can be specified in the \fBBFILTER_DB\fP environment variable.
+.SH NOTES
+.SS Confidence Estimates
+In \fBclassify\fP and \fBannotate\fP modes, \fBbfilter\fP outputs both a
+classification and a confidence estimate. The confidence estimate is
+non-negative integer: the larger it is, the more confident \fBbfilter\fP is of
+the classification. The lowest possible confidence estimate is \fB0\fP
+indicating that \fBbfilter\fP's classification is highly uncertain.
+.PP
+The confidence is scaled to represent an \fIapproximate\fP percentage,
+so \fB100\fP represents an extremely confident classification. However,
+in the current implementation, the number reported can exceed 100. The
+exact mathematical meaning of the confidence estimate is fairly murky,
+and this is not the place to delve into it. The way it is calculated
+may well change in the future, but it is intended that it will remain an
+integer, with \fB0\fP meaning very uncertain, and \fB100\fP very
+certain.
+.PP
+It is strongly suggested that the confidence estimate is used to drive
+user interaction. If \fBbfilter\fP classifies a message as \fIspam\fP
+with a low confidence (say, less than \fB20\fP), it would be wise to
+present the message to the user and ask them to check the
+classification. Then train the message according to their input.
+.SS Untraining
+
 .SH SEE ALSO
-.BR procmail (1),
-.BR tdb (3),
+.BR sqlite3 (1),
 .br
-.IR http://ex-parrot.com/~chris/software.html#bfilter ,
-.br
-.IR http://www.paulgraham.com/spam.html .
-.SH AUTHOR
-Chris Lightfoot <chris@ex-parrot.com>
-.br
-.I http://ex-parrot.com/~chris/
-
-Please send me bug reports, patches, adulation and so forth.
+.IR https://github.com/TobyGoodwin/bfilter .
 .SH COPYRIGHT
-Copyright \(co 2003 Chris Lightfoot
+Copyright \(co 2003, 2004 Chris Lightfoot.
 .br
-
-This program is free software; you can redistribute it and/or modify it under
-the terms of the GNU General Public License as published by the Free Software
-Foundation; either version 2 of the License, or (at your option) any later
-version.
-
-This program is distributed in the hope that it will be useful, but
-\fBwithout any warranty\fP; without even the implied warranty of
-\fBmerchantability\fP or \fBfitness for a particular purpose\fP. See the GNU
-General Public License for more details.
-
+Copyright \(co 2015 - 2016 Toby Goodwin.
+.br
+toby@paccrat.org
+.br
+https://github.com/TobyGoodwin/bfilter
+.PP
+Bfilter is free software: you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free
+Software Foundation, either version 3 of the License, or (at your
+option) any later version.
+.PP
+Bfilter is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
+for more details.
+.PP
+You should have received a copy of the GNU General Public License along
+with bfilter.  If not, see <http://www.gnu.org/licenses/>.
