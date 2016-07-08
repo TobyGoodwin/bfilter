@@ -15,25 +15,22 @@ bfilter \- multinomial Bayesian classifier for emails
 \fBbfilter move\fP \fIold-class-name\fP \fInew-class-name\fP
 
 .SH DESCRIPTION
-.B Bfilter
-is a document classifier for email messages. First it must be trained on
-sample messages from different classes. Then it can evaluate new
-messages and decide which class they are most likely to belong to.
+\fBBfilter\fP is a document classifier for email messages. First it must
+be trained on sample messages from different classes. It records
+characteristics of the trained messages in a database. Then it can
+evaluate new messages and decide which class they are most likely to
+belong to.
 .PP
-One typical application of
-.B bfilter
-is to classify messages as \fIspam\fP
-or \fIreal\fP. However,
-.B bfilter
-has no inherent knowledge of spam characteristics. It could equally well
-be used to sort email into, for example, \fIbusiness\fP and
-\fIpersonal\fP classes, provided those were the classes used in
-training.
+One typical application of \fBbfilter\fP is to classify messages as
+\fIspam\fP or \fIreal\fP. However, \fBbfilter\fP has no inherent
+knowledge of spam characteristics. It could equally well be used to sort
+email into, for example, \fIbusiness\fP and \fIpersonal\fP classes,
+provided those were the classes used in training.
 .PP
 Nor is \fBbfilter\fP limited to a two-way classification. A
 typical application will use \fBbfilter\fP both to identify spam
 messages, and to sort the real messages, for example by training
-messages from \fI3\fP classes: \fIbusiness\fP, \fIpersonal\fP, and
+messages from three classes: \fIbusiness\fP, \fIpersonal\fP, and
 \fIspam\fP.
 .SS Modes
 .PP
@@ -55,81 +52,111 @@ mailspool format.
 .TP
 \fBtrain\fP \fIclass\fP
 In \fBtrain\fP mode, you are asserting that the input email is an instance of
-the given class.
+the given \fIclass\fP.
 .B Bfilter
 updates its database accordingly. There is no output.
 .TP
 .B classify
 In this mode,
 .B bfilter
-reads a single email from standard input, and evaluates which class it is most
-likely to belong to. It writes two lines of output: the first is the name of
-the deduced class; the second is an integer representing
+reads a single email from standard input, and evaluates which class it
+is most likely to belong to. It writes two lines of output: the first is
+the name of the deduced class; the second is an integer representing
 .BR bfilter 's
-confidence in the classification.
+confidence in the classification. For example, the complete output might
+be:
+.IP
+\f(CWspam\fP
+.br
+\f(CW17\fP
+.IP
 See
 .I Confidence Estimates
-below for more details.
+below for more details on the meaning of the number.
 .TP
 .B annotate
 The
 .B annotate
 mode is similar to
 .B classify
-mode, except that
-.B bfilter
-copies the email to standard output, adding an
-.B \f(CWX-Bfilter-Class:\fP
-header line at the end of the header. The new header line again contains the
-deduced class, and the confidence estimate in parentheses.
+mode, except that \fBbfilter\fP copies the email to standard output,
+adding an extra header line at the end of the header. The new header
+line contains the deduced class, and the confidence estimate in
+parentheses. For example:
+.IP
+\f(CWX-Bfilter-Class: spam (17)\fP
 .TP
 \fBuntrain\fP \fIclass\fP
-The \fBuntrain\fP mode undoes the effect of a previous \fBtrain\fP command. See 
-.I Untraining
-below for more information.
-The intended use of
-\fBuntrain \fIclass\fP is for the case where you have previous trained a
-message as belonging to \fIclass\P, and have since changed your mind and
-decided that it does not in fact belong to \fIclass\fP. Currently,
-\fBbfilter\fP makes no attempt to ensure that the message had, in fact, been trained 
+The \fBuntrain\fP mode undoes the effect of a previous \fBtrain\fP
+command. The intended use of \fBuntrain\fP \fIclass\fP is for the case
+where you have previously trained a message as belonging to \fIclass\fP,
+and have since changed your mind and decided that it does not in fact
+belong to \fIclass\fP. See \fIUntraining\fP below for more information. 
 .TP
 \fBretrain\fP \fIold-class new-class\fP
-This is equivalent to \fBuntrain \fIold-class\fP followed by \fBtrain
+This is equivalent to \fBuntrain\fP \fIold-class\fP followed by \fBtrain
 \fInew-class\fP.
 .TP
 \fBmove\fP \fIold-name new-name\fP
 The \fBmove\fP mode can be used to rename an existing class.
+
 .SH FILES
 The default database is \fB.bfilter.sqlite\fP in \fB$HOME\fP. An alternate
 database can be specified in the \fBBFILTER_DB\fP environment variable.
+
 .SH NOTES
 .SS Confidence Estimates
-In \fBclassify\fP and \fBannotate\fP modes, \fBbfilter\fP outputs both a
-classification and a confidence estimate. The confidence estimate is
-non-negative integer: the larger it is, the more confident \fBbfilter\fP is of
-the classification. The lowest possible confidence estimate is \fB0\fP
-indicating that \fBbfilter\fP's classification is highly uncertain.
+When \fBbfilter\fP is classifying a message\(emthat is in \fBclassify\fP
+and \fBannotate\fP modes\(emit outputs both the classification and a
+confidence estimate. The confidence estimate is a non-negative integer:
+the larger it is, the more confident \fBbfilter\fP is of the
+classification. The lowest possible confidence estimate is \fB0\fP
+indicating that \fBbfilter\fP's classification is highly uncertain. (As
+a special case, if \fBbfilter\fP's database contains no messages, it
+outputs a class of \fBUNKNOWN\fP and a confidence estimate of \fB0\fP.)
 .PP
 The confidence is scaled to represent an \fIapproximate\fP percentage,
 so \fB100\fP represents an extremely confident classification. However,
 in the current implementation, the number reported can exceed 100. The
-exact mathematical meaning of the confidence estimate is fairly murky,
+exact mathematical meaning of the confidence estimate is somewhat murky,
 and this is not the place to delve into it. The way it is calculated
 may well change in the future, but it is intended that it will remain an
 integer, with \fB0\fP meaning very uncertain, and \fB100\fP very
 certain.
 .PP
 It is strongly suggested that the confidence estimate is used to drive
-user interaction. If \fBbfilter\fP classifies a message as \fIspam\fP
-with a low confidence (say, less than \fB20\fP), it would be wise to
+user interaction. If \fBbfilter\fP classifies a message as \fBspam\fP
+with a low confidence\(emsay, less than \fB20\fP\(emit would be wise to
 present the message to the user and ask them to check the
-classification. Then train the message according to their input.
+classification. Then, whether the user agrees or disagrees with
+\fBbfilter\fP, train the message according to their input.
 .SS Untraining
+In \fBuntrain\fP and \fBretrain\fP modes, \fBbfilter\fP will ``unlearn''
+the characteristics of the input message. This is to allow
+classification mistakes to be corrected.
+.PP
+Currently, \fBbfilter\fP must be told which class it is untraining the
+message from, and it makes no attempt to ensure that the message was
+previously trained to that class.  Typically, \fBbfilter\fP will be a
+component in a system which records whether a message has been trained,
+and to which class, and can thus ensure that \fBuntrain\fP mode is
+called appopriately.
+.PP
+Calling \fBuntrain\fP inappropriately should not be catastrophic. For
+example, it should not cause \fBbfilter\fP to crash, and it should only
+affect its judgements in reasonably sensible ways. However, this has not
+been extensively tested, and it is probably wise not to untrain messages
+unless you are reasonably sure that they were indeed previously trained
+to the stated class.
+.PP
+Future versions of \fBbfilter\fP are likely to be more robust in this
+area.
 
 .SH SEE ALSO
 .BR sqlite3 (1),
 .br
 .IR https://github.com/TobyGoodwin/bfilter .
+
 .SH COPYRIGHT
 Copyright \(co 2003, 2004 Chris Lightfoot.
 .br
