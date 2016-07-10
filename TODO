@@ -1,5 +1,0 @@
-To-do list
-$Id: TODO,v 1.1 2004/05/30 18:05:41 chris Exp $
-
-  - Decode quoted-printable on a similar basis to base64?
-
