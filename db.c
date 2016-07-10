@@ -161,7 +161,7 @@ void db_check_version(void) {
 
 // open the database, read-only or read/write as specified by the flag. if the
 // database is missing: create in write mode, return 0 in read mode.
-static int db_open(_Bool write) {
+static _Bool db_open(_Bool write) {
     char *name;
     int err, flags;
 
@@ -193,7 +193,7 @@ static int db_open(_Bool write) {
     return 1;
 }
 
-int db_read(void) { return db_open(0); }
+_Bool db_read(void) { return db_open(0); }
 void db_write(void) { db_open(1); }
 
 /* db_close
@@ -228,13 +228,6 @@ void db_vacuum(void) {
     sqlite3_exec(db, sql_vacuum, 0, 0, &errmsg);
     if (errmsg) fatal2("cannot vacuum: ", errmsg);
 }
-
-#if 0
-int db_classes(void) {
-    static const char q[] = "SELECT COUNT(1) FROM class";
-    return db_int_query(q, sizeof q);
-}
-#endif
 
 int db_documents(void) {
     static const char q[] = "SELECT SUM(docs) FROM class";

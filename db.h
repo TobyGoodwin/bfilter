@@ -28,7 +28,7 @@
 #include <sqlite3.h>
 
 sqlite3 *db_db(void);
-int db_read(void);
+_Bool db_read(void);
 void db_write(void);
 void db_fatal(const char *, const char *);
 void db_close(void);
