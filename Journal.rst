@@ -1,3 +1,16 @@
+2016-07-11
+==========
+
+Tidying up for a release always takes longer than expected. I was
+considering using github's release feature, but I've opted instead to
+beef up the ``make dist`` target that Oggie helpfully provided. A
+release is not simply a snapshot of the dev tree.
+
+I'm going to call this release ``1.0``, and try to stick to incrementing
+the major version for breaking changes, and the minor one for backward
+compatible changes. Obviously, this precludes calling it ``0.x`` for any
+``x``, since it's not in any way backward compatible with anything.
+
 2016-06-21
 ==========
 

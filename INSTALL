@@ -1,27 +1,28 @@
-To build bfilter:
+To build bfilter::
 
     make
 
-To run the test suite:
+
+To run the test suite::
 
     make check
 
-To install as a local program, from a root shell, or prefix each command
-with ``sudo``:
+
+To install as a local program, run the following commands from a root
+shell, or prefix each command with ``sudo``::
 
     cp bfilter /usr/local/bin
     cp bfilter.1 /usr/local/share/man/man1
 
-To install as a system program, from a root shell, or prefix each
-command with ``sudo``:
+
+To install as a system program, run the following commands from a root
+shell, or prefix each command with ``sudo``::
 
     cp bfilter /usr/bin
     cp bfilter.1 /usr/share/man/man1
 
-In case of any problems, please contact me via email:
 
-    toby@paccrat.org
+In case of any problems, please contact me via email_ or github_
 
-Or via the github page:
-
-    https://github.com/TobyGoodwin/bfilter
+.. _email: toby@paccrat.org
+.. _github: https://github.com/TobyGoodwin/bfilter

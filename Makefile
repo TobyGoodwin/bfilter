@@ -34,7 +34,7 @@ SRCS = bayes.c class.c compose.c cook.c db.c db-count.c db-term.c \
        error.c fdump.c line.c main.c pool.c read.c skiplist.c submit.c \
        token.c train.c utf8.c util.c
 HDRS = bayes.h bfilter.h class.h compose.h cook.h db.h db-count.h db-term.h \
-       error.h fdump.h line.h pool.h read.h skiplist.h submit.h \
+       error.h fdump.h line.h pool.h read.h settings.h skiplist.h submit.h \
        token.h train.h utf8.h util.h
 OBJS = $(SRCS:.c=.o)
 
@@ -44,6 +44,8 @@ bfilter: $(OBJS) depend
 main.o: CFLAGS += -DVERSION=\"$(VERSION)\"
 
 # integration tests
+TESTBINS += test/icook test/ipass test/iread test/itoken
+
 test/icook: test/cook/cook.o cook.o line.o
 	$(CC) $(LDFLAGS) -o $@ $^ $(LDLIBS)
 
@@ -58,6 +60,10 @@ test/itoken: test/token/main.o cook.o error.o line.o read.o \
 	$(CC) $(LDFLAGS) -o $@ $^ $(LDLIBS)
 
 # unit tests
+TESTBINS += test/ubayes test/uclass test/ucompose test/ucount \
+            test/udb_intlist test/uline test/uskiplist0 test/uskiplist1 \
+            test/utoken test/uutf8
+
 test/ubayes: test/unit/bayes.o bayes.o class.o db.o db-term.o error.o \
              line.o pool.o skiplist.o submit.o util.o
 	$(CC) $(LDFLAGS) -o $@ $^ $(LDLIBS)
@@ -95,17 +101,21 @@ test/uutf8: test/unit/utf8.o utf8.o
 check:
 	cd test; ./run.sh
 
+DIST=bfilter-$(VERSION)
+
 clean:
-	rm -f $(OBJS) bfilter core *~ depend test/*/*.o
+	rm -f $(OBJS) $(TESTBINS) bfilter core *~ test/*/*.o
+	rm -rf $(DIST)
 
 %.o: %.c Makefile
 	$(CC) $(CFLAGS) -c -o $@ $<
 
-dist: depend $(SRCS) $(HDRS) $(TXTS)
-	mkdir bfilter-$(VERSION)
-	set -e ; for i in Makefile depend $(SRCS) $(HDRS) $(TXTS) ; do cp $$i bfilter-$(VERSION)/$$i ; done
-	tar cvf - bfilter-$(VERSION) | gzip --best > bfilter-$(VERSION).tar.gz
-	rm -rf bfilter-$(VERSION)
+dist: clean depend $(SRCS) $(HDRS) $(TXTS)
+	mkdir $(DIST)
+	cp Makefile depend $(SRCS) $(HDRS) $(TXTS) $(DIST)
+	cp -r test $(DIST)
+	#tar cvf - $(DIST) | gzip --best > $(DIST).tar.gz
+	#rm -rf $(DIST)
 
 depend: $(SRCS)
 	$(CPP) $(CFLAGS) -MM $(SRCS) > depend
