@@ -59,7 +59,7 @@ void usage(FILE *stream) {
 "By default, bfilter reads a single email from standard input.\n"
 "COMMAND may be shortened to any prefix, including a single letter.\n"
 "\n"
-"bfilter, version " BFILTER_VERSION "\n"
+"bfilter, version " VERSION "\n"
 "Copyright (c) 2003, 2004 Chris Lightfoot <chris@ex-parrot.com>\n"
 "Copyright (c) 2015 - 2016 Toby Goodwin <toby@paccrat.org>\n"
 "https://github.com/TobyGoodwin/bfilter\n"

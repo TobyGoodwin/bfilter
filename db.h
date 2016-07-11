@@ -27,6 +27,10 @@
 
 #include <sqlite3.h>
 
+/* Current database version, and lowest version that this code can use */
+#define DB_VERSION 3
+#define MIN_DB_VERSION 3
+
 sqlite3 *db_db(void);
 _Bool db_read(void);
 void db_write(void);

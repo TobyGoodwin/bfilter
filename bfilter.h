@@ -1,6 +1,6 @@
 /*
 
-    Copyright (c) 2003 - 2004 Chris Lightfoot. All rights reserved.
+    Copyright (c) 2003, 2004 Chris Lightfoot. All rights reserved.
     Copyright (c) 2015 - 2016 Toby Goodwin.
     toby@paccrat.org
     https://github.com/TobyGoodwin/bfilter
@@ -22,13 +22,10 @@
 
 */
 
+// Global variables are bad, m'kay?
+
 #include "skiplist.h"
 
-/* Current database version, and lowest version that this code can use */
-#define VERSION 3
-#define MIN_VERSION 3
-
-/* Global variables are bad, m'kay? */
 _Bool flagb;
 char *flagD;
 

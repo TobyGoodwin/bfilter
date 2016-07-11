@@ -1,5 +1,3 @@
-#define BFILTER_VERSION "1.0"
-
 /* HISTORY_LEN
  * The number of tokens we may amalgamate into a single term. You can
  * tweak this; larger numbers use more database space, but should give

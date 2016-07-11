@@ -93,7 +93,7 @@ void db_init(void) {
     r = sqlite3_prepare_v2(db, set_version, sizeof set_version, &stmt, 0);
     if (r != SQLITE_OK) db_fatal("prepare", set_version);
 
-    r = sqlite3_bind_int(stmt, 1, VERSION);
+    r = sqlite3_bind_int(stmt, 1, DB_VERSION);
     if (r != SQLITE_OK) db_fatal("bind", set_version);
 
     r = sqlite3_step(stmt);
@@ -152,7 +152,7 @@ void db_check_version(void) {
     int v;
 
     v = db_int_query(q, sizeof q);
-    if (v < MIN_VERSION || v > VERSION) {
+    if (v < MIN_DB_VERSION || v > DB_VERSION) {
         char vs[25];
         snprintf(vs, 25, "%d", v);
         fatal2("bad database version: ", vs);
