@@ -114,8 +114,8 @@ dist: clean depend $(SRCS) $(HDRS) $(TXTS)
 	mkdir $(DIST)
 	cp Makefile depend $(SRCS) $(HDRS) $(TXTS) $(DIST)
 	cp -r test $(DIST)
-	#tar cvf - $(DIST) | gzip --best > $(DIST).tar.gz
-	#rm -rf $(DIST)
+	tar cvf - $(DIST) | gzip --best > $(DIST).tar.gz
+	rm -rf $(DIST)
 
 depend: $(SRCS)
 	$(CPP) $(CFLAGS) -MM $(SRCS) > depend

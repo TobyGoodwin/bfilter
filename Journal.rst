@@ -6,10 +6,17 @@ considering using github's release feature, but I've opted instead to
 beef up the ``make dist`` target that Oggie helpfully provided. A
 release is not simply a snapshot of the dev tree.
 
+I want to ship the test suite with the release, which is mildly
+annoying, as we don't really know all that's in it, so have to ``cp
+-r``. Need to check that we're not accidentally including any binaries,
+object files etc.
+
 I'm going to call this release ``1.0``, and try to stick to incrementing
 the major version for breaking changes, and the minor one for backward
 compatible changes. Obviously, this precludes calling it ``0.x`` for any
 ``x``, since it's not in any way backward compatible with anything.
+
+The bfilter version is now defined once in the Makefile.
 
 2016-06-21
 ==========
