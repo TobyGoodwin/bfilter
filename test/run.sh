@@ -51,11 +51,10 @@ script_from() {
 
     t=$(mktemp)
     sed -n '/\*\//q;2,$p' $1 > $t
-    if test -s $t; then
+    if sh -n $t; then
 	. $t
     else
-	rm $t
-	fail 'no script found'
+	fail 'script missing or faulty'
     fi
     rm $t
 }
