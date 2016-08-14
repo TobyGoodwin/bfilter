@@ -56,7 +56,7 @@ _Bool train_read(void) {
         /* If we're running on a terminal, print stats. */
         if (isatty(1))
             fprintf(stderr,
-        "Reading: %8u emails (%8u bytes) %8lu terms avg length %8.2f\r",
+        "Reading: %8u emails (%8u bytes) %8zu terms avg length %8.2f\r",
                 nemails, (unsigned)nbytesrd, skiplist_size(token_list),
                 (double)term_length / skiplist_size(token_list));
     } while (!feof(stdin));
