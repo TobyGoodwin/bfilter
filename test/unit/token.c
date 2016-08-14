@@ -7,7 +7,7 @@ check 'only £12.99' '{only}{£12.99}'
 check "LoOk! We don't fOlD CASE!!" "{LoOk}{We}{don't}{fOlD}{CASE}"
 check "she said 'hello'" '{she}{said}{hello}'
 check 'Emails@are.tokens too' '{Emails@are.tokens}{too}'
-check "we don't skip 1968-11-16 dates and 9/11/2001 other dates" '{we}{don't}{skip}{1968-11-16}{dates}{and}{9/11/2001}{other}{dates}'
+check "we don't skip 1968-11-16 dates and 9/11/2001 other dates" "{we}{don't}{skip}{1968-11-16}{dates}{and}{9/11/2001}{other}{dates}"
 check 'we skip <em>any</em> html markup' '{we}{skip}{any}{html}{markup}'
 check '#start -with .punctuation' '{start}{-with}{punctuation}'
 */
